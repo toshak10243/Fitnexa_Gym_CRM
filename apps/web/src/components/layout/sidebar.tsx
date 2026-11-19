@@ -1,3 +1,4 @@
+import { UserRole } from '@fitnexa/shared';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '../../lib/utils';
 import { useAuth } from '../../context/auth-context';
@@ -5,12 +6,15 @@ import fitnexaLogo from '../../assets/logo.png';
 
 export function Sidebar() {
   const location = useLocation();
-  const { tenant } = useAuth();
+  const { tenant, user } = useAuth();
+  const userRole = user?.role;
+  const isSuperOrOwner = userRole === UserRole.SUPER_ADMIN || userRole === UserRole.GYM_OWNER;
 
   const coreNavItems = [
     {
       label: 'Executive Dashboard',
       path: '/',
+      roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER', 'FRONT_DESK', 'TRAINER', 'STAFF'],
       enabled: true,
       icon: (
         <svg
@@ -35,6 +39,7 @@ export function Sidebar() {
     {
       label: 'Analytics & Reports',
       path: '/reports',
+      roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER'],
       enabled: true,
       icon: (
         <svg
@@ -58,6 +63,7 @@ export function Sidebar() {
     {
       label: 'System Telemetry',
       path: '/telemetry',
+      roles: ['SUPER_ADMIN', 'GYM_OWNER'],
       enabled: true,
       icon: (
         <svg
@@ -79,6 +85,7 @@ export function Sidebar() {
     {
       label: 'Gym & Facilities',
       path: '/settings',
+      roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER'],
       enabled: true,
       icon: (
         <svg
@@ -101,6 +108,7 @@ export function Sidebar() {
     {
       label: 'Staff & Roles',
       path: '/staff',
+      roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER'],
       enabled: true,
       icon: (
         <svg
@@ -125,6 +133,7 @@ export function Sidebar() {
     {
       label: 'Audit Trail',
       path: '/audit-logs',
+      roles: ['SUPER_ADMIN', 'GYM_OWNER'],
       enabled: true,
       icon: (
         <svg
@@ -153,6 +162,7 @@ export function Sidebar() {
     {
       label: 'Members',
       path: '/members',
+      roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER', 'FRONT_DESK', 'TRAINER', 'STAFF'],
       enabled: true,
       icon: (
         <svg
@@ -175,6 +185,7 @@ export function Sidebar() {
     {
       label: 'Membership Plans',
       path: '/plans',
+      roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER', 'FRONT_DESK', 'STAFF'],
       enabled: true,
       icon: (
         <svg
@@ -223,6 +234,7 @@ export function Sidebar() {
     {
       label: 'Billing Overview',
       path: '/billing',
+      roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER', 'FRONT_DESK', 'STAFF'],
       enabled: true,
       icon: (
         <svg
@@ -246,6 +258,7 @@ export function Sidebar() {
     {
       label: 'Tax Invoices',
       path: '/billing/invoices',
+      roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER', 'FRONT_DESK', 'STAFF'],
       enabled: true,
       icon: (
         <svg
@@ -270,6 +283,7 @@ export function Sidebar() {
     {
       label: 'Collections & Payments',
       path: '/billing/payments',
+      roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER', 'FRONT_DESK', 'STAFF'],
       enabled: true,
       icon: (
         <svg
@@ -293,6 +307,7 @@ export function Sidebar() {
     {
       label: 'Dues & Aging Ledger',
       path: '/billing/dues',
+      roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER', 'FRONT_DESK', 'STAFF'],
       enabled: true,
       icon: (
         <svg
@@ -315,6 +330,7 @@ export function Sidebar() {
     {
       label: 'Cash Register Drawer',
       path: '/billing/cash-register',
+      roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER', 'FRONT_DESK', 'STAFF'],
       enabled: true,
       icon: (
         <svg
@@ -337,6 +353,7 @@ export function Sidebar() {
     {
       label: 'Refunds & Adjustments',
       path: '/billing/refunds',
+      roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER'],
       enabled: true,
       icon: (
         <svg
@@ -362,6 +379,7 @@ export function Sidebar() {
     {
       label: 'Attendance Telemetry',
       path: '/attendance',
+      roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER', 'FRONT_DESK', 'STAFF'],
       enabled: true,
       icon: (
         <svg
@@ -385,6 +403,7 @@ export function Sidebar() {
     {
       label: 'Front-Desk Check-in',
       path: '/attendance/check-in',
+      roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER', 'FRONT_DESK', 'STAFF'],
       enabled: true,
       icon: (
         <svg
@@ -433,6 +452,7 @@ export function Sidebar() {
     {
       label: 'Event History Ledger',
       path: '/attendance/history',
+      roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER', 'FRONT_DESK', 'TRAINER', 'STAFF'],
       enabled: true,
       icon: (
         <svg
@@ -455,6 +475,7 @@ export function Sidebar() {
     {
       label: 'Correction Requests',
       path: '/attendance/corrections',
+      roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER', 'FRONT_DESK', 'STAFF'],
       enabled: true,
       icon: (
         <svg
@@ -477,6 +498,7 @@ export function Sidebar() {
     {
       label: 'Access Policies',
       path: '/attendance/policies',
+      roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER'],
       enabled: true,
       icon: (
         <svg
@@ -526,6 +548,7 @@ export function Sidebar() {
     {
       label: 'Biometric Terminals',
       path: '/devices',
+      roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER'],
       enabled: true,
       icon: (
         <svg
@@ -574,6 +597,7 @@ export function Sidebar() {
     {
       label: 'Inventory Overview',
       path: '/inventory',
+      roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER'],
       enabled: true,
       icon: (
         <svg
@@ -620,6 +644,7 @@ export function Sidebar() {
     {
       label: 'POS Counter',
       path: '/pos',
+      roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER', 'FRONT_DESK', 'STAFF'],
       enabled: true,
       icon: (
         <svg
@@ -643,6 +668,7 @@ export function Sidebar() {
     {
       label: 'POS Sales Register',
       path: '/pos/sales',
+      roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER', 'FRONT_DESK', 'STAFF'],
       enabled: true,
       icon: (
         <svg
@@ -710,6 +736,7 @@ export function Sidebar() {
     {
       label: 'Suppliers Directory',
       path: '/inventory/suppliers',
+      roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER'],
       enabled: true,
       icon: (
         <svg
@@ -736,6 +763,7 @@ export function Sidebar() {
     {
       label: 'Leads Pipeline',
       path: '/leads',
+      roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER', 'FRONT_DESK', 'STAFF'],
       enabled: true,
       icon: (
         <svg
@@ -757,6 +785,7 @@ export function Sidebar() {
     {
       label: 'CRM Follow-Ups',
       path: '/leads/follow-ups',
+      roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER', 'FRONT_DESK', 'STAFF'],
       enabled: true,
       icon: (
         <svg
@@ -779,6 +808,7 @@ export function Sidebar() {
     {
       label: 'Trainer Profiles',
       path: '/trainers',
+      roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER', 'FRONT_DESK', 'TRAINER', 'STAFF'],
       enabled: true,
       icon: (
         <svg
@@ -800,6 +830,7 @@ export function Sidebar() {
     {
       label: 'PT Session Schedule',
       path: '/trainers/schedule',
+      roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER', 'TRAINER'],
       enabled: true,
       icon: (
         <svg
@@ -827,6 +858,7 @@ export function Sidebar() {
     {
       label: 'Expense Ledger',
       path: '/expenses',
+      roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER', 'FRONT_DESK', 'STAFF'],
       enabled: true,
       icon: (
         <svg
@@ -849,6 +881,7 @@ export function Sidebar() {
     {
       label: 'Notifications & Alerts',
       path: '/notifications',
+      roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER', 'FRONT_DESK', 'TRAINER', 'STAFF'],
       enabled: true,
       icon: (
         <svg
@@ -870,49 +903,51 @@ export function Sidebar() {
     },
   ];
 
-  const renderNavGroup = (title: string, items: typeof coreNavItems) => (
-    <div className="space-y-1 mb-4">
-      <div className="px-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-[#9CA3AF]">
-        {title}
-      </div>
-      {items.map((item) => {
-        const isActive = location.pathname === item.path;
+  interface NavItem {
+    label: string;
+    path: string;
+    enabled: boolean;
+    icon: React.ReactNode;
+    roles?: string[];
+  }
 
-        if (!item.enabled) {
+  const renderNavGroup = (title: string, items: NavItem[]) => {
+    const visibleItems = items.filter((item) => {
+      if (!item.enabled) return false;
+      if (isSuperOrOwner) return true;
+      if (!item.roles || item.roles.length === 0) return true;
+      return userRole ? item.roles.includes(userRole) : false;
+    });
+
+    if (visibleItems.length === 0) return null;
+
+    return (
+      <div className="space-y-1 mb-4">
+        <div className="px-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-[#9CA3AF]">
+          {title}
+        </div>
+        {visibleItems.map((item) => {
+          const isActive = location.pathname === item.path;
+
           return (
-            <div
+            <Link
               key={item.label}
-              className="flex items-center justify-between px-3 py-1.5 text-xs text-[#6B7280] cursor-not-allowed rounded-none"
+              to={item.path}
+              className={cn(
+                'flex items-center space-x-3 px-3 py-1.5 text-xs font-medium rounded-none transition-colors',
+                isActive
+                  ? 'bg-[#B91C1C] text-[#FBFBF9]'
+                  : 'text-[#E5E7EB] hover:bg-[#162E52] hover:text-[#FBFBF9]',
+              )}
             >
-              <div className="flex items-center space-x-3">
-                <span className="text-[#4B5563]">{item.icon}</span>
-                <span>{item.label}</span>
-              </div>
-              <span className="text-[9px] px-1.5 py-0.2 uppercase tracking-wider bg-[#162E52] text-[#9CA3AF] rounded-none font-medium">
-                Soon
-              </span>
-            </div>
+              <span>{item.icon}</span>
+              <span>{item.label}</span>
+            </Link>
           );
-        }
-
-        return (
-          <Link
-            key={item.label}
-            to={item.path}
-            className={cn(
-              'flex items-center space-x-3 px-3 py-1.5 text-xs font-medium rounded-none transition-colors',
-              isActive
-                ? 'bg-[#B91C1C] text-[#FBFBF9]'
-                : 'text-[#E5E7EB] hover:bg-[#162E52] hover:text-[#FBFBF9]',
-            )}
-          >
-            <span>{item.icon}</span>
-            <span>{item.label}</span>
-          </Link>
-        );
-      })}
-    </div>
-  );
+        })}
+      </div>
+    );
+  };
 
   return (
     <aside className="w-64 flex-shrink-0 bg-[#0A192F] text-[#FBFBF9] flex flex-col border-r border-[#162E52] select-none">
