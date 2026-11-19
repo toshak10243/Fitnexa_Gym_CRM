@@ -1,0 +1,43 @@
+export const APP_NAME = 'Fitnexa';
+export const API_VERSION = 'v1';
+export const DEFAULT_CURRENCY = 'INR';
+export const DEFAULT_TIMEZONE = 'Asia/Kolkata';
+
+export enum UserRole {
+  SUPER_ADMIN = 'SUPER_ADMIN',
+  GYM_OWNER = 'GYM_OWNER',
+  BRANCH_MANAGER = 'BRANCH_MANAGER',
+  FRONT_DESK = 'FRONT_DESK',
+  TRAINER = 'TRAINER',
+  MEMBER = 'MEMBER',
+}
+
+export enum AttendanceSource {
+  BIOMETRIC = 'BIOMETRIC',
+  RFID = 'RFID',
+  QR_CODE = 'QR_CODE',
+  MANUAL = 'MANUAL',
+}
+
+export enum SubscriptionStatus {
+  ACTIVE = 'ACTIVE',
+  EXPIRED = 'EXPIRED',
+  FROZEN = 'FROZEN',
+  CANCELLED = 'CANCELLED',
+  PENDING = 'PENDING',
+}
+
+export const HTTP_STATUS = {
+  OK: 200,
+  CREATED: 201,
+  ACCEPTED: 202,
+  NO_CONTENT: 204,
+  BAD_REQUEST: 400,
+  UNAUTHORIZED: 401,
+  FORBIDDEN: 403,
+  NOT_FOUND: 404,
+  CONFLICT: 409,
+  UNPROCESSABLE_ENTITY: 422,
+  TOO_MANY_REQUESTS: 429,
+  INTERNAL_SERVER_ERROR: 500,
+} as const;

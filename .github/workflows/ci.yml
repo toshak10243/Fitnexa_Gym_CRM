@@ -1,0 +1,43 @@
+name: Fitnexa Continuous Integration
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 12.21.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: TypeScript Typecheck
+        run: pnpm run typecheck
+
+      - name: ESLint
+        run: pnpm run lint
+
+      - name: Prisma Client Generation
+        run: pnpm run prisma:generate
+
+      - name: Run Tests
+        run: pnpm run test
+
+      - name: Production Build
+        run: pnpm run build

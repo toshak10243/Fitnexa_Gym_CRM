@@ -1,0 +1,20 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+/// System health check and heartbeat ledger for verification
+model SystemHealthRecord {
+  id        String   @id @default(uuid())
+  service   String
+  status    String
+  metadata  Json?
+  checkedAt DateTime @default(now())
+
+  @@index([service, checkedAt])
+  @@map("system_health_records")
+}

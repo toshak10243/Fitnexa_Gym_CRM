@@ -1,0 +1,26 @@
+{
+  "name": "fitnexa-monorepo",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Fitnexa: Enterprise Gym Management CRM / ERP Monorepo",
+  "packageManager": "pnpm@12.21.0",
+  "scripts": {
+    "dev:api": "pnpm --filter @fitnexa/api start:dev",
+    "dev:web": "pnpm --filter @fitnexa/web dev",
+    "build:shared": "pnpm --filter @fitnexa/shared build",
+    "build:api": "pnpm --filter @fitnexa/api build",
+    "build:web": "pnpm --filter @fitnexa/web build",
+    "build": "pnpm --filter @fitnexa/shared build && pnpm --filter @fitnexa/api build && pnpm --filter @fitnexa/web build",
+    "typecheck": "pnpm -r run typecheck",
+    "lint": "pnpm -r run lint",
+    "test": "pnpm -r run test",
+    "format": "prettier --write \"**/*.{ts,tsx,js,json,md}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,json,md}\"",
+    "prisma:generate": "pnpm --filter @fitnexa/api prisma:generate",
+    "prisma:migrate": "pnpm --filter @fitnexa/api prisma:migrate"
+  },
+  "devDependencies": {
+    "prettier": "^3.4.2",
+    "typescript": "^5.7.3"
+  }
+}
