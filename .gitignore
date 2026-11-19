@@ -49,6 +49,10 @@ playwright-report/
 blob-report/
 playwright/.cache/
 
+# Backups
+backups/
+*.dump
+
 # Prisma
 apps/api/prisma/*.db
 apps/api/prisma/*.db-journal
