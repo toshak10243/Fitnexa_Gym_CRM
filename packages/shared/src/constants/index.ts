@@ -90,6 +90,53 @@ export enum AttendanceSource {
   MANUAL = 'MANUAL',
 }
 
+export enum InvoiceStatus {
+  DRAFT = 'DRAFT',
+  ISSUED = 'ISSUED',
+  PARTIALLY_PAID = 'PARTIALLY_PAID',
+  PAID = 'PAID',
+  OVERDUE = 'OVERDUE',
+  VOID = 'VOID',
+  CANCELLED = 'CANCELLED',
+}
+
+export enum PaymentStatus {
+  RECORDED = 'RECORDED',
+  VERIFIED = 'VERIFIED',
+  REJECTED = 'REJECTED',
+  REVERSED = 'REVERSED',
+}
+
+export enum PaymentMethodType {
+  CASH = 'CASH',
+  UPI = 'UPI',
+  BANK_TRANSFER = 'BANK_TRANSFER',
+  CARD_MANUAL = 'CARD_MANUAL',
+  CHEQUE = 'CHEQUE',
+  OTHER = 'OTHER',
+}
+
+export enum RefundStatus {
+  PENDING_APPROVAL = 'PENDING_APPROVAL',
+  APPROVED = 'APPROVED',
+  REJECTED = 'REJECTED',
+  PROCESSED = 'PROCESSED',
+}
+
+export enum RegisterSessionStatus {
+  OPEN = 'OPEN',
+  CLOSED = 'CLOSED',
+  RECONCILED = 'RECONCILED',
+}
+
+export enum LedgerEntryType {
+  INVOICE_CHARGE = 'INVOICE_CHARGE',
+  PAYMENT_CREDIT = 'PAYMENT_CREDIT',
+  REFUND_DEBIT = 'REFUND_DEBIT',
+  CREDIT_NOTE = 'CREDIT_NOTE',
+  MANUAL_ADJUSTMENT = 'MANUAL_ADJUSTMENT',
+}
+
 export const HTTP_STATUS = {
   OK: 200,
   CREATED: 201,

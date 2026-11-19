@@ -13,6 +13,7 @@ import { MemberModule } from './modules/member/member.module';
 import { MembershipPlanModule } from './modules/membership-plan/membership-plan.module';
 import { MembershipModule } from './modules/membership/membership.module';
 import { MemberImportModule } from './modules/member-import/member-import.module';
+import { BillingModule } from './modules/billing/billing.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { MemberImportModule } from './modules/member-import/member-import.module
     MembershipPlanModule,
     MembershipModule,
     MemberImportModule,
+    BillingModule,
   ],
 })
 export class AppModule {}

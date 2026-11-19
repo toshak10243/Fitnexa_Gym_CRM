@@ -87,6 +87,53 @@ enum ImportRowStatus {
   SKIPPED
 }
 
+enum InvoiceStatus {
+  DRAFT
+  ISSUED
+  PARTIALLY_PAID
+  PAID
+  OVERDUE
+  VOID
+  CANCELLED
+}
+
+enum PaymentStatus {
+  RECORDED
+  VERIFIED
+  REJECTED
+  REVERSED
+}
+
+enum PaymentMethodType {
+  CASH
+  UPI
+  BANK_TRANSFER
+  CARD_MANUAL
+  CHEQUE
+  OTHER
+}
+
+enum RefundStatus {
+  PENDING_APPROVAL
+  APPROVED
+  REJECTED
+  PROCESSED
+}
+
+enum RegisterSessionStatus {
+  OPEN
+  CLOSED
+  RECONCILED
+}
+
+enum LedgerEntryType {
+  INVOICE_CHARGE
+  PAYMENT_CREDIT
+  REFUND_DEBIT
+  CREDIT_NOTE
+  MANUAL_ADJUSTMENT
+}
+
 /// Tenant represents a gym business enterprise in the multi-tenant system
 model Tenant {
   id        String       @id @default(uuid())
@@ -111,6 +158,8 @@ model Tenant {
   auditLogs       AuditLog[]
   members         Member[]
   membershipPlans MembershipPlan[]
+  invoices        Invoice[]
+  payments        Payment[]
 
   @@map("tenants")
 }
@@ -131,11 +180,14 @@ model Branch {
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt
 
-  tenant          Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  users           User[]
-  members         Member[]
-  membershipPlans MembershipPlan[]
-  memberMemberships MemberMembership[]
+  tenant               Tenant                @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  users                User[]
+  members              Member[]
+  membershipPlans      MembershipPlan[]
+  memberMemberships    MemberMembership[]
+  invoices             Invoice[]
+  payments             Payment[]
+  cashRegisterSessions CashRegisterSession[]
 
   @@unique([tenantId, code])
   @@index([tenantId])
@@ -163,6 +215,7 @@ model User {
   auditLogs              AuditLog[]
   assignedTrainerMembers Member[]     @relation("TrainerAssignedMembers")
   memberNotes            MemberNote[]
+  collectedPayments      Payment[]    @relation("PaymentCollector")
 
   @@index([tenantId])
   @@index([branchId])
@@ -244,6 +297,9 @@ model Member {
   memberships       MemberMembership[]
   notes             MemberNote[]
   activities        MemberActivity[]
+  invoices          Invoice[]
+  payments          Payment[]
+  ledgerEntries     MemberAccountLedger[]
 
   @@unique([tenantId, memberCode])
   @@unique([tenantId, phone])
@@ -388,6 +444,7 @@ model MemberMembership {
   branch        Branch                   @relation(fields: [branchId], references: [id], onDelete: Restrict)
   plan          MembershipPlan           @relation(fields: [planId], references: [id], onDelete: Restrict)
   statusHistory MembershipStatusHistory[]
+  invoices      Invoice[]
 
   @@index([tenantId, status])
   @@index([memberId, status])
@@ -483,4 +540,258 @@ model MemberImportRow {
 
   @@index([batchId, status])
   @@map("member_import_rows")
+}
+
+// ========================================================
+// PHASE 3: FINANCIAL & BILLING SUBSYSTEM MODELS
+// ========================================================
+
+/// Authoritative tax invoice or bill issued to a member
+model Invoice {
+  id                 String        @id @default(uuid())
+  tenantId           String
+  branchId           String
+  memberId           String
+  membershipId       String?
+  invoiceNumber      String        @db.VarChar(50)
+  status             InvoiceStatus @default(ISSUED)
+  invoiceDate        DateTime      @db.Date
+  dueDate            DateTime      @db.Date
+  
+  subtotalInPaise    Int
+  discountInPaise    Int           @default(0)
+  taxRateBps         Int           @default(1800) // 1800 = 18.00% GST
+  taxAmountInPaise   Int           @default(0)
+  isTaxInclusive     Boolean       @default(false)
+  grandTotalInPaise  Int
+  paidAmountInPaise  Int           @default(0)
+  balanceDueInPaise  Int           // grandTotal - paidAmount
+  
+  notes              String?       @db.Text
+  termsAndConditions String?       @db.Text
+  voidReason         String?       @db.VarChar(255)
+  voidedAt           DateTime?
+  createdBy          String?
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  tenant      Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  branch      Branch              @relation(fields: [branchId], references: [id], onDelete: Restrict)
+  member      Member              @relation(fields: [memberId], references: [id], onDelete: Restrict)
+  membership  MemberMembership?   @relation(fields: [membershipId], references: [id], onDelete: SetNull)
+  lineItems   InvoiceLineItem[]
+  allocations PaymentAllocation[]
+  creditNotes CreditNote[]
+
+  @@unique([tenantId, invoiceNumber])
+  @@index([tenantId, status])
+  @@index([tenantId, branchId, dueDate])
+  @@index([tenantId, memberId])
+  @@map("invoices")
+}
+
+/// Itemized breakdown inside an invoice
+model InvoiceLineItem {
+  id                 String   @id @default(uuid())
+  invoiceId          String
+  description        String   @db.VarChar(255)
+  quantity           Int      @default(1)
+  unitPriceInPaise   Int
+  discountInPaise    Int      @default(0)
+  taxRateBps         Int      @default(1800)
+  taxAmountInPaise   Int      @default(0)
+  totalAmountInPaise Int
+  itemType           String   @db.VarChar(50) // PLAN, JOINING_FEE, PERSONAL_TRAINING, SERVICE, OTHER
+  referenceId        String?  @db.VarChar(100)
+
+  invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@index([invoiceId])
+  @@map("invoice_line_items")
+}
+
+/// Real payment transaction recorded by staff or gateway
+model Payment {
+  id                 String            @id @default(uuid())
+  tenantId           String
+  branchId           String
+  memberId           String
+  registerSessionId  String?
+  paymentNumber      String            @db.VarChar(50)
+  amountInPaise      Int
+  unallocatedInPaise Int               @default(0)
+  method             PaymentMethodType
+  referenceNumber    String?           @db.VarChar(100)
+  paymentDate        DateTime          @default(now())
+  status             PaymentStatus     @default(VERIFIED)
+  notes              String?           @db.Text
+  collectedBy        String
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+
+  tenant          Tenant               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  branch          Branch               @relation(fields: [branchId], references: [id], onDelete: Restrict)
+  member          Member               @relation(fields: [memberId], references: [id], onDelete: Restrict)
+  collector       User                 @relation("PaymentCollector", fields: [collectedBy], references: [id], onDelete: Restrict)
+  registerSession CashRegisterSession? @relation(fields: [registerSessionId], references: [id], onDelete: SetNull)
+  allocations     PaymentAllocation[]
+  receipt         PaymentReceipt?
+  refunds         Refund[]
+
+  @@unique([tenantId, paymentNumber])
+  @@index([tenantId, paymentDate])
+  @@index([tenantId, memberId])
+  @@index([tenantId, branchId, method])
+  @@map("payments")
+}
+
+/// Attribution of a payment to a specific invoice
+model PaymentAllocation {
+  id               String   @id @default(uuid())
+  tenantId         String
+  paymentId        String
+  invoiceId        String
+  allocatedInPaise Int
+  allocatedAt      DateTime @default(now())
+  allocatedBy      String
+
+  payment Payment @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, invoiceId])
+  @@index([paymentId])
+  @@map("payment_allocations")
+}
+
+/// Official receipt issued to the member
+model PaymentReceipt {
+  id            String   @id @default(uuid())
+  tenantId      String
+  branchId      String
+  paymentId     String   @unique
+  receiptNumber String   @db.VarChar(50)
+  issuedAt      DateTime @default(now())
+  issuedBy      String
+  snapshotData  Json
+
+  payment Payment @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, receiptNumber])
+  @@index([tenantId, branchId, issuedAt])
+  @@map("payment_receipts")
+}
+
+/// Controlled refund against an authorized verified payment
+model Refund {
+  id              String       @id @default(uuid())
+  tenantId        String
+  branchId        String
+  paymentId       String
+  refundNumber    String       @db.VarChar(50)
+  amountInPaise   Int
+  reason          String       @db.Text
+  status          RefundStatus @default(PENDING_APPROVAL)
+  requestedBy     String
+  approvedBy      String?
+  approvedAt      DateTime?
+  processedAt     DateTime?
+  payoutReference String?      @db.VarChar(100)
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  payment Payment @relation(fields: [paymentId], references: [id], onDelete: Restrict)
+
+  @@unique([tenantId, refundNumber])
+  @@index([tenantId, status])
+  @@map("refunds")
+}
+
+/// Credit note for invoice reduction or dispute adjustment
+model CreditNote {
+  id               String   @id @default(uuid())
+  tenantId         String
+  branchId         String
+  invoiceId        String
+  creditNoteNumber String   @db.VarChar(50)
+  amountInPaise    Int
+  reason           String   @db.Text
+  issuedBy         String
+  issuedAt         DateTime @default(now())
+
+  invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Restrict)
+
+  @@unique([tenantId, creditNoteNumber])
+  @@map("credit_notes")
+}
+
+/// Daily cash drawer / register session tracking for front-desk staff
+model CashRegisterSession {
+  id                   String                @id @default(uuid())
+  tenantId             String
+  branchId             String
+  openedBy             String
+  closedBy             String?
+  openedAt             DateTime              @default(now())
+  closedAt             DateTime?
+  openingFloatInPaise  Int
+  cashCollectedInPaise Int                   @default(0)
+  cashRefundedInPaise  Int                   @default(0)
+  expectedClosingPaise Int
+  actualClosingPaise   Int?
+  varianceInPaise      Int?
+  status               RegisterSessionStatus @default(OPEN)
+  notes                String?               @db.Text
+
+  branch   Branch    @relation(fields: [branchId], references: [id], onDelete: Restrict)
+  payments Payment[]
+
+  @@index([tenantId, branchId, status])
+  @@map("cash_register_sessions")
+}
+
+/// Double-entry style member account balance ledger
+model MemberAccountLedger {
+  id                  String          @id @default(uuid())
+  tenantId            String
+  memberId            String
+  entryType           LedgerEntryType
+  amountInPaise       Int
+  runningBalancePaise Int
+  referenceId         String          @db.VarChar(100)
+  notes               String?         @db.VarChar(255)
+  recordedAt          DateTime        @default(now())
+
+  member Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, memberId, recordedAt])
+  @@map("member_account_ledgers")
+}
+
+/// Atomic sequence counter for concurrency-safe invoice and receipt numbering
+model BillingSequence {
+  id              String @id @default(uuid())
+  tenantId        String
+  sequenceType    String @db.VarChar(20) // INVOICE, RECEIPT, PAYMENT, REFUND, CREDIT_NOTE
+  year            Int
+  currentSequence Int    @default(0)
+
+  @@unique([tenantId, sequenceType, year])
+  @@map("billing_sequences")
+}
+
+/// Idempotency protection to prevent double billing / duplicate payment collection
+model IdempotencyRecord {
+  id             String   @id @default(uuid())
+  tenantId       String
+  idempotencyKey String   @db.VarChar(128)
+  endpoint       String   @db.VarChar(100)
+  requestHash    String   @db.VarChar(64)
+  responseStatus Int
+  responseBody   Json
+  expiresAt      DateTime
+  createdAt      DateTime @default(now())
+
+  @@unique([tenantId, idempotencyKey])
+  @@index([expiresAt])
+  @@map("idempotency_records")
 }

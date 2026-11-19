@@ -8,4 +8,5 @@ export * from './contracts/member.contracts';
 export * from './contracts/plan.contracts';
 export * from './contracts/membership.contracts';
 export * from './contracts/import.contracts';
+export * from './contracts/billing.contracts';
 export * from './types/index';

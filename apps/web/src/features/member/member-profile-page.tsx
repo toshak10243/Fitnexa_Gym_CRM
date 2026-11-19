@@ -4,8 +4,9 @@ import { apiClient } from '../../lib/api-client';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Skeleton } from '../../components/ui/skeleton';
-import { MemberStatus, UserRole } from '@fitnexa/shared';
+import { MemberStatus, UserRole, PaymentMethodType } from '@fitnexa/shared';
 import { useAuth } from '../../context/auth-context';
+import { formatPaiseToInr, parseInrToPaise } from '../../lib/utils';
 
 export function MemberProfilePage() {
   const { id } = useParams<{ id: string }>();
@@ -16,7 +17,30 @@ export function MemberProfilePage() {
   const [plans, setPlans] = useState<any[]>([]);
   const [branches, setBranches] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [activeTab, setActiveTab] = useState<'details' | 'memberships' | 'notes' | 'activity'>('details');
+  const [activeTab, setActiveTab] = useState<'details' | 'memberships' | 'billing' | 'notes' | 'activity'>('details');
+
+  // Billing state
+  const [memberInvoices, setMemberInvoices] = useState<any[]>([]);
+  const [memberPayments, setMemberPayments] = useState<any[]>([]);
+  const [isCollectModalOpen, setIsCollectModalOpen] = useState(false);
+  const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
+  const [paymentForm, setPaymentForm] = useState({
+    amountRupees: '',
+    method: PaymentMethodType.UPI,
+    referenceNumber: '',
+    notes: '',
+  });
+
+  // Renewal Modal state
+  const [isRenewalModalOpen, setIsRenewalModalOpen] = useState(false);
+  const [renewalForm, setRenewalForm] = useState({
+    membershipId: '',
+    planId: '',
+    branchId: '',
+    downPaymentRupees: '0.00',
+    downPaymentMethod: PaymentMethodType.UPI,
+    downPaymentRef: '',
+  });
 
   // Modals state
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
@@ -61,8 +85,26 @@ export function MemberProfilePage() {
     }
   };
 
+  const fetchFinancials = async () => {
+    try {
+      const [invRes, payRes] = await Promise.all([
+        apiClient.get(`/billing/invoices?memberId=${id}&limit=50`),
+        apiClient.get(`/billing/payments?memberId=${id}&limit=50`),
+      ]);
+      if (invRes.data.success) {
+        setMemberInvoices(invRes.data.data.items || []);
+      }
+      if (payRes.data.success) {
+        setMemberPayments(payRes.data.data.items || []);
+      }
+    } catch {
+      // Handled gracefully
+    }
+  };
+
   useEffect(() => {
     fetchMember();
+    fetchFinancials();
     apiClient.get('/plans?isActive=true').then((res) => {
       setPlans(res.data.data.items || []);
       if (res.data.data.items?.length > 0) {
@@ -73,6 +115,86 @@ export function MemberProfilePage() {
       setBranches(res.data.data || []);
     });
   }, [id]);
+
+  const handleOpenCollectModal = (inv: any) => {
+    setSelectedInvoice(inv);
+    setPaymentForm({
+      amountRupees: (inv.balanceDueInPaise / 100).toFixed(2),
+      method: PaymentMethodType.UPI,
+      referenceNumber: '',
+      notes: '',
+    });
+    setIsCollectModalOpen(true);
+  };
+
+  const handleCollectSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedInvoice) return;
+
+    const amountInPaise = parseInrToPaise(paymentForm.amountRupees);
+    if (amountInPaise <= 0) {
+      alert('Payment amount must be greater than zero.');
+      return;
+    }
+
+    try {
+      await apiClient.post('/billing/payments', {
+        memberId: id,
+        branchId: selectedInvoice.branchId,
+        amountInPaise,
+        method: paymentForm.method,
+        referenceNumber: paymentForm.referenceNumber || undefined,
+        notes: paymentForm.notes || undefined,
+        allocations: [
+          {
+            invoiceId: selectedInvoice.id,
+            amountInPaise,
+          },
+        ],
+      });
+      setIsCollectModalOpen(false);
+      fetchFinancials();
+      fetchMember();
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Payment recording failed');
+    }
+  };
+
+  const handleOpenRenewalModal = (membership?: any) => {
+    const defaultPlanId = membership?.planId || (plans[0]?.id || '');
+    const defaultBranchId = membership?.branchId || member?.branchId || (branches[0]?.id || '');
+    setRenewalForm({
+      membershipId: membership?.id || '',
+      planId: defaultPlanId,
+      branchId: defaultBranchId,
+      downPaymentRupees: '0.00',
+      downPaymentMethod: PaymentMethodType.UPI,
+      downPaymentRef: '',
+    });
+    setIsRenewalModalOpen(true);
+  };
+
+  const handleRenewalSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const downPaymentInPaise = parseInrToPaise(renewalForm.downPaymentRupees);
+      await apiClient.post('/billing/renewals', {
+        memberId: id,
+        currentMembershipId: renewalForm.membershipId || undefined,
+        planId: renewalForm.planId,
+        branchId: renewalForm.branchId,
+        downPaymentInPaise: downPaymentInPaise > 0 ? downPaymentInPaise : undefined,
+        downPaymentMethod: downPaymentInPaise > 0 ? renewalForm.downPaymentMethod : undefined,
+        downPaymentReference: downPaymentInPaise > 0 ? renewalForm.downPaymentRef : undefined,
+      });
+      setIsRenewalModalOpen(false);
+      fetchFinancials();
+      fetchMember();
+      alert('Membership renewal processed successfully.');
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Renewal failed');
+    }
+  };
 
   const handleAssignPlan = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -264,10 +386,10 @@ export function MemberProfilePage() {
       </div>
 
       {/* Profile Navigation Tabs */}
-      <div className="flex border-b border-[#E5E7EB] bg-[#FBFBF9]">
+      <div className="flex border-b border-[#E5E7EB] bg-[#FBFBF9] overflow-x-auto">
         <button
           onClick={() => setActiveTab('details')}
-          className={`py-3 px-6 text-xs font-bold uppercase tracking-wider border-b-2 transition-colors ${
+          className={`py-3 px-6 text-xs font-bold uppercase tracking-wider border-b-2 transition-colors whitespace-nowrap ${
             activeTab === 'details'
               ? 'border-[#0A192F] text-[#0A192F]'
               : 'border-transparent text-[#6B7280] hover:text-[#111827]'
@@ -277,7 +399,7 @@ export function MemberProfilePage() {
         </button>
         <button
           onClick={() => setActiveTab('memberships')}
-          className={`py-3 px-6 text-xs font-bold uppercase tracking-wider border-b-2 transition-colors ${
+          className={`py-3 px-6 text-xs font-bold uppercase tracking-wider border-b-2 transition-colors whitespace-nowrap ${
             activeTab === 'memberships'
               ? 'border-[#0A192F] text-[#0A192F]'
               : 'border-transparent text-[#6B7280] hover:text-[#111827]'
@@ -286,8 +408,36 @@ export function MemberProfilePage() {
           Memberships & Subscriptions ({member.memberships?.length || 0})
         </button>
         <button
+          onClick={() => setActiveTab('billing')}
+          className={`py-3 px-6 text-xs font-bold uppercase tracking-wider border-b-2 transition-colors flex items-center gap-2 whitespace-nowrap ${
+            activeTab === 'billing'
+              ? 'border-[#0A192F] text-[#0A192F]'
+              : 'border-transparent text-[#6B7280] hover:text-[#111827]'
+          }`}
+        >
+          <span>Billing & Financial Ledger ({memberInvoices.length})</span>
+          {memberInvoices.reduce(
+            (sum, inv) =>
+              inv.status !== 'VOID' && inv.status !== 'PAID' ? sum + inv.balanceDueInPaise : sum,
+            0,
+          ) > 0 && (
+            <span className="bg-[#B91C1C] text-[#FBFBF9] text-[9px] font-mono px-1.5 py-0.5 rounded-none font-bold">
+              {formatPaiseToInr(
+                memberInvoices.reduce(
+                  (sum, inv) =>
+                    inv.status !== 'VOID' && inv.status !== 'PAID'
+                      ? sum + inv.balanceDueInPaise
+                      : sum,
+                  0,
+                ),
+              )}{' '}
+              DUE
+            </span>
+          )}
+        </button>
+        <button
           onClick={() => setActiveTab('notes')}
-          className={`py-3 px-6 text-xs font-bold uppercase tracking-wider border-b-2 transition-colors ${
+          className={`py-3 px-6 text-xs font-bold uppercase tracking-wider border-b-2 transition-colors whitespace-nowrap ${
             activeTab === 'notes'
               ? 'border-[#0A192F] text-[#0A192F]'
               : 'border-transparent text-[#6B7280] hover:text-[#111827]'
@@ -297,7 +447,7 @@ export function MemberProfilePage() {
         </button>
         <button
           onClick={() => setActiveTab('activity')}
-          className={`py-3 px-6 text-xs font-bold uppercase tracking-wider border-b-2 transition-colors ${
+          className={`py-3 px-6 text-xs font-bold uppercase tracking-wider border-b-2 transition-colors whitespace-nowrap ${
             activeTab === 'activity'
               ? 'border-[#0A192F] text-[#0A192F]'
               : 'border-transparent text-[#6B7280] hover:text-[#111827]'
@@ -532,12 +682,314 @@ export function MemberProfilePage() {
                             Unfreeze
                           </Button>
                         )}
+                        {isManagement && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleOpenRenewalModal(m)}
+                            className="rounded-none text-[10px] h-6 px-2 border-[#0A192F] text-[#0A192F] hover:bg-[#F5F5F0]"
+                          >
+                            Renew
+                          </Button>
+                        )}
                       </td>
                     </tr>
                   ))
                 )}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* TAB: Billing & Financial Ledger */}
+      {activeTab === 'billing' && (
+        <div className="space-y-6">
+          {/* Outstanding Balance Banner */}
+          {memberInvoices.reduce(
+            (sum, inv) =>
+              inv.status !== 'VOID' && inv.status !== 'PAID' ? sum + inv.balanceDueInPaise : sum,
+            0,
+          ) > 0 ? (
+            <div className="bg-[#FEF2F2] border border-[#FECACA] p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="h-2 w-2 rounded-full bg-[#DC2626]"></span>
+                  <span className="text-xs font-bold uppercase tracking-wider text-[#991B1B]">
+                    Payment Attention Required
+                  </span>
+                </div>
+                <div className="text-xl font-bold font-mono text-[#B91C1C] mt-1">
+                  Outstanding Balance:{' '}
+                  {formatPaiseToInr(
+                    memberInvoices.reduce(
+                      (sum, inv) =>
+                        inv.status !== 'VOID' && inv.status !== 'PAID'
+                          ? sum + inv.balanceDueInPaise
+                          : sum,
+                      0,
+                    ),
+                  )}
+                </div>
+                <p className="text-xs text-[#7F1D1D] mt-0.5">
+                  Unpaid dues are tracked on this account. Settle promptly to prevent membership lock.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Button
+                  onClick={() => {
+                    const firstUnpaid = memberInvoices.find(
+                      (inv) => inv.status !== 'VOID' && inv.status !== 'PAID',
+                    );
+                    if (firstUnpaid) handleOpenCollectModal(firstUnpaid);
+                  }}
+                  className="bg-[#B91C1C] hover:bg-[#991B1B] text-[#FBFBF9] rounded-none text-xs"
+                >
+                  Quick Collect Dues
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="bg-[#ECFDF5] border border-[#A7F3D0] p-4 flex items-center justify-between text-xs text-[#047857]">
+              <div className="flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-[#10B981]"></span>
+                <span className="font-bold">Account in Good Standing: No Outstanding Dues</span>
+              </div>
+              <span className="font-mono font-semibold">Balance: ₹0.00</span>
+            </div>
+          )}
+
+          {/* KPI Tiles */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="bg-[#FBFBF9] border border-[#E5E7EB] p-4">
+              <div className="text-[11px] font-semibold uppercase tracking-wider text-[#6B7280]">
+                Total Invoiced
+              </div>
+              <div className="text-xl font-bold font-mono text-[#0A192F] mt-1">
+                {formatPaiseToInr(
+                  memberInvoices.reduce(
+                    (sum, inv) => (inv.status !== 'VOID' ? sum + inv.totalAmountInPaise : sum),
+                    0,
+                  ),
+                )}
+              </div>
+              <div className="text-[10px] text-[#6B7280] mt-0.5">
+                Across {memberInvoices.length} invoices
+              </div>
+            </div>
+
+            <div className="bg-[#FBFBF9] border border-[#E5E7EB] p-4">
+              <div className="text-[11px] font-semibold uppercase tracking-wider text-[#6B7280]">
+                Total Paid & Settled
+              </div>
+              <div className="text-xl font-bold font-mono text-[#047857] mt-1">
+                {formatPaiseToInr(
+                  memberPayments.reduce((sum, p) => sum + p.amountInPaise, 0),
+                )}
+              </div>
+              <div className="text-[10px] text-[#047857] mt-0.5">
+                Across {memberPayments.length} transactions
+              </div>
+            </div>
+
+            <div className="bg-[#FBFBF9] border border-[#E5E7EB] p-4">
+              <div className="text-[11px] font-semibold uppercase tracking-wider text-[#6B7280]">
+                Net Balance Due
+              </div>
+              <div className="text-xl font-bold font-mono text-[#B91C1C] mt-1">
+                {formatPaiseToInr(
+                  memberInvoices.reduce(
+                    (sum, inv) =>
+                      inv.status !== 'VOID' && inv.status !== 'PAID'
+                        ? sum + inv.balanceDueInPaise
+                        : sum,
+                    0,
+                  ),
+                )}
+              </div>
+              <div className="text-[10px] text-[#6B7280] mt-0.5">Current liability</div>
+            </div>
+          </div>
+
+          {/* Invoices List */}
+          <div className="bg-[#FBFBF9] border border-[#E5E7EB]">
+            <div className="p-4 border-b border-[#E5E7EB] flex items-center justify-between">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-[#0A192F]">
+                Invoices & Tax Bills ({memberInvoices.length})
+              </h3>
+              {isManagement && (
+                <Button
+                  size="sm"
+                  onClick={() => navigate('/billing/invoices/new')}
+                  className="rounded-none text-xs h-7 bg-[#0A192F] text-[#FBFBF9]"
+                >
+                  Generate New Invoice
+                </Button>
+              )}
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs text-[#111827]">
+                <thead className="bg-[#F5F5F0] border-b border-[#E5E7EB] text-[11px] font-semibold uppercase text-[#6B7280]">
+                  <tr>
+                    <th className="py-2.5 px-4">Invoice #</th>
+                    <th className="py-2.5 px-4">Invoice Date</th>
+                    <th className="py-2.5 px-4">Due Date</th>
+                    <th className="py-2.5 px-4 text-right">Total Amount</th>
+                    <th className="py-2.5 px-4 text-right">Paid</th>
+                    <th className="py-2.5 px-4 text-right">Balance Due</th>
+                    <th className="py-2.5 px-4 text-center">Status</th>
+                    <th className="py-2.5 px-4 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#E5E7EB]">
+                  {memberInvoices.length === 0 ? (
+                    <tr>
+                      <td colSpan={8} className="py-8 text-center text-[#6B7280]">
+                        No invoices billed to this member yet.
+                      </td>
+                    </tr>
+                  ) : (
+                    memberInvoices.map((inv) => (
+                      <tr key={inv.id} className="hover:bg-[#F5F5F0]">
+                        <td className="py-3 px-4 font-mono font-bold text-[#0A192F]">
+                          <button
+                            onClick={() => navigate(`/billing/invoices/${inv.id}`)}
+                            className="hover:underline"
+                          >
+                            {inv.invoiceNumber}
+                          </button>
+                        </td>
+                        <td className="py-3 px-4 text-[#4B5563]">
+                          {new Date(inv.invoiceDate).toLocaleDateString('en-IN')}
+                        </td>
+                        <td className="py-3 px-4 text-[#4B5563]">
+                          {new Date(inv.dueDate).toLocaleDateString('en-IN')}
+                        </td>
+                        <td className="py-3 px-4 text-right font-mono font-bold text-[#0A192F]">
+                          {formatPaiseToInr(inv.totalAmountInPaise)}
+                        </td>
+                        <td className="py-3 px-4 text-right font-mono text-[#047857]">
+                          {formatPaiseToInr(inv.paidAmountInPaise)}
+                        </td>
+                        <td className="py-3 px-4 text-right font-mono font-bold text-[#B91C1C]">
+                          {formatPaiseToInr(inv.balanceDueInPaise)}
+                        </td>
+                        <td className="py-3 px-4 text-center">
+                          <span
+                            className={`inline-block px-2 py-0.5 text-[10px] font-bold border uppercase tracking-wider rounded-none ${
+                              inv.status === 'PAID'
+                                ? 'bg-[#ECFDF5] text-[#047857] border-[#A7F3D0]'
+                                : inv.status === 'PARTIALLY_PAID'
+                                ? 'bg-[#FFFBEB] text-[#B45309] border-[#FDE68A]'
+                                : inv.status === 'OVERDUE'
+                                ? 'bg-[#FEF2F2] text-[#DC2626] border-[#FECACA]'
+                                : 'bg-[#EFF6FF] text-[#1D4ED8] border-[#BFDBFE]'
+                            }`}
+                          >
+                            {inv.status}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 text-right space-x-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => navigate(`/billing/invoices/${inv.id}`)}
+                            className="rounded-none text-[10px] h-6 px-2 hover:bg-[#E5E7EB]"
+                          >
+                            View
+                          </Button>
+                          {inv.status !== 'PAID' && inv.status !== 'VOID' && isManagement && (
+                            <Button
+                              variant="primary"
+                              size="sm"
+                              onClick={() => handleOpenCollectModal(inv)}
+                              className="rounded-none text-[10px] h-6 px-2 bg-[#0A192F] hover:bg-[#0F223D] text-[#FBFBF9]"
+                            >
+                              Collect
+                            </Button>
+                          )}
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Payment Receipts List */}
+          <div className="bg-[#FBFBF9] border border-[#E5E7EB]">
+            <div className="p-4 border-b border-[#E5E7EB]">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-[#0A192F]">
+                Payment Receipts & Transactions ({memberPayments.length})
+              </h3>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs text-[#111827]">
+                <thead className="bg-[#F5F5F0] border-b border-[#E5E7EB] text-[11px] font-semibold uppercase text-[#6B7280]">
+                  <tr>
+                    <th className="py-2.5 px-4">Payment #</th>
+                    <th className="py-2.5 px-4">Date</th>
+                    <th className="py-2.5 px-4">Method</th>
+                    <th className="py-2.5 px-4">Ref / UTR</th>
+                    <th className="py-2.5 px-4 text-right">Amount Paid</th>
+                    <th className="py-2.5 px-4">Collected By</th>
+                    <th className="py-2.5 px-4 text-center">Receipt</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#E5E7EB]">
+                  {memberPayments.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} className="py-8 text-center text-[#6B7280]">
+                        No payment records found for this member.
+                      </td>
+                    </tr>
+                  ) : (
+                    memberPayments.map((p) => (
+                      <tr key={p.id} className="hover:bg-[#F5F5F0]">
+                        <td className="py-3 px-4 font-mono font-bold text-[#0A192F]">
+                          {p.paymentNumber}
+                        </td>
+                        <td className="py-3 px-4 text-[#4B5563]">
+                          {new Date(p.paymentDate).toLocaleDateString('en-IN')}
+                        </td>
+                        <td className="py-3 px-4">
+                          <span className="inline-block px-2 py-0.5 text-[10px] font-bold border uppercase tracking-wider bg-[#F5F5F0] border-[#E5E7EB]">
+                            {p.method}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 font-mono text-[11px] text-[#4B5563]">
+                          {p.referenceNumber || '-'}
+                        </td>
+                        <td className="py-3 px-4 text-right font-mono font-bold text-[#047857]">
+                          {formatPaiseToInr(p.amountInPaise)}
+                        </td>
+                        <td className="py-3 px-4 text-[#4B5563]">
+                          {p.receivedBy?.fullName || 'Staff'}
+                        </td>
+                        <td className="py-3 px-4 text-center">
+                          {p.receipt?.id ? (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => navigate(`/billing/receipts/${p.receipt.id}`)}
+                              className="rounded-none text-[10px] h-6 px-2 text-[#0A192F] hover:bg-[#E5E7EB] font-mono"
+                            >
+                              {p.receipt.receiptNumber || 'Print Receipt'}
+                            </Button>
+                          ) : (
+                            <span className="text-[#9CA3AF] text-[10px]">-</span>
+                          )}
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}
@@ -805,6 +1257,223 @@ export function MemberProfilePage() {
                 </Button>
                 <Button type="submit" className="bg-red-700 text-[#FBFBF9] rounded-none text-xs">
                   Confirm Cancellation
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* QUICK COLLECT PAYMENT MODAL */}
+      {isCollectModalOpen && selectedInvoice && (
+        <div className="fixed inset-0 z-50 bg-[#0A192F]/60 flex items-center justify-center p-4">
+          <div className="bg-[#FBFBF9] border border-[#E5E7EB] max-w-md w-full p-6 space-y-4">
+            <div className="border-b border-[#E5E7EB] pb-3">
+              <h3 className="text-base font-bold text-[#0A192F]">Collect Member Dues</h3>
+              <p className="text-xs text-[#6B7280] mt-0.5">
+                Invoice {selectedInvoice.invoiceNumber} • Outstanding:{' '}
+                {formatPaiseToInr(selectedInvoice.balanceDueInPaise)}
+              </p>
+            </div>
+
+            <form onSubmit={handleCollectSubmit} className="space-y-4 text-xs">
+              <div>
+                <label className="block font-semibold text-[#0A192F] uppercase tracking-wider mb-1">
+                  Collection Amount (₹) *
+                </label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  required
+                  value={paymentForm.amountRupees}
+                  onChange={(e) => setPaymentForm({ ...paymentForm, amountRupees: e.target.value })}
+                  className="rounded-none bg-[#FBFBF9] font-mono text-sm"
+                />
+              </div>
+
+              <div>
+                <label className="block font-semibold text-[#0A192F] uppercase tracking-wider mb-1">
+                  Payment Method *
+                </label>
+                <select
+                  value={paymentForm.method}
+                  onChange={(e) =>
+                    setPaymentForm({ ...paymentForm, method: e.target.value as PaymentMethodType })
+                  }
+                  className="w-full h-10 px-3 text-xs bg-[#FBFBF9] border border-[#E5E7EB] rounded-none text-[#111827] focus:outline-none focus:ring-1 focus:ring-[#0A192F]"
+                >
+                  <option value={PaymentMethodType.UPI}>UPI / QR</option>
+                  <option value={PaymentMethodType.CASH}>Cash Drawer</option>
+                  <option value={PaymentMethodType.CARD_MANUAL}>Credit / Debit Card</option>
+                  <option value={PaymentMethodType.BANK_TRANSFER}>Bank Transfer</option>
+                  <option value={PaymentMethodType.CHEQUE}>Cheque</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block font-semibold text-[#0A192F] uppercase tracking-wider mb-1">
+                  UTR / Reference / Voucher #
+                </label>
+                <Input
+                  type="text"
+                  placeholder="e.g. 423984029348 or Cheque 002934"
+                  value={paymentForm.referenceNumber}
+                  onChange={(e) => setPaymentForm({ ...paymentForm, referenceNumber: e.target.value })}
+                  className="rounded-none bg-[#FBFBF9] font-mono text-xs"
+                />
+              </div>
+
+              <div>
+                <label className="block font-semibold text-[#0A192F] uppercase tracking-wider mb-1">
+                  Notes
+                </label>
+                <Input
+                  type="text"
+                  placeholder="Optional receipt notes"
+                  value={paymentForm.notes}
+                  onChange={(e) => setPaymentForm({ ...paymentForm, notes: e.target.value })}
+                  className="rounded-none bg-[#FBFBF9] text-xs"
+                />
+              </div>
+
+              <div className="flex justify-end gap-3 pt-3 border-t border-[#E5E7EB]">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsCollectModalOpen(false)}
+                  className="rounded-none border-[#E5E7EB] text-xs"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  className="bg-[#0A192F] hover:bg-[#0F223D] text-[#FBFBF9] rounded-none text-xs"
+                >
+                  Record Payment & Issue Receipt
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* RENEW MEMBERSHIP MODAL */}
+      {isRenewalModalOpen && (
+        <div className="fixed inset-0 z-50 bg-[#0A192F]/60 flex items-center justify-center p-4">
+          <div className="bg-[#FBFBF9] border border-[#E5E7EB] max-w-md w-full p-6 space-y-4">
+            <div className="border-b border-[#E5E7EB] pb-3">
+              <h3 className="text-base font-bold text-[#0A192F]">Renew Membership Plan</h3>
+              <p className="text-xs text-[#6B7280] mt-0.5">
+                Chained renewal extends continuous gym access and generates tax invoice.
+              </p>
+            </div>
+
+            <form onSubmit={handleRenewalSubmit} className="space-y-4 text-xs">
+              <div>
+                <label className="block font-semibold text-[#0A192F] uppercase tracking-wider mb-1">
+                  Target Membership Plan *
+                </label>
+                <select
+                  required
+                  value={renewalForm.planId}
+                  onChange={(e) => setRenewalForm({ ...renewalForm, planId: e.target.value })}
+                  className="w-full h-10 px-3 text-xs bg-[#FBFBF9] border border-[#E5E7EB] rounded-none text-[#111827] focus:outline-none focus:ring-1 focus:ring-[#0A192F]"
+                >
+                  {plans.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name} ({p.durationInDays} days • {formatPaiseToInr(p.priceInPaise)})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block font-semibold text-[#0A192F] uppercase tracking-wider mb-1">
+                  Gym Branch *
+                </label>
+                <select
+                  required
+                  value={renewalForm.branchId}
+                  onChange={(e) => setRenewalForm({ ...renewalForm, branchId: e.target.value })}
+                  className="w-full h-10 px-3 text-xs bg-[#FBFBF9] border border-[#E5E7EB] rounded-none text-[#111827] focus:outline-none focus:ring-1 focus:ring-[#0A192F]"
+                >
+                  {branches.map((b) => (
+                    <option key={b.id} value={b.id}>
+                      {b.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="border-t border-[#E5E7EB] pt-3">
+                <div className="font-semibold text-[#0A192F] uppercase tracking-wider mb-2">
+                  Immediate Down Payment (Optional)
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[11px] text-[#6B7280] mb-1">Down Payment (₹)</label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={renewalForm.downPaymentRupees}
+                      onChange={(e) =>
+                        setRenewalForm({ ...renewalForm, downPaymentRupees: e.target.value })
+                      }
+                      className="rounded-none bg-[#FBFBF9] font-mono text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] text-[#6B7280] mb-1">Method</label>
+                    <select
+                      value={renewalForm.downPaymentMethod}
+                      onChange={(e) =>
+                        setRenewalForm({
+                          ...renewalForm,
+                          downPaymentMethod: e.target.value as PaymentMethodType,
+                        })
+                      }
+                      className="w-full h-9 px-2 text-xs bg-[#FBFBF9] border border-[#E5E7EB] rounded-none"
+                    >
+                      <option value={PaymentMethodType.UPI}>UPI / QR</option>
+                      <option value={PaymentMethodType.CASH}>Cash</option>
+                      <option value={PaymentMethodType.CARD_MANUAL}>Card</option>
+                      <option value={PaymentMethodType.BANK_TRANSFER}>Bank Transfer</option>
+                    </select>
+                  </div>
+                </div>
+
+                {parseFloat(renewalForm.downPaymentRupees) > 0 && (
+                  <div className="mt-2">
+                    <label className="block text-[11px] text-[#6B7280] mb-1">
+                      UTR / Reference Number
+                    </label>
+                    <Input
+                      type="text"
+                      placeholder="e.g. 423984029348"
+                      value={renewalForm.downPaymentRef}
+                      onChange={(e) =>
+                        setRenewalForm({ ...renewalForm, downPaymentRef: e.target.value })
+                      }
+                      className="rounded-none bg-[#FBFBF9] font-mono text-xs"
+                    />
+                  </div>
+                )}
+              </div>
+
+              <div className="flex justify-end gap-3 pt-3 border-t border-[#E5E7EB]">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsRenewalModalOpen(false)}
+                  className="rounded-none border-[#E5E7EB] text-xs"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  className="bg-[#0A192F] hover:bg-[#0F223D] text-[#FBFBF9] rounded-none text-xs"
+                >
+                  Generate Renewal & Invoice
                 </Button>
               </div>
             </form>

@@ -13,6 +13,15 @@ import { MemberProfilePage } from '../features/member/member-profile-page';
 import { MemberPrintPage } from '../features/member/member-print-page';
 import { PlansPage } from '../features/plan/plans-page';
 import { ImportsPage } from '../features/import/imports-page';
+import { BillingDashboardPage } from '../features/billing/billing-dashboard-page';
+import { InvoicesPage } from '../features/billing/invoices-page';
+import { InvoiceCreatePage } from '../features/billing/invoice-create-page';
+import { InvoiceDetailPage } from '../features/billing/invoice-detail-page';
+import { PaymentsPage } from '../features/billing/payments-page';
+import { DuesPage } from '../features/billing/dues-page';
+import { ReceiptPrintPage } from '../features/billing/receipt-print-page';
+import { CashRegisterPage } from '../features/billing/cash-register-page';
+import { RefundsPage } from '../features/billing/refunds-page';
 import { UserRole } from '@fitnexa/shared';
 
 export const router = createBrowserRouter([
@@ -131,6 +140,115 @@ export const router = createBrowserRouter([
       <ProtectedRoute allowedRoles={[UserRole.GYM_OWNER, UserRole.SUPER_ADMIN]}>
         <AppShell>
           <AuditPage />
+        </AppShell>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/billing',
+    element: (
+      <ProtectedRoute>
+        <AppShell>
+          <BillingDashboardPage />
+        </AppShell>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/billing/invoices',
+    element: (
+      <ProtectedRoute>
+        <AppShell>
+          <InvoicesPage />
+        </AppShell>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/billing/invoices/new',
+    element: (
+      <ProtectedRoute
+        allowedRoles={[
+          UserRole.GYM_OWNER,
+          UserRole.BRANCH_MANAGER,
+          UserRole.FRONT_DESK,
+          UserRole.SUPER_ADMIN,
+        ]}
+      >
+        <AppShell>
+          <InvoiceCreatePage />
+        </AppShell>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/billing/invoices/:id',
+    element: (
+      <ProtectedRoute>
+        <AppShell>
+          <InvoiceDetailPage />
+        </AppShell>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/billing/payments',
+    element: (
+      <ProtectedRoute>
+        <AppShell>
+          <PaymentsPage />
+        </AppShell>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/billing/dues',
+    element: (
+      <ProtectedRoute>
+        <AppShell>
+          <DuesPage />
+        </AppShell>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/billing/receipts/:id',
+    element: (
+      <ProtectedRoute>
+        <ReceiptPrintPage />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/billing/cash-register',
+    element: (
+      <ProtectedRoute
+        allowedRoles={[
+          UserRole.GYM_OWNER,
+          UserRole.BRANCH_MANAGER,
+          UserRole.FRONT_DESK,
+          UserRole.SUPER_ADMIN,
+        ]}
+      >
+        <AppShell>
+          <CashRegisterPage />
+        </AppShell>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/billing/refunds',
+    element: (
+      <ProtectedRoute
+        allowedRoles={[
+          UserRole.GYM_OWNER,
+          UserRole.BRANCH_MANAGER,
+          UserRole.FRONT_DESK,
+          UserRole.SUPER_ADMIN,
+        ]}
+      >
+        <AppShell>
+          <RefundsPage />
         </AppShell>
       </ProtectedRoute>
     ),
