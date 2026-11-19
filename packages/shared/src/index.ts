@@ -4,4 +4,8 @@ export * from './contracts/auth.contracts';
 export * from './contracts/tenant.contracts';
 export * from './contracts/staff.contracts';
 export * from './contracts/audit.contracts';
+export * from './contracts/member.contracts';
+export * from './contracts/plan.contracts';
+export * from './contracts/membership.contracts';
+export * from './contracts/import.contracts';
 export * from './types/index';

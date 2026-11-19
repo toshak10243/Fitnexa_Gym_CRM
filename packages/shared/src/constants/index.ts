@@ -31,19 +31,63 @@ export enum BranchStatus {
   INACTIVE = 'INACTIVE',
 }
 
+export enum MemberStatus {
+  ACTIVE = 'ACTIVE',
+  INACTIVE = 'INACTIVE',
+  PENDING = 'PENDING',
+  SUSPENDED = 'SUSPENDED',
+  ARCHIVED = 'ARCHIVED',
+}
+
+export enum Gender {
+  MALE = 'MALE',
+  FEMALE = 'FEMALE',
+  OTHER = 'OTHER',
+  PREFER_NOT_TO_SAY = 'PREFER_NOT_TO_SAY',
+}
+
+export enum DocumentType {
+  ID_PROOF = 'ID_PROOF',
+  ADDRESS_PROOF = 'ADDRESS_PROOF',
+  FITNESS_CERTIFICATE = 'FITNESS_CERTIFICATE',
+  MEDICAL_DECLARATION = 'MEDICAL_DECLARATION',
+  OTHER = 'OTHER',
+}
+
+export enum PlanDurationType {
+  DAYS = 'DAYS',
+  MONTHS = 'MONTHS',
+  YEARS = 'YEARS',
+}
+
+export enum MembershipStatus {
+  PENDING = 'PENDING',
+  ACTIVE = 'ACTIVE',
+  FROZEN = 'FROZEN',
+  EXPIRED = 'EXPIRED',
+  CANCELLED = 'CANCELLED',
+}
+
+export enum ImportStatus {
+  PENDING = 'PENDING',
+  PROCESSING = 'PROCESSING',
+  COMPLETED = 'COMPLETED',
+  FAILED = 'FAILED',
+  CANCELLED = 'CANCELLED',
+}
+
+export enum ImportRowStatus {
+  VALID = 'VALID',
+  INVALID = 'INVALID',
+  IMPORTED = 'IMPORTED',
+  SKIPPED = 'SKIPPED',
+}
+
 export enum AttendanceSource {
   BIOMETRIC = 'BIOMETRIC',
   RFID = 'RFID',
   QR_CODE = 'QR_CODE',
   MANUAL = 'MANUAL',
-}
-
-export enum SubscriptionStatus {
-  ACTIVE = 'ACTIVE',
-  EXPIRED = 'EXPIRED',
-  FROZEN = 'FROZEN',
-  CANCELLED = 'CANCELLED',
-  PENDING = 'PENDING',
 }
 
 export const HTTP_STATUS = {

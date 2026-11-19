@@ -35,6 +35,58 @@ enum BranchStatus {
   INACTIVE
 }
 
+enum MemberStatus {
+  ACTIVE
+  INACTIVE
+  PENDING
+  SUSPENDED
+  ARCHIVED
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+  PREFER_NOT_TO_SAY
+}
+
+enum DocumentType {
+  ID_PROOF
+  ADDRESS_PROOF
+  FITNESS_CERTIFICATE
+  MEDICAL_DECLARATION
+  OTHER
+}
+
+enum PlanDurationType {
+  DAYS
+  MONTHS
+  YEARS
+}
+
+enum MembershipStatus {
+  PENDING
+  ACTIVE
+  FROZEN
+  EXPIRED
+  CANCELLED
+}
+
+enum ImportStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum ImportRowStatus {
+  VALID
+  INVALID
+  IMPORTED
+  SKIPPED
+}
+
 /// Tenant represents a gym business enterprise in the multi-tenant system
 model Tenant {
   id        String       @id @default(uuid())
@@ -54,9 +106,11 @@ model Tenant {
   createdAt DateTime     @default(now())
   updatedAt DateTime     @updatedAt
 
-  branches  Branch[]
-  users     User[]
-  auditLogs AuditLog[]
+  branches        Branch[]
+  users           User[]
+  auditLogs       AuditLog[]
+  members         Member[]
+  membershipPlans MembershipPlan[]
 
   @@map("tenants")
 }
@@ -77,8 +131,11 @@ model Branch {
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt
 
-  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  users  User[]
+  tenant          Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  users           User[]
+  members         Member[]
+  membershipPlans MembershipPlan[]
+  memberMemberships MemberMembership[]
 
   @@unique([tenantId, code])
   @@index([tenantId])
@@ -101,9 +158,11 @@ model User {
   createdAt        DateTime   @default(now())
   updatedAt        DateTime   @updatedAt
 
-  tenant    Tenant?    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  branch    Branch?    @relation(fields: [branchId], references: [id], onDelete: SetNull)
-  auditLogs AuditLog[]
+  tenant                 Tenant?      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  branch                 Branch?      @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  auditLogs              AuditLog[]
+  assignedTrainerMembers Member[]     @relation("TrainerAssignedMembers")
+  memberNotes            MemberNote[]
 
   @@index([tenantId])
   @@index([branchId])
@@ -141,4 +200,287 @@ model SystemHealthRecord {
 
   @@index([service, checkedAt])
   @@map("system_health_records")
+}
+
+/// Member represents a gym client/subscriber
+model Member {
+  id                 String       @id @default(uuid())
+  tenantId           String
+  branchId           String
+  memberCode         String       @db.VarChar(50)
+  fullName           String       @db.VarChar(100)
+  email              String?      @db.VarChar(100)
+  phone              String       @db.VarChar(20)
+  altPhone           String?      @db.VarChar(20)
+  photoUrl           String?      @db.VarChar(255)
+  dob                DateTime?    @db.Date
+  gender             Gender?
+  occupation         String?      @db.VarChar(100)
+  joiningDate        DateTime     @db.Date
+  fitnessGoal        String?      @db.VarChar(255)
+  previousExperience String?      @db.VarChar(255)
+  heightCm           Float?
+  weightKg           Float?
+  workoutTiming      String?      @db.VarChar(50)
+  assignedTrainerId  String?
+  status             MemberStatus @default(ACTIVE)
+  isMinor            Boolean      @default(false)
+  guardianName       String?      @db.VarChar(100)
+  guardianPhone      String?      @db.VarChar(20)
+  guardianRelation   String?      @db.VarChar(50)
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+  createdBy          String?
+  updatedBy          String?
+
+  tenant            Tenant                  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  branch            Branch                  @relation(fields: [branchId], references: [id], onDelete: Restrict)
+  assignedTrainer   User?                   @relation("TrainerAssignedMembers", fields: [assignedTrainerId], references: [id], onDelete: SetNull)
+  address           MemberAddress?
+  emergencyContact  MemberEmergencyContact?
+  healthDeclaration MemberHealthDeclaration?
+  consent           MemberConsent?
+  documents         MemberDocument[]
+  memberships       MemberMembership[]
+  notes             MemberNote[]
+  activities        MemberActivity[]
+
+  @@unique([tenantId, memberCode])
+  @@unique([tenantId, phone])
+  @@index([tenantId, status])
+  @@index([tenantId, branchId])
+  @@index([tenantId, fullName])
+  @@map("members")
+}
+
+/// Member residential address details
+model MemberAddress {
+  id           String  @id @default(uuid())
+  memberId     String  @unique
+  addressLine1 String  @db.VarChar(255)
+  addressLine2 String? @db.VarChar(255)
+  city         String  @db.VarChar(50)
+  state        String  @db.VarChar(50)
+  pincode      String  @db.VarChar(10)
+  country      String  @default("India") @db.VarChar(50)
+
+  member Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@map("member_addresses")
+}
+
+/// Member emergency contact details
+model MemberEmergencyContact {
+  id           String @id @default(uuid())
+  memberId     String @unique
+  name         String @db.VarChar(100)
+  relationship String @db.VarChar(50)
+  phone        String @db.VarChar(20)
+
+  member Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@map("member_emergency_contacts")
+}
+
+/// Member health declarations & exercise restrictions (Confidential)
+model MemberHealthDeclaration {
+  id                   String   @id @default(uuid())
+  memberId             String   @unique
+  hasHealthCondition   Boolean  @default(false)
+  medicalHistory       String?  @db.Text
+  exerciseRestrictions String?  @db.Text
+  emergencyConsent     Boolean  @default(true)
+  processingConsent    Boolean  @default(true)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  member Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@map("member_health_declarations")
+}
+
+/// Member consent and gym terms acknowledgement
+model MemberConsent {
+  id                    String   @id @default(uuid())
+  memberId              String   @unique
+  termsAccepted         Boolean  @default(true)
+  privacyPolicyAccepted Boolean  @default(true)
+  gymRulesAccepted      Boolean  @default(true)
+  marketingConsent      Boolean  @default(false)
+  guardianConsentGiven  Boolean?
+  consentedAt           DateTime @default(now())
+  ipAddress             String?  @db.VarChar(50)
+
+  member Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@map("member_consents")
+}
+
+/// Member identity and verification documents
+model MemberDocument {
+  id           String       @id @default(uuid())
+  memberId     String
+  tenantId     String
+  documentType DocumentType
+  title        String       @db.VarChar(100)
+  fileUrl      String       @db.VarChar(255)
+  fileSize     Int
+  mimeType     String       @db.VarChar(100)
+  uploadedBy   String?
+  createdAt    DateTime     @default(now())
+
+  member Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, memberId])
+  @@map("member_documents")
+}
+
+/// Membership plans configured by Gym Owners
+model MembershipPlan {
+  id                 String           @id @default(uuid())
+  tenantId           String
+  branchId           String?
+  name               String           @db.VarChar(100)
+  code               String?          @db.VarChar(50)
+  description        String?          @db.Text
+  durationType       PlanDurationType @default(MONTHS)
+  durationValue      Int
+  priceInPaise       Int
+  joiningFeeInPaise  Int              @default(0)
+  taxRateBps         Int              @default(1800)
+  isTaxInclusive     Boolean          @default(false)
+  maxFreezeDays      Int              @default(0)
+  isActive           Boolean          @default(true)
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+
+  tenant           Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  branch           Branch?            @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  memberMemberships MemberMembership[]
+
+  @@unique([tenantId, name])
+  @@index([tenantId, isActive])
+  @@map("membership_plans")
+}
+
+/// Member's enrolled membership instance
+model MemberMembership {
+  id                  String           @id @default(uuid())
+  memberId            String
+  planId              String
+  tenantId            String
+  branchId            String
+  startDate           DateTime         @db.Date
+  endDate             DateTime         @db.Date
+  pricePaidInPaise    Int
+  taxPaidInPaise      Int
+  status              MembershipStatus @default(PENDING)
+  freezeStartDate     DateTime?        @db.Date
+  freezeEndDate       DateTime?        @db.Date
+  totalFreezeDaysUsed Int              @default(0)
+  cancellationReason  String?          @db.Text
+  cancelledAt         DateTime?
+  assignedBy          String?
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+
+  member        Member                   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  branch        Branch                   @relation(fields: [branchId], references: [id], onDelete: Restrict)
+  plan          MembershipPlan           @relation(fields: [planId], references: [id], onDelete: Restrict)
+  statusHistory MembershipStatusHistory[]
+
+  @@index([tenantId, status])
+  @@index([memberId, status])
+  @@index([endDate])
+  @@map("member_memberships")
+}
+
+/// Audit log of membership status transitions
+model MembershipStatusHistory {
+  id                 String           @id @default(uuid())
+  memberMembershipId String
+  fromStatus         MembershipStatus
+  toStatus           MembershipStatus
+  reason             String?          @db.VarChar(255)
+  changedBy          String?
+  changedAt          DateTime         @default(now())
+
+  membership MemberMembership @relation(fields: [memberMembershipId], references: [id], onDelete: Cascade)
+
+  @@index([memberMembershipId])
+  @@map("membership_status_history")
+}
+
+/// Internal notes left on member profiles by staff
+model MemberNote {
+  id        String   @id @default(uuid())
+  memberId  String
+  tenantId  String
+  authorId  String?
+  note      String   @db.Text
+  isPinned  Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  member Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  author User?  @relation(fields: [authorId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, memberId])
+  @@map("member_notes")
+}
+
+/// Activity timeline records for member actions
+model MemberActivity {
+  id          String   @id @default(uuid())
+  memberId    String
+  tenantId    String
+  performedBy String?
+  action      String   @db.VarChar(100)
+  details     Json?
+  createdAt   DateTime @default(now())
+
+  member Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, memberId, createdAt])
+  @@map("member_activities")
+}
+
+/// Tracking metadata for bulk member data migrations
+model MemberImportBatch {
+  id           String       @id @default(uuid())
+  tenantId     String
+  branchId     String
+  fileName     String       @db.VarChar(255)
+  fileSize     Int
+  totalRows    Int
+  validRows    Int          @default(0)
+  invalidRows  Int          @default(0)
+  importedRows Int          @default(0)
+  status       ImportStatus @default(PENDING)
+  uploadedBy   String?
+  completedAt  DateTime?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  rows MemberImportRow[]
+
+  @@index([tenantId, status])
+  @@map("member_import_batches")
+}
+
+/// Individual row inside an import batch
+model MemberImportRow {
+  id         String          @id @default(uuid())
+  batchId    String
+  rowNumber  Int
+  rawData    Json
+  parsedData Json?
+  status     ImportRowStatus @default(VALID)
+  errors     Json?
+  memberId   String?
+  createdAt  DateTime        @default(now())
+
+  batch MemberImportBatch @relation(fields: [batchId], references: [id], onDelete: Cascade)
+
+  @@index([batchId, status])
+  @@map("member_import_rows")
 }

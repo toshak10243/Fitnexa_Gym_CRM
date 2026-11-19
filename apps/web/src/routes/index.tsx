@@ -7,6 +7,12 @@ import { RegisterPage } from '../features/auth/register-page';
 import { SettingsPage } from '../features/tenant/settings-page';
 import { StaffPage } from '../features/staff/staff-page';
 import { AuditPage } from '../features/audit/audit-page';
+import { MemberListPage } from '../features/member/member-list-page';
+import { MemberRegistrationPage } from '../features/member/member-registration-page';
+import { MemberProfilePage } from '../features/member/member-profile-page';
+import { MemberPrintPage } from '../features/member/member-print-page';
+import { PlansPage } from '../features/plan/plans-page';
+import { ImportsPage } from '../features/import/imports-page';
 import { UserRole } from '@fitnexa/shared';
 
 export const router = createBrowserRouter([
@@ -29,9 +35,78 @@ export const router = createBrowserRouter([
     ),
   },
   {
+    path: '/members',
+    element: (
+      <ProtectedRoute>
+        <AppShell>
+          <MemberListPage />
+        </AppShell>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/members/new',
+    element: (
+      <ProtectedRoute
+        allowedRoles={[
+          UserRole.GYM_OWNER,
+          UserRole.BRANCH_MANAGER,
+          UserRole.FRONT_DESK,
+          UserRole.SUPER_ADMIN,
+        ]}
+      >
+        <AppShell>
+          <MemberRegistrationPage />
+        </AppShell>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/members/:id',
+    element: (
+      <ProtectedRoute>
+        <AppShell>
+          <MemberProfilePage />
+        </AppShell>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/members/:id/print',
+    element: (
+      <ProtectedRoute>
+        <MemberPrintPage />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/plans',
+    element: (
+      <ProtectedRoute>
+        <AppShell>
+          <PlansPage />
+        </AppShell>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/imports',
+    element: (
+      <ProtectedRoute
+        allowedRoles={[UserRole.GYM_OWNER, UserRole.BRANCH_MANAGER, UserRole.SUPER_ADMIN]}
+      >
+        <AppShell>
+          <ImportsPage />
+        </AppShell>
+      </ProtectedRoute>
+    ),
+  },
+  {
     path: '/settings',
     element: (
-      <ProtectedRoute allowedRoles={[UserRole.GYM_OWNER, UserRole.BRANCH_MANAGER, UserRole.SUPER_ADMIN]}>
+      <ProtectedRoute
+        allowedRoles={[UserRole.GYM_OWNER, UserRole.BRANCH_MANAGER, UserRole.SUPER_ADMIN]}
+      >
         <AppShell>
           <SettingsPage />
         </AppShell>
@@ -41,7 +116,9 @@ export const router = createBrowserRouter([
   {
     path: '/staff',
     element: (
-      <ProtectedRoute allowedRoles={[UserRole.GYM_OWNER, UserRole.BRANCH_MANAGER, UserRole.SUPER_ADMIN]}>
+      <ProtectedRoute
+        allowedRoles={[UserRole.GYM_OWNER, UserRole.BRANCH_MANAGER, UserRole.SUPER_ADMIN]}
+      >
         <AppShell>
           <StaffPage />
         </AppShell>
@@ -61,14 +138,13 @@ export const router = createBrowserRouter([
   {
     path: '*',
     element: (
-      <AppShell>
-        <div className="p-12 text-center">
-          <h2 className="text-lg font-bold text-[#0A192F]">404 - Module Not Found</h2>
-          <p className="text-xs text-[#6B7280] mt-1">
-            The requested screen is not part of the active Phase 1 release.
-          </p>
-        </div>
-      </AppShell>
+      <ProtectedRoute>
+        <AppShell>
+          <div className="p-8 text-center text-xs text-[#6B7280]">
+            Requested page does not exist.
+          </div>
+        </AppShell>
+      </ProtectedRoute>
     ),
   },
 ]);

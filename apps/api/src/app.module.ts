@@ -9,6 +9,10 @@ import { AuditLogModule } from './modules/audit-log/audit-log.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { TenantModule } from './modules/tenant/tenant.module';
 import { StaffModule } from './modules/staff/staff.module';
+import { MemberModule } from './modules/member/member.module';
+import { MembershipPlanModule } from './modules/membership-plan/membership-plan.module';
+import { MembershipModule } from './modules/membership/membership.module';
+import { MemberImportModule } from './modules/member-import/member-import.module';
 
 @Module({
   imports: [
@@ -25,6 +29,10 @@ import { StaffModule } from './modules/staff/staff.module';
     AuthModule,
     TenantModule,
     StaffModule,
+    MemberModule,
+    MembershipPlanModule,
+    MembershipModule,
+    MemberImportModule,
   ],
 })
 export class AppModule {}
