@@ -6,7 +6,7 @@ import fitnexaLogo from '../../assets/logo.png';
 
 export function Sidebar() {
   const location = useLocation();
-  const { tenant, user, logout } = useAuth();
+  const { tenant, user } = useAuth();
   const userRole = user?.role;
   const isSuperOrOwner = userRole === UserRole.SUPER_ADMIN || userRole === UserRole.GYM_OWNER;
 
@@ -989,25 +989,16 @@ export function Sidebar() {
         {renderNavGroup('Expenses & Notifications', operationsNavItems)}
       </div>
 
-      {/* Footer / User Profile & Sign Out */}
-      <div className="p-3 border-t border-[#162E52] bg-[#071324] space-y-2">
-        {user && (
-          <div className="flex items-center justify-between">
-            <div className="min-w-0 pr-2">
-              <div className="text-xs font-bold text-[#FBFBF9] truncate">{user.fullName}</div>
-              <div className="text-[10px] uppercase font-mono font-bold text-[#B91C1C]">
-                {user.role.replace(/_/g, ' ')}
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={() => logout()}
-              className="text-[10px] px-2 py-1 text-[#E5E7EB] hover:text-white bg-[#162E52] hover:bg-[#B91C1C] rounded-none font-medium transition-colors uppercase tracking-wider"
-            >
-              Sign Out
-            </button>
-          </div>
-        )}
+      {/* Footer Info */}
+      <div className="p-4 border-t border-[#162E52] text-[11px] text-[#9CA3AF]">
+        <div className="flex justify-between items-center">
+          <span>Release</span>
+          <span className="font-mono text-[10px] text-[#E5E7EB]">Phase 6 Enterprise</span>
+        </div>
+        <div className="flex justify-between items-center mt-1">
+          <span>Analytics Engine</span>
+          <span className="font-mono text-[10px] text-[#34D399]">Telemetry Active</span>
+        </div>
       </div>
     </aside>
   );

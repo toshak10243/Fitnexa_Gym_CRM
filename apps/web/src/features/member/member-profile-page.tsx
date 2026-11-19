@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom';
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { apiClient } from '../../lib/api-client';
@@ -1197,8 +1198,8 @@ export function MemberProfilePage() {
       )}
 
       {/* ASSIGN MEMBERSHIP MODAL */}
-      {isAssignModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+      {isAssignModalOpen && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4">
           <div className="bg-[#FBFBF9] border border-[#E5E7EB] w-full max-w-md p-6 space-y-4">
             <h3 className="text-sm font-bold uppercase tracking-wider text-[#0A192F] pb-1">
               Enroll / Renew Membership Plan
@@ -1276,12 +1277,13 @@ export function MemberProfilePage() {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* FREEZE MEMBERSHIP MODAL */}
-      {isFreezeModalOpen && selectedMembership && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+      {isFreezeModalOpen && selectedMembership && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4">
           <div className="bg-[#FBFBF9] border border-[#E5E7EB] w-full max-w-md p-6 space-y-4">
             <h3 className="text-sm font-bold uppercase tracking-wider text-[#0A192F] pb-1">
               Freeze Membership: {selectedMembership.plan.name}
@@ -1337,12 +1339,13 @@ export function MemberProfilePage() {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* CANCEL MEMBERSHIP MODAL */}
-      {isCancelModalOpen && selectedMembership && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+      {isCancelModalOpen && selectedMembership && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4">
           <div className="bg-[#FBFBF9] border border-[#E5E7EB] w-full max-w-md p-6 space-y-4">
             <h3 className="text-sm font-bold uppercase tracking-wider text-red-700 pb-1">
               Cancel Membership: {selectedMembership.plan.name}
@@ -1374,12 +1377,13 @@ export function MemberProfilePage() {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* QUICK COLLECT PAYMENT MODAL */}
-      {isCollectModalOpen && selectedInvoice && (
-        <div className="fixed inset-0 z-50 bg-[#0A192F]/60 flex items-center justify-center p-4">
+      {isCollectModalOpen && selectedInvoice && createPortal(
+        <div className="fixed inset-0 z-[9999] bg-black/60 flex items-center justify-center p-4">
           <div className="bg-[#FBFBF9] border border-[#E5E7EB] max-w-md w-full p-6 space-y-4">
             <div className="border-b border-[#E5E7EB] pb-3">
               <h3 className="text-base font-bold text-[#0A192F]">Collect Member Dues</h3>
@@ -1467,12 +1471,13 @@ export function MemberProfilePage() {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* RENEW MEMBERSHIP MODAL */}
-      {isRenewalModalOpen && (
-        <div className="fixed inset-0 z-50 bg-[#0A192F]/60 flex items-center justify-center p-4">
+      {isRenewalModalOpen && createPortal(
+        <div className="fixed inset-0 z-[9999] bg-black/60 flex items-center justify-center p-4">
           <div className="bg-[#FBFBF9] border border-[#E5E7EB] max-w-md w-full p-6 space-y-4">
             <div className="border-b border-[#E5E7EB] pb-3">
               <h3 className="text-base font-bold text-[#0A192F]">Renew Membership Plan</h3>
@@ -1591,7 +1596,8 @@ export function MemberProfilePage() {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
