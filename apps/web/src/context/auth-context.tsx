@@ -51,8 +51,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         apiClient.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
         const { data } = await apiClient.get('/auth/me');
-        setUser(data.data.user);
-        setTenant(data.data.tenant);
+        const payload = data?.data || data;
+        setUser(payload.user);
+        setTenant(payload.tenant);
         setToken(storedToken);
       } catch {
         // Token invalid or expired
@@ -70,7 +71,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     initializeAuth();
   }, []);
 
-  const handleAuthSuccess = (tokens: AuthTokensResponse) => {
+  const handleAuthSuccess = (rawTokens: AuthTokensResponse | { data: AuthTokensResponse }) => {
+    const tokens = ('data' in rawTokens ? rawTokens.data : rawTokens) as AuthTokensResponse;
+    if (!tokens || !tokens.accessToken) {
+      throw new Error('Invalid authentication response from server');
+    }
     localStorage.setItem(TOKEN_KEY, tokens.accessToken);
     localStorage.setItem(REFRESH_TOKEN_KEY, tokens.refreshToken);
     setToken(tokens.accessToken);
@@ -81,12 +86,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (credentials: LoginInput) => {
     const { data } = await apiClient.post('/auth/login', credentials);
-    handleAuthSuccess(data.data);
+    handleAuthSuccess(data);
   };
 
   const registerOwner = async (input: RegisterOwnerInput) => {
     const { data } = await apiClient.post('/auth/register-owner', input);
-    handleAuthSuccess(data.data);
+    handleAuthSuccess(data);
   };
 
   const logout = async () => {
