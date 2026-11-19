@@ -11,4 +11,5 @@ export * from './contracts/import.contracts';
 export * from './contracts/billing.contracts';
 export * from './contracts/attendance.contracts';
 export * from './contracts/device.contracts';
+export * from './contracts/operations.contracts';
 export * from './types/index';

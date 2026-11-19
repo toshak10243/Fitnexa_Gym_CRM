@@ -153,19 +153,19 @@ model Tenant {
   createdAt DateTime     @default(now())
   updatedAt DateTime     @updatedAt
 
-  branches        Branch[]
-  users           User[]
-  auditLogs       AuditLog[]
-  members         Member[]
-  membershipPlans MembershipPlan[]
-  invoices        Invoice[]
-  payments        Payment[]
-  attendancePolicies   AttendancePolicy[]
-  devices              Device[]
-  memberAttendances    MemberAttendance[]
-  staffAttendances     StaffAttendance[]
-  attendanceSessions   AttendanceSession[]
-  accessDecisions      AccessDecision[]
+  branches           Branch[]
+  users              User[]
+  auditLogs          AuditLog[]
+  members            Member[]
+  membershipPlans    MembershipPlan[]
+  invoices           Invoice[]
+  payments           Payment[]
+  attendancePolicies AttendancePolicy[]
+  devices            Device[]
+  memberAttendances  MemberAttendance[]
+  staffAttendances   StaffAttendance[]
+  attendanceSessions AttendanceSession[]
+  accessDecisions    AccessDecision[]
 
   @@map("tenants")
 }
@@ -222,17 +222,18 @@ model User {
   createdAt        DateTime   @default(now())
   updatedAt        DateTime   @updatedAt
 
-  tenant                 Tenant?      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  branch                 Branch?      @relation(fields: [branchId], references: [id], onDelete: SetNull)
-  auditLogs              AuditLog[]
-  assignedTrainerMembers Member[]     @relation("TrainerAssignedMembers")
-  memberNotes            MemberNote[]
-  collectedPayments      Payment[]    @relation("PaymentCollector")
-  staffAttendances       StaffAttendance[]
-  approvedCorrections    AttendanceCorrection[] @relation("ApprovedAttendanceCorrections")
-  requestedCorrections   AttendanceCorrection[] @relation("RequestedAttendanceCorrections")
-  recordedAttendances    MemberAttendance[]     @relation("RecordedMemberAttendances")
-  overriddenAccessDecisions AccessDecision[]    @relation("OverriddenAccessDecisions")
+  tenant                    Tenant?                @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  branch                    Branch?                @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  auditLogs                 AuditLog[]
+  assignedTrainerMembers    Member[]               @relation("TrainerAssignedMembers")
+  memberNotes               MemberNote[]
+  collectedPayments         Payment[]              @relation("PaymentCollector")
+  staffAttendances          StaffAttendance[]
+  approvedCorrections       AttendanceCorrection[] @relation("ApprovedAttendanceCorrections")
+  requestedCorrections      AttendanceCorrection[] @relation("RequestedAttendanceCorrections")
+  recordedAttendances       MemberAttendance[]     @relation("RecordedMemberAttendances")
+  overriddenAccessDecisions AccessDecision[]       @relation("OverriddenAccessDecisions")
+  trainerProfile            TrainerProfile?
 
   @@index([tenantId])
   @@index([branchId])
@@ -303,24 +304,27 @@ model Member {
   createdBy          String?
   updatedBy          String?
 
-  tenant            Tenant                  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  branch            Branch                  @relation(fields: [branchId], references: [id], onDelete: Restrict)
-  assignedTrainer   User?                   @relation("TrainerAssignedMembers", fields: [assignedTrainerId], references: [id], onDelete: SetNull)
-  address           MemberAddress?
-  emergencyContact  MemberEmergencyContact?
-  healthDeclaration MemberHealthDeclaration?
-  consent           MemberConsent?
-  documents         MemberDocument[]
-  memberships       MemberMembership[]
-  notes             MemberNote[]
-  activities        MemberActivity[]
-  invoices          Invoice[]
-  payments          Payment[]
-  ledgerEntries     MemberAccountLedger[]
-  attendances       MemberAttendance[]
+  tenant             Tenant                   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  branch             Branch                   @relation(fields: [branchId], references: [id], onDelete: Restrict)
+  assignedTrainer    User?                    @relation("TrainerAssignedMembers", fields: [assignedTrainerId], references: [id], onDelete: SetNull)
+  address            MemberAddress?
+  emergencyContact   MemberEmergencyContact?
+  healthDeclaration  MemberHealthDeclaration?
+  consent            MemberConsent?
+  documents          MemberDocument[]
+  memberships        MemberMembership[]
+  notes              MemberNote[]
+  activities         MemberActivity[]
+  invoices           Invoice[]
+  payments           Payment[]
+  ledgerEntries      MemberAccountLedger[]
+  attendances        MemberAttendance[]
   attendanceSessions AttendanceSession[]
-  deviceMappings    DeviceMemberMapping[]
-  accessDecisions   AccessDecision[]
+  deviceMappings     DeviceMemberMapping[]
+  accessDecisions    AccessDecision[]
+  trainerAssignments TrainerAssignment[]
+  trainingSessions   TrainingSession[]
+  convertedFromLead  Lead?
 
   @@unique([tenantId, memberCode])
   @@unique([tenantId, phone])
@@ -414,25 +418,25 @@ model MemberDocument {
 
 /// Membership plans configured by Gym Owners
 model MembershipPlan {
-  id                 String           @id @default(uuid())
-  tenantId           String
-  branchId           String?
-  name               String           @db.VarChar(100)
-  code               String?          @db.VarChar(50)
-  description        String?          @db.Text
-  durationType       PlanDurationType @default(MONTHS)
-  durationValue      Int
-  priceInPaise       Int
-  joiningFeeInPaise  Int              @default(0)
-  taxRateBps         Int              @default(1800)
-  isTaxInclusive     Boolean          @default(false)
-  maxFreezeDays      Int              @default(0)
-  isActive           Boolean          @default(true)
-  createdAt          DateTime         @default(now())
-  updatedAt          DateTime         @updatedAt
+  id                String           @id @default(uuid())
+  tenantId          String
+  branchId          String?
+  name              String           @db.VarChar(100)
+  code              String?          @db.VarChar(50)
+  description       String?          @db.Text
+  durationType      PlanDurationType @default(MONTHS)
+  durationValue     Int
+  priceInPaise      Int
+  joiningFeeInPaise Int              @default(0)
+  taxRateBps        Int              @default(1800)
+  isTaxInclusive    Boolean          @default(false)
+  maxFreezeDays     Int              @default(0)
+  isActive          Boolean          @default(true)
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
 
-  tenant           Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  branch           Branch?            @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  tenant            Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  branch            Branch?            @relation(fields: [branchId], references: [id], onDelete: SetNull)
   memberMemberships MemberMembership[]
 
   @@unique([tenantId, name])
@@ -461,9 +465,9 @@ model MemberMembership {
   createdAt           DateTime         @default(now())
   updatedAt           DateTime         @updatedAt
 
-  member        Member                   @relation(fields: [memberId], references: [id], onDelete: Cascade)
-  branch        Branch                   @relation(fields: [branchId], references: [id], onDelete: Restrict)
-  plan          MembershipPlan           @relation(fields: [planId], references: [id], onDelete: Restrict)
+  member        Member                    @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  branch        Branch                    @relation(fields: [branchId], references: [id], onDelete: Restrict)
+  plan          MembershipPlan            @relation(fields: [planId], references: [id], onDelete: Restrict)
   statusHistory MembershipStatusHistory[]
   invoices      Invoice[]
 
@@ -569,32 +573,32 @@ model MemberImportRow {
 
 /// Authoritative tax invoice or bill issued to a member
 model Invoice {
-  id                 String        @id @default(uuid())
-  tenantId           String
-  branchId           String
-  memberId           String
-  membershipId       String?
-  invoiceNumber      String        @db.VarChar(50)
-  status             InvoiceStatus @default(ISSUED)
-  invoiceDate        DateTime      @db.Date
-  dueDate            DateTime      @db.Date
-  
-  subtotalInPaise    Int
-  discountInPaise    Int           @default(0)
-  taxRateBps         Int           @default(1800) // 1800 = 18.00% GST
-  taxAmountInPaise   Int           @default(0)
-  isTaxInclusive     Boolean       @default(false)
-  grandTotalInPaise  Int
-  paidAmountInPaise  Int           @default(0)
-  balanceDueInPaise  Int           // grandTotal - paidAmount
-  
-  notes              String?       @db.Text
-  termsAndConditions String?       @db.Text
-  voidReason         String?       @db.VarChar(255)
+  id            String        @id @default(uuid())
+  tenantId      String
+  branchId      String
+  memberId      String
+  membershipId  String?
+  invoiceNumber String        @db.VarChar(50)
+  status        InvoiceStatus @default(ISSUED)
+  invoiceDate   DateTime      @db.Date
+  dueDate       DateTime      @db.Date
+
+  subtotalInPaise   Int
+  discountInPaise   Int     @default(0)
+  taxRateBps        Int     @default(1800) // 1800 = 18.00% GST
+  taxAmountInPaise  Int     @default(0)
+  isTaxInclusive    Boolean @default(false)
+  grandTotalInPaise Int
+  paidAmountInPaise Int     @default(0)
+  balanceDueInPaise Int // grandTotal - paidAmount
+
+  notes              String?   @db.Text
+  termsAndConditions String?   @db.Text
+  voidReason         String?   @db.VarChar(255)
   voidedAt           DateTime?
   createdBy          String?
-  createdAt          DateTime      @default(now())
-  updatedAt          DateTime      @updatedAt
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
 
   tenant      Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   branch      Branch              @relation(fields: [branchId], references: [id], onDelete: Restrict)
@@ -613,17 +617,17 @@ model Invoice {
 
 /// Itemized breakdown inside an invoice
 model InvoiceLineItem {
-  id                 String   @id @default(uuid())
+  id                 String  @id @default(uuid())
   invoiceId          String
-  description        String   @db.VarChar(255)
-  quantity           Int      @default(1)
+  description        String  @db.VarChar(255)
+  quantity           Int     @default(1)
   unitPriceInPaise   Int
-  discountInPaise    Int      @default(0)
-  taxRateBps         Int      @default(1800)
-  taxAmountInPaise   Int      @default(0)
+  discountInPaise    Int     @default(0)
+  taxRateBps         Int     @default(1800)
+  taxAmountInPaise   Int     @default(0)
   totalAmountInPaise Int
-  itemType           String   @db.VarChar(50) // PLAN, JOINING_FEE, PERSONAL_TRAINING, SERVICE, OTHER
-  referenceId        String?  @db.VarChar(100)
+  itemType           String  @db.VarChar(50) // PLAN, JOINING_FEE, PERSONAL_TRAINING, SERVICE, OTHER
+  referenceId        String? @db.VarChar(100)
 
   invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
 
@@ -757,6 +761,7 @@ model CashRegisterSession {
   openingFloatInPaise  Int
   cashCollectedInPaise Int                   @default(0)
   cashRefundedInPaise  Int                   @default(0)
+  cashPaidOutInPaise   Int                   @default(0)
   expectedClosingPaise Int
   actualClosingPaise   Int?
   varianceInPaise      Int?
@@ -926,8 +931,8 @@ model AttendancePolicy {
   maxDuesThresholdInPaise       Int      @default(0)
   enforceBranchAccess           Boolean  @default(true)
   allowOffPeakOnly              Boolean  @default(false)
-  offPeakStartMinutes           Int?     // Minutes from midnight, e.g. 600 = 10:00 AM
-  offPeakEndMinutes             Int?     // Minutes from midnight, e.g. 1020 = 5:00 PM
+  offPeakStartMinutes           Int? // Minutes from midnight, e.g. 600 = 10:00 AM
+  offPeakEndMinutes             Int? // Minutes from midnight, e.g. 1020 = 5:00 PM
   duplicateCheckinWindowMinutes Int      @default(15)
   autoCheckoutAfterHours        Int      @default(4)
   allowOwnerOverride            Boolean  @default(true)
@@ -944,26 +949,26 @@ model AttendancePolicy {
 
 /// Registry of physical biometric terminals and attendance turnstiles
 model Device {
-  id               String               @id @default(uuid())
-  tenantId         String
-  branchId         String
-  name             String               @db.VarChar(100)
-  deviceCode       String               @db.VarChar(50)
-  deviceType       DeviceType           @default(BIOMETRIC_FINGERPRINT)
-  manufacturer     String               @default("Generic / Pending Verification") @db.VarChar(100)
-  modelName        String               @default("Pending Model Spec") @db.VarChar(100)
-  serialNumber     String?              @db.VarChar(100)
-  firmwareVersion  String?              @db.VarChar(50)
-  ipAddress        String?              @db.VarChar(50)
-  port             Int?
-  connectionType   DeviceConnectionType @default(CLOUD_PUSH_HTTP)
-  direction        DeviceDirection      @default(BIDIRECTIONAL)
-  status           DeviceStatus         @default(UNCONFIGURED)
-  lastHeartbeatAt  DateTime?
-  authTokenHash    String?              @db.VarChar(255)
-  notes            String?              @db.Text
-  createdAt        DateTime             @default(now())
-  updatedAt        DateTime             @updatedAt
+  id              String               @id @default(uuid())
+  tenantId        String
+  branchId        String
+  name            String               @db.VarChar(100)
+  deviceCode      String               @db.VarChar(50)
+  deviceType      DeviceType           @default(BIOMETRIC_FINGERPRINT)
+  manufacturer    String               @default("Generic / Pending Verification") @db.VarChar(100)
+  modelName       String               @default("Pending Model Spec") @db.VarChar(100)
+  serialNumber    String?              @db.VarChar(100)
+  firmwareVersion String?              @db.VarChar(50)
+  ipAddress       String?              @db.VarChar(50)
+  port            Int?
+  connectionType  DeviceConnectionType @default(CLOUD_PUSH_HTTP)
+  direction       DeviceDirection      @default(BIDIRECTIONAL)
+  status          DeviceStatus         @default(UNCONFIGURED)
+  lastHeartbeatAt DateTime?
+  authTokenHash   String?              @db.VarChar(255)
+  notes           String?              @db.Text
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
 
   tenant         Tenant                @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   branch         Branch                @relation(fields: [branchId], references: [id], onDelete: Restrict)
@@ -1027,13 +1032,13 @@ model DeviceEventInbox {
 
 /// State of device synchronization cursors
 model DeviceSyncCursor {
-  id             String    @id @default(uuid())
-  deviceId       String    @unique
-  lastEventId    String?   @db.VarChar(100)
-  lastSyncTime   DateTime?
-  totalSynced    Int       @default(0)
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  id           String    @id @default(uuid())
+  deviceId     String    @unique
+  lastEventId  String?   @db.VarChar(100)
+  lastSyncTime DateTime?
+  totalSynced  Int       @default(0)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
   device Device @relation(fields: [deviceId], references: [id], onDelete: Cascade)
 
@@ -1059,23 +1064,23 @@ model DeviceSyncJob {
 
 /// Immutable record of access decisions made at gate/turnstile or manual desk
 model AccessDecision {
-  id                    String             @id @default(uuid())
-  tenantId              String
-  branchId              String
-  memberId              String?
-  deviceId              String?
-  decision              AccessDecisionType
-  reasonCode            AccessReasonCode
-  reasonDetails         String?            @db.Text
-  outstandingDuesPaise  Int                @default(0)
-  overriddenByUserId    String?
-  overrideReason        String?            @db.Text
-  timestamp             DateTime           @default(now())
+  id                   String             @id @default(uuid())
+  tenantId             String
+  branchId             String
+  memberId             String?
+  deviceId             String?
+  decision             AccessDecisionType
+  reasonCode           AccessReasonCode
+  reasonDetails        String?            @db.Text
+  outstandingDuesPaise Int                @default(0)
+  overriddenByUserId   String?
+  overrideReason       String?            @db.Text
+  timestamp            DateTime           @default(now())
 
-  tenant       Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  branch       Branch            @relation(fields: [branchId], references: [id], onDelete: Restrict)
-  member       Member?           @relation(fields: [memberId], references: [id], onDelete: SetNull)
-  overriddenBy User?             @relation("OverriddenAccessDecisions", fields: [overriddenByUserId], references: [id], onDelete: SetNull)
+  tenant       Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  branch       Branch             @relation(fields: [branchId], references: [id], onDelete: Restrict)
+  member       Member?            @relation(fields: [memberId], references: [id], onDelete: SetNull)
+  overriddenBy User?              @relation("OverriddenAccessDecisions", fields: [overriddenByUserId], references: [id], onDelete: SetNull)
   attendances  MemberAttendance[]
 
   @@index([tenantId, timestamp])
@@ -1116,19 +1121,19 @@ model MemberAttendance {
 
 /// Gym visit period for duration calculation and live facility occupancy tracking
 model AttendanceSession {
-  id                    String        @id @default(uuid())
-  tenantId              String
-  branchId              String
-  memberId              String
-  checkInAttendanceId   String?       @unique
-  checkOutAttendanceId  String?       @unique
-  checkInTime           DateTime
-  checkOutTime          DateTime?
-  durationInMinutes     Int?
-  status                SessionStatus @default(ACTIVE)
-  closeReason           String?       @db.VarChar(50) // NORMAL_CHECKOUT, TIMEOUT_EXCEEDED, MANUAL_RECONCILIATION
-  createdAt             DateTime      @default(now())
-  updatedAt             DateTime      @updatedAt
+  id                   String        @id @default(uuid())
+  tenantId             String
+  branchId             String
+  memberId             String
+  checkInAttendanceId  String?       @unique
+  checkOutAttendanceId String?       @unique
+  checkInTime          DateTime
+  checkOutTime         DateTime?
+  durationInMinutes    Int?
+  status               SessionStatus @default(ACTIVE)
+  closeReason          String?       @db.VarChar(50) // NORMAL_CHECKOUT, TIMEOUT_EXCEEDED, MANUAL_RECONCILIATION
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
 
   tenant      Tenant                 @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   branch      Branch                 @relation(fields: [branchId], references: [id], onDelete: Restrict)
@@ -1191,4 +1196,655 @@ model StaffAttendance {
   @@index([staffId, shiftDate])
   @@index([tenantId, branchId, status])
   @@map("staff_attendances")
+}
+
+// ============================================================================
+// PHASE 5: INVENTORY, POS, TRAINERS, LEADS, EXPENSES & NOTIFICATIONS
+// ============================================================================
+
+enum ProductUnit {
+  PIECES
+  BOXES
+  SCOOPS
+  KGS
+  BOTTLES
+  PACKS
+}
+
+enum StockMovementType {
+  OPENING_STOCK
+  PURCHASE_RECEIPT
+  POS_SALE
+  ADJUSTMENT_WRITE_OFF
+  ADJUSTMENT_FOUND
+  INTERNAL_TRANSFER_IN
+  INTERNAL_TRANSFER_OUT
+  SALE_RETURN
+}
+
+enum PurchaseOrderStatus {
+  DRAFT
+  ORDERED
+  PARTIALLY_RECEIVED
+  COMPLETED
+  CANCELLED
+}
+
+enum InventoryTransferStatus {
+  PENDING
+  IN_TRANSIT
+  COMPLETED
+  CANCELLED
+}
+
+enum TrainerSessionStatus {
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+enum LeadSource {
+  WALK_IN
+  WEBSITE
+  PHONE_CALL
+  REFERRAL
+  SOCIAL_MEDIA
+  CAMPAIGN
+  OTHER
+}
+
+enum LeadStage {
+  NEW
+  CONTACTED
+  FOLLOW_UP
+  TRIAL_SCHEDULED
+  TRIAL_COMPLETED
+  CONVERTED
+  LOST
+}
+
+enum LeadLostReason {
+  TOO_EXPENSIVE
+  DISTANCE_TOO_FAR
+  JOINED_COMPETITOR
+  NOT_INTERESTED
+  SCHEDULE_MISMATCH
+  OTHER
+}
+
+enum ExpenseStatus {
+  PENDING_APPROVAL
+  APPROVED
+  REJECTED
+  PAID
+}
+
+enum ExpensePaymentMethod {
+  CASH
+  UPI
+  BANK_TRANSFER
+  CHEQUE
+  CARD
+}
+
+enum RecurringExpenseFrequency {
+  MONTHLY
+  QUARTERLY
+  ANNUAL
+}
+
+enum NotificationChannel {
+  IN_APP
+  SMS
+  EMAIL
+  WHATSAPP
+}
+
+enum NotificationType {
+  MEMBERSHIP_EXPIRY
+  DUES_REMINDER
+  TRIAL_APPOINTMENT
+  LEAD_FOLLOW_UP
+  LOW_STOCK_ALERT
+  TRAINER_SESSION
+  SECURITY_ALERT
+  GENERAL_ANNOUNCEMENT
+}
+
+enum NotificationStatus {
+  QUEUED
+  PROCESSING
+  SENT
+  FAILED
+  READ
+}
+
+// ----------------------------------------------------------------------------
+// INVENTORY & STOCK MODELS
+// ----------------------------------------------------------------------------
+
+model ProductCategory {
+  id          String   @id @default(uuid())
+  tenantId    String
+  name        String   @db.VarChar(100)
+  code        String   @db.VarChar(50)
+  description String?  @db.VarChar(255)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  products Product[]
+
+  @@unique([tenantId, code])
+  @@index([tenantId])
+  @@map("product_categories")
+}
+
+model Product {
+  id                  String      @id @default(uuid())
+  tenantId            String
+  categoryId          String
+  sku                 String      @db.VarChar(100)
+  barcode             String?     @db.VarChar(100)
+  name                String      @db.VarChar(150)
+  description         String?     @db.Text
+  unit                ProductUnit @default(PIECES)
+  costPriceInPaise    Int
+  sellingPriceInPaise Int
+  taxRatePercentage   Decimal     @default(18.0) @db.Decimal(5, 2)
+  hsnCode             String?     @db.VarChar(20)
+  reorderThreshold    Int         @default(5)
+  isActive            Boolean     @default(true)
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+
+  category      ProductCategory         @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  movements     StockMovement[]
+  poItems       PurchaseOrderItem[]
+  transferItems InventoryTransferItem[]
+
+  @@unique([tenantId, sku])
+  @@index([tenantId, categoryId])
+  @@index([tenantId, barcode])
+  @@map("products")
+}
+
+model StockLocation {
+  id        String   @id @default(uuid())
+  tenantId  String
+  branchId  String
+  name      String   @db.VarChar(100)
+  code      String   @db.VarChar(50)
+  isDefault Boolean  @default(false)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  movements       StockMovement[]
+  sourceTransfers InventoryTransfer[] @relation("SourceLocationTransfers")
+  destTransfers   InventoryTransfer[] @relation("DestLocationTransfers")
+
+  @@unique([tenantId, branchId, code])
+  @@index([tenantId, branchId])
+  @@map("stock_locations")
+}
+
+model StockMovement {
+  id               String            @id @default(uuid())
+  tenantId         String
+  branchId         String
+  productId        String
+  locationId       String
+  movementType     StockMovementType
+  quantityDelta    Int
+  unitCostInPaise  Int
+  referenceType    String?           @db.VarChar(50) // POS_INVOICE, PO_RECEIPT, ADJUSTMENT, TRANSFER
+  referenceId      String?           @db.VarChar(100)
+  notes            String?           @db.VarChar(255)
+  recordedByUserId String?
+  timestamp        DateTime          @default(now())
+
+  product  Product       @relation(fields: [productId], references: [id], onDelete: Restrict)
+  location StockLocation @relation(fields: [locationId], references: [id], onDelete: Restrict)
+
+  @@index([tenantId, branchId, productId])
+  @@index([tenantId, locationId, timestamp])
+  @@map("stock_movements")
+}
+
+model StockAdjustment {
+  id               String   @id @default(uuid())
+  tenantId         String
+  branchId         String
+  productId        String
+  locationId       String
+  systemQuantity   Int
+  physicalQuantity Int
+  quantityDelta    Int
+  reason           String   @db.VarChar(255)
+  approvedByUserId String?
+  createdAt        DateTime @default(now())
+
+  @@index([tenantId, branchId, createdAt])
+  @@map("stock_adjustments")
+}
+
+model Supplier {
+  id            String   @id @default(uuid())
+  tenantId      String
+  name          String   @db.VarChar(150)
+  contactPerson String?  @db.VarChar(100)
+  phone         String   @db.VarChar(20)
+  email         String?  @db.VarChar(100)
+  gstin         String?  @db.VarChar(20)
+  address       String?  @db.VarChar(255)
+  city          String?  @db.VarChar(50)
+  state         String?  @db.VarChar(50)
+  pincode       String?  @db.VarChar(10)
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  purchaseOrders PurchaseOrder[]
+  expenses       Expense[]
+
+  @@unique([tenantId, name])
+  @@index([tenantId])
+  @@map("suppliers")
+}
+
+model PurchaseOrder {
+  id           String              @id @default(uuid())
+  tenantId     String
+  branchId     String
+  supplierId   String
+  poNumber     String              @db.VarChar(50)
+  orderDate    DateTime            @default(now())
+  expectedDate DateTime?
+  status       PurchaseOrderStatus @default(DRAFT)
+  totalInPaise Int                 @default(0)
+  notes        String?             @db.Text
+  createdBy    String
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+
+  supplier      Supplier            @relation(fields: [supplierId], references: [id], onDelete: Restrict)
+  items         PurchaseOrderItem[]
+  goodsReceipts GoodsReceipt[]
+
+  @@unique([tenantId, poNumber])
+  @@index([tenantId, status])
+  @@map("purchase_orders")
+}
+
+model PurchaseOrderItem {
+  id               String @id @default(uuid())
+  purchaseOrderId  String
+  productId        String
+  quantityOrdered  Int
+  quantityReceived Int    @default(0)
+  unitCostInPaise  Int
+  totalCostInPaise Int
+
+  purchaseOrder PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+  product       Product       @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@index([purchaseOrderId])
+  @@map("purchase_order_items")
+}
+
+model GoodsReceipt {
+  id               String   @id @default(uuid())
+  tenantId         String
+  branchId         String
+  purchaseOrderId  String
+  receiptNumber    String   @db.VarChar(50)
+  receivedAt       DateTime @default(now())
+  receivedByUserId String
+  invoiceNumber    String?  @db.VarChar(100)
+  notes            String?  @db.Text
+
+  purchaseOrder PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Restrict)
+
+  @@unique([tenantId, receiptNumber])
+  @@index([tenantId, purchaseOrderId])
+  @@map("goods_receipts")
+}
+
+model InventoryTransfer {
+  id               String                  @id @default(uuid())
+  tenantId         String
+  transferNumber   String                  @db.VarChar(50)
+  sourceBranchId   String
+  sourceLocationId String
+  destBranchId     String
+  destLocationId   String
+  status           InventoryTransferStatus @default(PENDING)
+  notes            String?                 @db.Text
+  transferredBy    String
+  transferredAt    DateTime                @default(now())
+  receivedBy       String?
+  receivedAt       DateTime?
+
+  sourceLocation StockLocation           @relation("SourceLocationTransfers", fields: [sourceLocationId], references: [id], onDelete: Restrict)
+  destLocation   StockLocation           @relation("DestLocationTransfers", fields: [destLocationId], references: [id], onDelete: Restrict)
+  items          InventoryTransferItem[]
+
+  @@unique([tenantId, transferNumber])
+  @@index([tenantId, status])
+  @@map("inventory_transfers")
+}
+
+model InventoryTransferItem {
+  id         String @id @default(uuid())
+  transferId String
+  productId  String
+  quantity   Int
+
+  transfer InventoryTransfer @relation(fields: [transferId], references: [id], onDelete: Cascade)
+  product  Product           @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@index([transferId])
+  @@map("inventory_transfer_items")
+}
+
+// ----------------------------------------------------------------------------
+// TRAINER MANAGEMENT MODELS
+// ----------------------------------------------------------------------------
+
+model TrainerProfile {
+  id                   String   @id @default(uuid())
+  userId               String   @unique
+  tenantId             String
+  branchId             String?
+  bio                  String?  @db.Text
+  specializations      String[]
+  certifications       String?  @db.Text
+  commissionPercentage Int      @default(0) // Basis points (e.g. 1500 = 15%)
+  isActive             Boolean  @default(true)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  user           User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  availabilities TrainerAvailability[]
+  assignments    TrainerAssignment[]
+  sessions       TrainingSession[]
+
+  @@index([tenantId, isActive])
+  @@map("trainer_profiles")
+}
+
+model TrainerAvailability {
+  id               String  @id @default(uuid())
+  trainerProfileId String
+  dayOfWeek        Int // 0=Sunday, 1=Monday... 6=Saturday
+  startTime        String  @db.VarChar(10) // HH:MM
+  endTime          String  @db.VarChar(10) // HH:MM
+  isAvailable      Boolean @default(true)
+
+  trainerProfile TrainerProfile @relation(fields: [trainerProfileId], references: [id], onDelete: Cascade)
+
+  @@index([trainerProfileId, dayOfWeek])
+  @@map("trainer_availabilities")
+}
+
+model TrainingPackage {
+  id           String   @id @default(uuid())
+  tenantId     String
+  name         String   @db.VarChar(100)
+  description  String?  @db.Text
+  sessionCount Int
+  validityDays Int
+  priceInPaise Int
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  assignments TrainerAssignment[]
+
+  @@unique([tenantId, name])
+  @@index([tenantId, isActive])
+  @@map("training_packages")
+}
+
+model TrainerAssignment {
+  id                String   @id @default(uuid())
+  tenantId          String
+  branchId          String
+  trainerProfileId  String
+  memberId          String
+  packageId         String
+  totalSessions     Int
+  remainingSessions Int
+  startDate         DateTime @db.Date
+  endDate           DateTime @db.Date
+  isActive          Boolean  @default(true)
+  notes             String?  @db.Text
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  trainerProfile TrainerProfile    @relation(fields: [trainerProfileId], references: [id], onDelete: Restrict)
+  member         Member            @relation(fields: [memberId], references: [id], onDelete: Restrict)
+  package        TrainingPackage   @relation(fields: [packageId], references: [id], onDelete: Restrict)
+  sessions       TrainingSession[]
+
+  @@index([tenantId, trainerProfileId])
+  @@index([tenantId, memberId])
+  @@map("trainer_assignments")
+}
+
+model TrainingSession {
+  id                 String               @id @default(uuid())
+  tenantId           String
+  branchId           String
+  trainerProfileId   String
+  memberId           String
+  assignmentId       String?
+  scheduledAt        DateTime
+  durationMinutes    Int                  @default(60)
+  status             TrainerSessionStatus @default(SCHEDULED)
+  notes              String?              @db.Text
+  memberAttendanceId String?
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+
+  trainerProfile TrainerProfile     @relation(fields: [trainerProfileId], references: [id], onDelete: Restrict)
+  member         Member             @relation(fields: [memberId], references: [id], onDelete: Restrict)
+  assignment     TrainerAssignment? @relation(fields: [assignmentId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, trainerProfileId, scheduledAt])
+  @@index([tenantId, memberId, scheduledAt])
+  @@map("training_sessions")
+}
+
+// ----------------------------------------------------------------------------
+// LEAD CRM MODELS
+// ----------------------------------------------------------------------------
+
+model Lead {
+  id                String          @id @default(uuid())
+  tenantId          String
+  branchId          String
+  firstName         String          @db.VarChar(100)
+  lastName          String          @db.VarChar(100)
+  phone             String          @db.VarChar(20)
+  email             String?         @db.VarChar(100)
+  gender            Gender?
+  fitnessGoal       String?         @db.VarChar(255)
+  source            LeadSource      @default(WALK_IN)
+  stage             LeadStage       @default(NEW)
+  assignedStaffId   String?
+  trialScheduledAt  DateTime?
+  lostReason        LeadLostReason?
+  lostNotes         String?         @db.Text
+  convertedMemberId String?         @unique
+  notes             String?         @db.Text
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  followUps       LeadFollowUp[]
+  activities      LeadActivity[]
+  convertedMember Member?        @relation(fields: [convertedMemberId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, stage])
+  @@index([tenantId, phone])
+  @@index([tenantId, branchId])
+  @@map("leads")
+}
+
+model LeadFollowUp {
+  id          String    @id @default(uuid())
+  leadId      String
+  staffId     String
+  scheduledAt DateTime
+  completedAt DateTime?
+  callType    String    @default("PHONE") @db.VarChar(30)
+  outcome     String?   @db.VarChar(100)
+  notes       String?   @db.Text
+  isCompleted Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+
+  lead Lead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@index([leadId, scheduledAt])
+  @@map("lead_follow_ups")
+}
+
+model LeadActivity {
+  id        String   @id @default(uuid())
+  leadId    String
+  staffId   String?
+  action    String   @db.VarChar(100) // STAGE_CHANGED, CALL_LOGGED, TRIAL_BOOKED, NOTE_ADDED
+  details   Json?
+  timestamp DateTime @default(now())
+
+  lead Lead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@index([leadId, timestamp])
+  @@map("lead_activities")
+}
+
+// ----------------------------------------------------------------------------
+// EXPENSE MANAGEMENT MODELS
+// ----------------------------------------------------------------------------
+
+model ExpenseCategory {
+  id          String   @id @default(uuid())
+  tenantId    String
+  name        String   @db.VarChar(100)
+  code        String   @db.VarChar(50)
+  description String?  @db.VarChar(255)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  expenses Expense[]
+
+  @@unique([tenantId, code])
+  @@index([tenantId])
+  @@map("expense_categories")
+}
+
+model Expense {
+  id                    String               @id @default(uuid())
+  tenantId              String
+  branchId              String
+  categoryId            String
+  supplierId            String?
+  expenseDate           DateTime             @db.Date
+  amountInPaise         Int
+  paymentMethod         ExpensePaymentMethod
+  payeeName             String               @db.VarChar(150)
+  description           String               @db.Text
+  receiptDocumentUrl    String?              @db.VarChar(255)
+  status                ExpenseStatus        @default(PENDING_APPROVAL)
+  cashRegisterSessionId String?
+  approvedByUserId      String?
+  approvedAt            DateTime?
+  notes                 String?              @db.Text
+  createdAt             DateTime             @default(now())
+  updatedAt             DateTime             @updatedAt
+
+  category ExpenseCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  supplier Supplier?       @relation(fields: [supplierId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, expenseDate])
+  @@index([tenantId, branchId, status])
+  @@map("expenses")
+}
+
+model RecurringExpense {
+  id            String                    @id @default(uuid())
+  tenantId      String
+  branchId      String
+  categoryId    String
+  title         String                    @db.VarChar(150)
+  amountInPaise Int
+  frequency     RecurringExpenseFrequency @default(MONTHLY)
+  dueDayOfMonth Int                       @default(1)
+  isActive      Boolean                   @default(true)
+  createdAt     DateTime                  @default(now())
+  updatedAt     DateTime                  @updatedAt
+
+  @@index([tenantId, isActive])
+  @@map("recurring_expenses")
+}
+
+// ----------------------------------------------------------------------------
+// NOTIFICATIONS & REMINDERS MODELS
+// ----------------------------------------------------------------------------
+
+model NotificationTemplate {
+  id           String              @id @default(uuid())
+  tenantId     String
+  type         NotificationType
+  channel      NotificationChannel
+  title        String              @db.VarChar(200)
+  bodyTemplate String              @db.Text
+  isActive     Boolean             @default(true)
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+
+  @@unique([tenantId, type, channel])
+  @@index([tenantId])
+  @@map("notification_templates")
+}
+
+model Notification {
+  id             String              @id @default(uuid())
+  tenantId       String
+  recipientType  String              @db.VarChar(20) // MEMBER, STAFF
+  recipientId    String
+  type           NotificationType
+  channel        NotificationChannel @default(IN_APP)
+  title          String              @db.VarChar(255)
+  message        String              @db.Text
+  status         NotificationStatus  @default(QUEUED)
+  idempotencyKey String?             @db.VarChar(150)
+  metadata       Json?
+  sentAt         DateTime?
+  readAt         DateTime?
+  errorDetails   String?             @db.Text
+  createdAt      DateTime            @default(now())
+
+  @@index([tenantId, recipientId, status])
+  @@index([tenantId, idempotencyKey])
+  @@index([tenantId, createdAt])
+  @@map("notifications")
+}
+
+model NotificationPreference {
+  id             String   @id @default(uuid())
+  tenantId       String
+  userId         String?
+  memberId       String?
+  optOutSms      Boolean  @default(false)
+  optOutEmail    Boolean  @default(false)
+  optOutWhatsApp Boolean  @default(false)
+  updatedAt      DateTime @updatedAt
+
+  @@unique([tenantId, memberId])
+  @@unique([tenantId, userId])
+  @@map("notification_preferences")
 }
