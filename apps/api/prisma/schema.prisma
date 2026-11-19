@@ -612,6 +612,8 @@ model Invoice {
   @@index([tenantId, status])
   @@index([tenantId, branchId, dueDate])
   @@index([tenantId, memberId])
+  @@index([tenantId, invoiceDate])
+  @@index([tenantId, branchId, invoiceDate])
   @@map("invoices")
 }
 
@@ -665,6 +667,7 @@ model Payment {
 
   @@unique([tenantId, paymentNumber])
   @@index([tenantId, paymentDate])
+  @@index([tenantId, branchId, paymentDate])
   @@index([tenantId, memberId])
   @@index([tenantId, branchId, method])
   @@map("payments")
