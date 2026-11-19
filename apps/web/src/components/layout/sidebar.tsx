@@ -208,6 +208,7 @@ export function Sidebar() {
     {
       label: 'Data Migration',
       path: '/imports',
+      roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER'],
       enabled: true,
       icon: (
         <svg
@@ -429,6 +430,7 @@ export function Sidebar() {
     {
       label: 'Active Gym Floor',
       path: '/attendance/active',
+      roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER', 'FRONT_DESK', 'TRAINER', 'STAFF'],
       enabled: true,
       icon: (
         <svg
@@ -521,6 +523,7 @@ export function Sidebar() {
     {
       label: 'Staff Attendance',
       path: '/staff-attendance',
+      roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER'],
       enabled: true,
       icon: (
         <svg
@@ -572,6 +575,7 @@ export function Sidebar() {
     {
       label: 'Register Terminal',
       path: '/devices/new',
+      roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER'],
       enabled: true,
       icon: (
         <svg
@@ -621,6 +625,7 @@ export function Sidebar() {
     {
       label: 'Retail Catalog',
       path: '/inventory/products',
+      roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER', 'FRONT_DESK', 'STAFF'],
       enabled: true,
       icon: (
         <svg
@@ -691,6 +696,7 @@ export function Sidebar() {
     {
       label: 'Stock Ledger',
       path: '/inventory/movements',
+      roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER'],
       enabled: true,
       icon: (
         <svg
@@ -712,6 +718,7 @@ export function Sidebar() {
     {
       label: 'Purchase Orders',
       path: '/inventory/purchases',
+      roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER'],
       enabled: true,
       icon: (
         <svg
@@ -915,7 +922,7 @@ export function Sidebar() {
     const visibleItems = items.filter((item) => {
       if (!item.enabled) return false;
       if (isSuperOrOwner) return true;
-      if (!item.roles || item.roles.length === 0) return true;
+      if (!item.roles || item.roles.length === 0) return false;
       return userRole ? item.roles.includes(userRole) : false;
     });
 

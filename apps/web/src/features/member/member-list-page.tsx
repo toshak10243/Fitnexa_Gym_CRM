@@ -156,6 +156,11 @@ export function MemberListPage() {
     user?.role === UserRole.SUPER_ADMIN ||
     user?.role === UserRole.FRONT_DESK;
 
+  const canImport =
+    user?.role === UserRole.GYM_OWNER ||
+    user?.role === UserRole.BRANCH_MANAGER ||
+    user?.role === UserRole.SUPER_ADMIN;
+
   return (
     <div className="p-8 max-w-7xl mx-auto space-y-6">
       {/* Header */}
@@ -177,13 +182,15 @@ export function MemberListPage() {
               >
                 {isExporting ? 'Exporting...' : 'Export CSV'}
               </Button>
-              <Button
-                variant="outline"
-                onClick={() => navigate('/imports')}
-                className="rounded-none border-[#E5E7EB] text-xs h-9"
-              >
-                Excel Migration
-              </Button>
+              {canImport && (
+                <Button
+                  variant="outline"
+                  onClick={() => navigate('/imports')}
+                  className="rounded-none border-[#E5E7EB] text-xs h-9"
+                >
+                  Excel Migration
+                </Button>
+              )}
               <Button
                 onClick={() => navigate('/members/new')}
                 className="bg-[#0A192F] hover:bg-[#0F223D] text-[#FBFBF9] rounded-none text-xs h-9 px-4"

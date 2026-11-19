@@ -5,9 +5,16 @@ import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Skeleton } from '../../components/ui/skeleton';
 import { formatPaiseToInr } from '../../lib/utils';
+import { useAuth } from '../../context/auth-context';
+import { UserRole } from '@fitnexa/shared';
 
 export function ProductsPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const canCreate =
+    user?.role === UserRole.GYM_OWNER ||
+    user?.role === UserRole.BRANCH_MANAGER ||
+    user?.role === UserRole.SUPER_ADMIN;
   const [searchParams] = useSearchParams();
 
   const [isLoading, setIsLoading] = useState(true);
@@ -69,12 +76,14 @@ export function ProductsPage() {
           >
             ← Valuation Dashboard
           </Button>
-          <Button
-            className="bg-[#0A192F] text-[#FBFBF9] hover:bg-[#162E52] text-xs rounded-none px-4"
-            onClick={() => navigate('/inventory/products/new')}
-          >
-            + Create Product
-          </Button>
+          {canCreate && (
+            <Button
+              className="bg-[#0A192F] text-[#FBFBF9] hover:bg-[#162E52] text-xs rounded-none px-4"
+              onClick={() => navigate('/inventory/products/new')}
+            >
+              + Create Product
+            </Button>
+          )}
         </div>
       </div>
 

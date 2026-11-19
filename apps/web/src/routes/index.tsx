@@ -92,7 +92,7 @@ export const router = createBrowserRouter([
   {
     path: '/reports',
     element: (
-      <ProtectedRoute>
+      <ProtectedRoute allowedRoles={[UserRole.GYM_OWNER, UserRole.BRANCH_MANAGER, UserRole.SUPER_ADMIN]}>
         <AppShell>
           <ReportsPage />
         </AppShell>
@@ -102,7 +102,7 @@ export const router = createBrowserRouter([
   {
     path: '/telemetry',
     element: (
-      <ProtectedRoute>
+      <ProtectedRoute allowedRoles={[UserRole.GYM_OWNER, UserRole.SUPER_ADMIN]}>
         <AppShell>
           <VerificationPage />
         </AppShell>
@@ -398,7 +398,7 @@ export const router = createBrowserRouter([
   {
     path: '/devices',
     element: (
-      <ProtectedRoute>
+      <ProtectedRoute allowedRoles={[UserRole.GYM_OWNER, UserRole.BRANCH_MANAGER, UserRole.SUPER_ADMIN]}>
         <AppShell>
           <DevicesPage />
         </AppShell>
@@ -424,7 +424,7 @@ export const router = createBrowserRouter([
   {
     path: '/devices/:id',
     element: (
-      <ProtectedRoute>
+      <ProtectedRoute allowedRoles={[UserRole.GYM_OWNER, UserRole.BRANCH_MANAGER, UserRole.SUPER_ADMIN]}>
         <AppShell>
           <DeviceDetailPage />
         </AppShell>
@@ -434,7 +434,7 @@ export const router = createBrowserRouter([
   {
     path: '/devices/:id/mappings',
     element: (
-      <ProtectedRoute>
+      <ProtectedRoute allowedRoles={[UserRole.GYM_OWNER, UserRole.BRANCH_MANAGER, UserRole.SUPER_ADMIN]}>
         <AppShell>
           <DeviceMappingsPage />
         </AppShell>
@@ -447,7 +447,7 @@ export const router = createBrowserRouter([
   {
     path: '/inventory',
     element: (
-      <ProtectedRoute>
+      <ProtectedRoute allowedRoles={[UserRole.GYM_OWNER, UserRole.BRANCH_MANAGER, UserRole.SUPER_ADMIN]}>
         <AppShell>
           <InventoryDashboardPage />
         </AppShell>
@@ -467,7 +467,7 @@ export const router = createBrowserRouter([
   {
     path: '/inventory/products/new',
     element: (
-      <ProtectedRoute>
+      <ProtectedRoute allowedRoles={[UserRole.GYM_OWNER, UserRole.BRANCH_MANAGER, UserRole.SUPER_ADMIN]}>
         <AppShell>
           <ProductCreatePage />
         </AppShell>
@@ -487,7 +487,7 @@ export const router = createBrowserRouter([
   {
     path: '/inventory/movements',
     element: (
-      <ProtectedRoute>
+      <ProtectedRoute allowedRoles={[UserRole.GYM_OWNER, UserRole.BRANCH_MANAGER, UserRole.SUPER_ADMIN]}>
         <AppShell>
           <StockMovementsPage />
         </AppShell>
@@ -497,7 +497,7 @@ export const router = createBrowserRouter([
   {
     path: '/inventory/purchases',
     element: (
-      <ProtectedRoute>
+      <ProtectedRoute allowedRoles={[UserRole.GYM_OWNER, UserRole.BRANCH_MANAGER, UserRole.SUPER_ADMIN]}>
         <AppShell>
           <PurchasesPage />
         </AppShell>
@@ -507,7 +507,7 @@ export const router = createBrowserRouter([
   {
     path: '/inventory/suppliers',
     element: (
-      <ProtectedRoute>
+      <ProtectedRoute allowedRoles={[UserRole.GYM_OWNER, UserRole.BRANCH_MANAGER, UserRole.SUPER_ADMIN]}>
         <AppShell>
           <SuppliersPage />
         </AppShell>
@@ -517,7 +517,7 @@ export const router = createBrowserRouter([
   {
     path: '/inventory/transfers',
     element: (
-      <ProtectedRoute>
+      <ProtectedRoute allowedRoles={[UserRole.GYM_OWNER, UserRole.BRANCH_MANAGER, UserRole.SUPER_ADMIN]}>
         <AppShell>
           <TransfersPage />
         </AppShell>

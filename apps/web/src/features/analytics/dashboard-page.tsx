@@ -5,10 +5,18 @@ import { Button } from '../../components/ui/button';
 import { Skeleton } from '../../components/ui/skeleton';
 import { ErrorState } from '../../components/ui/error-state';
 import { formatPaiseToInr } from '../../lib/utils';
-import { DashboardMetricsDto } from '@fitnexa/shared';
+import { DashboardMetricsDto, UserRole } from '@fitnexa/shared';
+import { useAuth } from '../../context/auth-context';
 
 export function DashboardPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const isTrainer = user?.role === UserRole.TRAINER;
+  const isOwnerOrManager =
+    user?.role === UserRole.SUPER_ADMIN ||
+    user?.role === UserRole.GYM_OWNER ||
+    user?.role === UserRole.BRANCH_MANAGER;
+  const canBilling = isOwnerOrManager || user?.role === UserRole.FRONT_DESK;
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<DashboardMetricsDto | null>(null);
@@ -373,49 +381,65 @@ export function DashboardPage() {
       {/* Quick Action Dock */}
       <div className="bg-white border border-[#E5E7EB] p-4 flex flex-wrap items-center justify-between gap-3">
         <span className="text-xs font-bold uppercase tracking-wider text-[#0A192F]">
-          Quick Front-Desk Actions:
+          Quick Actions:
         </span>
         <div className="flex flex-wrap items-center gap-2">
           <Button
             size="sm"
             variant="outline"
             className="text-xs border-[#E5E7EB] rounded-none hover:bg-[#F5F5F0]"
-            onClick={() => navigate('/attendance/check-in')}
+            onClick={() => navigate(isTrainer ? '/attendance/floor' : '/attendance/check-in')}
           >
-            Check-In Counter
+            {isTrainer ? 'Gym Floor' : 'Check-In Counter'}
           </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            className="text-xs border-[#E5E7EB] rounded-none hover:bg-[#F5F5F0]"
-            onClick={() => navigate('/members/new')}
-          >
-            + Register Member
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            className="text-xs border-[#E5E7EB] rounded-none hover:bg-[#F5F5F0]"
-            onClick={() => navigate('/pos')}
-          >
-            Launch POS Counter
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            className="text-xs border-[#E5E7EB] rounded-none hover:bg-[#F5F5F0]"
-            onClick={() => navigate('/billing/invoices/new')}
-          >
-            Issue Invoice
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            className="text-xs border-[#E5E7EB] rounded-none hover:bg-[#F5F5F0]"
-            onClick={() => navigate('/expenses/new')}
-          >
-            Record Expense
-          </Button>
+          {!isTrainer && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="text-xs border-[#E5E7EB] rounded-none hover:bg-[#F5F5F0]"
+              onClick={() => navigate('/members/new')}
+            >
+              + Register Member
+            </Button>
+          )}
+          {canBilling && (
+            <>
+              <Button
+                size="sm"
+                variant="outline"
+                className="text-xs border-[#E5E7EB] rounded-none hover:bg-[#F5F5F0]"
+                onClick={() => navigate('/pos')}
+              >
+                Launch POS Counter
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className="text-xs border-[#E5E7EB] rounded-none hover:bg-[#F5F5F0]"
+                onClick={() => navigate('/billing/invoices/new')}
+              >
+                Issue Invoice
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className="text-xs border-[#E5E7EB] rounded-none hover:bg-[#F5F5F0]"
+                onClick={() => navigate('/expenses/new')}
+              >
+                Record Expense
+              </Button>
+            </>
+          )}
+          {isTrainer && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="text-xs border-[#E5E7EB] rounded-none hover:bg-[#F5F5F0]"
+              onClick={() => navigate('/trainers/schedule')}
+            >
+              My PT Schedule
+            </Button>
+          )}
         </div>
       </div>
     </div>

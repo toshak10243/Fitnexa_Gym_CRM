@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../../lib/api-client';
 import { Button } from '../../components/ui/button';
 import { Skeleton } from '../../components/ui/skeleton';
+import { useAuth } from '../../context/auth-context';
+import { UserRole } from '@fitnexa/shared';
 
 interface DeviceItem {
   id: string;
@@ -27,6 +29,11 @@ interface DeviceItem {
 
 export function DevicesPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const canRegister =
+    user?.role === UserRole.GYM_OWNER ||
+    user?.role === UserRole.BRANCH_MANAGER ||
+    user?.role === UserRole.SUPER_ADMIN;
   const [isLoading, setIsLoading] = useState(true);
   const [devices, setDevices] = useState<DeviceItem[]>([]);
   const [testingId, setTestingId] = useState<string | null>(null);
@@ -90,12 +97,14 @@ export function DevicesPage() {
           >
             Refresh Hardware
           </Button>
-          <Button
-            className="bg-[#0A192F] text-[#FBFBF9] hover:bg-[#162E52] text-xs rounded-none"
-            onClick={() => navigate('/devices/new')}
-          >
-            + Register Biometric Terminal
-          </Button>
+          {canRegister && (
+            <Button
+              className="bg-[#0A192F] text-[#FBFBF9] hover:bg-[#162E52] text-xs rounded-none"
+              onClick={() => navigate('/devices/new')}
+            >
+              + Register Biometric Terminal
+            </Button>
+          )}
         </div>
       </div>
 
