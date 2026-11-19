@@ -9,9 +9,16 @@ import {
   UseGuards,
   Res,
   HttpStatus,
+  UseInterceptors,
+  UploadedFile,
+  BadRequestException,
 } from '@nestjs/common';
 import { Response } from 'express';
-import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse, ApiConsumes, ApiBody } from '@nestjs/swagger';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import * as path from 'path';
+import * as fs from 'fs';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
@@ -29,6 +36,67 @@ import { CreateMemberNoteDto } from './dto/member-note.dto';
 @Controller('members')
 export class MemberController {
   constructor(private readonly memberService: MemberService) {}
+
+  @Post('upload-photo')
+  @Roles(UserRole.GYM_OWNER, UserRole.BRANCH_MANAGER, UserRole.FRONT_DESK)
+  @ApiOperation({ summary: 'Upload member profile photo (JPG, PNG, WebP up to 5MB)' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        photo: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
+  @UseInterceptors(
+    FileInterceptor('photo', {
+      storage: diskStorage({
+        destination: (_req, _file, cb) => {
+          const uploadPath = path.join(process.cwd(), 'uploads', 'members');
+          if (!fs.existsSync(uploadPath)) {
+            fs.mkdirSync(uploadPath, { recursive: true });
+          }
+          cb(null, uploadPath);
+        },
+        filename: (_req, file, cb) => {
+          const ext = path.extname(file.originalname).toLowerCase();
+          const cleanName = `member-${Date.now()}-${Math.round(Math.random() * 1e6)}${ext}`;
+          cb(null, cleanName);
+        },
+      }),
+      limits: {
+        fileSize: 5 * 1024 * 1024, // 5MB limit
+      },
+      fileFilter: (_req, file, cb) => {
+        if (!file.mimetype.match(/\/(jpg|jpeg|png|webp)$/i)) {
+          return cb(
+            new BadRequestException('Only JPG, JPEG, PNG, and WebP images are permitted.'),
+            false,
+          );
+        }
+        cb(null, true);
+      },
+    }),
+  )
+  uploadPhoto(@UploadedFile() file: Express.Multer.File) {
+    if (!file) {
+      throw new BadRequestException('No image file uploaded.');
+    }
+    const photoUrl = `/uploads/members/${file.filename}`;
+    return {
+      status: 'success',
+      data: {
+        photoUrl,
+        filename: file.filename,
+        size: file.size,
+        mimeType: file.mimetype,
+      },
+    };
+  }
 
   @Post()
   @Roles(UserRole.GYM_OWNER, UserRole.BRANCH_MANAGER, UserRole.FRONT_DESK)

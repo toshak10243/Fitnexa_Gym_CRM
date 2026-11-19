@@ -16,12 +16,16 @@ export function MemberRegistrationPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [activeStep, setActiveStep] = useState<number>(1);
   const [isDirty, setIsDirty] = useState<boolean>(false);
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState<boolean>(false);
+  const [photoUploadError, setPhotoUploadError] = useState<string | null>(null);
+  const fileInputRef = React.useRef<HTMLInputElement | null>(null);
 
   // Form State
   const [formData, setFormData] = useState({
     // Step 1: Personal
     branchId: '',
     fullName: '',
+    photoUrl: '',
     phone: '',
     altPhone: '',
     email: '',
@@ -147,6 +151,60 @@ export function MemberRegistrationPage() {
     }
   };
 
+  const handlePhotoFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      setPhotoUploadError('File size exceeds the 5MB limit.');
+      return;
+    }
+
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      setPhotoUploadError('Only JPG, PNG, and WebP image formats are permitted.');
+      return;
+    }
+
+    setPhotoUploadError(null);
+    setIsUploadingPhoto(true);
+
+    try {
+      const uploadData = new FormData();
+      uploadData.append('photo', file);
+
+      const res = await apiClient.post('/members/upload-photo', uploadData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+
+      if (res.data?.data?.photoUrl) {
+        setFormData((prev) => {
+          const updated = { ...prev, photoUrl: res.data.data.photoUrl };
+          localStorage.setItem(DRAFT_KEY, JSON.stringify(updated));
+          return updated;
+        });
+        setIsDirty(true);
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Photo upload failed';
+      setPhotoUploadError(msg);
+    } finally {
+      setIsUploadingPhoto(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  const handleRemovePhoto = () => {
+    setFormData((prev) => {
+      const updated = { ...prev, photoUrl: '' };
+      localStorage.setItem(DRAFT_KEY, JSON.stringify(updated));
+      return updated;
+    });
+    setPhotoUploadError(null);
+    setIsDirty(true);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
@@ -184,6 +242,7 @@ export function MemberRegistrationPage() {
       const payload = {
         branchId: formData.branchId,
         fullName: formData.fullName.trim(),
+        photoUrl: formData.photoUrl.trim() || undefined,
         phone: formData.phone.trim(),
         altPhone: formData.altPhone.trim() || undefined,
         email: formData.email.trim() || undefined,
@@ -318,10 +377,111 @@ export function MemberRegistrationPage() {
       <form onSubmit={handleSubmit} className="bg-[#FBFBF9] border border-[#E5E7EB] p-6 space-y-6">
         {/* STEP 1: Personal Details */}
         {activeStep === 1 && (
-          <div className="space-y-4">
+          <div className="space-y-5">
             <h2 className="text-sm font-bold uppercase tracking-wider text-[#0A192F] pb-1">
               Section 1: Personal Identification & Contact
             </h2>
+
+            {/* Profile Picture Upload Card */}
+            <div className="p-4 border border-[#E5E7EB] bg-[#F5F5F0] flex flex-col sm:flex-row items-start sm:items-center gap-5">
+              <div className="relative h-24 w-24 flex-shrink-0 border border-[#E5E7EB] bg-[#FBFBF9] flex items-center justify-center overflow-hidden">
+                {formData.photoUrl ? (
+                  <img
+                    src={formData.photoUrl}
+                    alt="Member Preview"
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <div className="flex flex-col items-center justify-center text-[#9CA3AF] p-2 text-center">
+                    <svg
+                      className="h-8 w-8 mb-1 text-[#6B7280]"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={1.5}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"
+                      />
+                    </svg>
+                    <span className="text-[10px] font-medium leading-tight">No Photo</span>
+                  </div>
+                )}
+                {isUploadingPhoto && (
+                  <div className="absolute inset-0 bg-black/60 flex items-center justify-center text-[#FBFBF9] text-[10px] font-bold">
+                    Uploading...
+                  </div>
+                )}
+              </div>
+
+              <div className="flex-1 space-y-2">
+                <div>
+                  <h4 className="text-xs font-bold text-[#0A192F] uppercase tracking-wider">
+                    Member Profile Picture
+                  </h4>
+                  <p className="text-[11px] text-[#6B7280]">
+                    Upload a portrait photo for biometric kiosk verification, access gates, and digital membership badges.
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2">
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    accept="image/jpeg,image/png,image/webp"
+                    className="hidden"
+                    onChange={handlePhotoFileChange}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={isUploadingPhoto}
+                    onClick={() => fileInputRef.current?.click()}
+                    className="rounded-none text-xs h-8 border-[#0A192F] text-[#0A192F] hover:bg-[#0A192F] hover:text-[#FBFBF9]"
+                  >
+                    <svg
+                      className="h-3.5 w-3.5 mr-1.5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"
+                      />
+                    </svg>
+                    {formData.photoUrl ? 'Replace Photo' : 'Upload Photo'}
+                  </Button>
+
+                  {formData.photoUrl && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleRemovePhoto}
+                      className="rounded-none text-xs h-8 border-red-300 text-[#B91C1C] hover:bg-red-50"
+                    >
+                      Remove
+                    </Button>
+                  )}
+                  <span className="text-[10px] text-[#9CA3AF]">
+                    JPG, PNG, or WebP up to 5MB
+                  </span>
+                </div>
+
+                {photoUploadError && (
+                  <p className="text-[11px] font-medium text-[#B91C1C]">
+                    {photoUploadError}
+                  </p>
+                )}
+              </div>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-semibold text-[#111827] mb-1">

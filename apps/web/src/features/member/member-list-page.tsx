@@ -11,6 +11,7 @@ interface MemberItem {
   id: string;
   memberCode: string;
   fullName: string;
+  photoUrl?: string | null;
   phone: string;
   email: string | null;
   status: MemberStatus;
@@ -317,7 +318,20 @@ export function MemberListPage() {
                         {member.memberCode}
                       </td>
                       <td className="py-3 px-4">
-                        <div className="font-semibold text-[#111827]">{member.fullName}</div>
+                        <div className="flex items-center space-x-2.5">
+                          {member.photoUrl ? (
+                            <img
+                              src={member.photoUrl}
+                              alt={member.fullName}
+                              className="h-7 w-7 object-cover rounded-none border border-[#E5E7EB] flex-shrink-0"
+                            />
+                          ) : (
+                            <div className="h-7 w-7 bg-[#0A192F] text-[#FBFBF9] flex items-center justify-center font-bold text-xs rounded-none flex-shrink-0">
+                              {member.fullName.charAt(0)}
+                            </div>
+                          )}
+                          <span className="font-semibold text-[#111827]">{member.fullName}</span>
+                        </div>
                       </td>
                       <td className="py-3 px-4 text-[#4B5563]">
                         <div>{member.phone}</div>

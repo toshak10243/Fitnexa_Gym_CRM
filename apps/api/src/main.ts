@@ -4,6 +4,9 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import helmet from 'helmet';
 import compression from 'compression';
 import { json, urlencoded } from 'express';
+import * as express from 'express';
+import * as path from 'path';
+import * as fs from 'fs';
 import { AppModule } from './app.module';
 import { GlobalHttpExceptionFilter } from './common/filters/http-exception.filter';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
@@ -41,6 +44,13 @@ async function bootstrap() {
 
   // Global Prefix
   app.setGlobalPrefix('api/v1');
+
+  // Static File Serving for Member Photos & Uploads
+  const uploadDir = path.join(process.cwd(), 'uploads');
+  if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+  }
+  app.use('/uploads', express.static(uploadDir));
 
   // Restrictive CORS
   const corsOrigin = process.env.CORS_ORIGIN || 'http://localhost:5173';

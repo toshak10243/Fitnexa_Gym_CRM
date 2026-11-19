@@ -73,6 +73,44 @@ export function MemberProfilePage() {
   const [newNote, setNewNote] = useState('');
   const [isNotePinned, setIsNotePinned] = useState(false);
   const [isSubmittingNote, setIsSubmittingNote] = useState(false);
+  const photoInputRef = React.useRef<HTMLInputElement | null>(null);
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !member) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Photo exceeds 5MB size limit.');
+      return;
+    }
+
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      alert('Only JPG, PNG, and WebP images are permitted.');
+      return;
+    }
+
+    setIsUploadingPhoto(true);
+    try {
+      const uploadData = new FormData();
+      uploadData.append('photo', file);
+
+      const res = await apiClient.post('/members/upload-photo', uploadData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+
+      const newPhotoUrl = res.data?.data?.photoUrl;
+      if (newPhotoUrl) {
+        await apiClient.patch(`/members/${member.id}`, { photoUrl: newPhotoUrl });
+        setMember((prev: any) => ({ ...prev, photoUrl: newPhotoUrl }));
+      }
+    } catch {
+      alert('Failed to upload member profile photo.');
+    } finally {
+      setIsUploadingPhoto(false);
+      if (photoInputRef.current) photoInputRef.current.value = '';
+    }
+  };
 
   const fetchMember = async () => {
     setIsLoading(true);
@@ -329,8 +367,38 @@ export function MemberProfilePage() {
       <div className="bg-[#0A192F] text-[#FBFBF9] border border-[#162E52] p-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <div className="h-16 w-16 bg-[#B91C1C] flex items-center justify-center font-bold text-xl text-[#FBFBF9] rounded-none border border-red-500/30">
-              {member.fullName.charAt(0)}
+            <div className="relative group h-16 w-16 flex-shrink-0">
+              {member.photoUrl ? (
+                <img
+                  src={member.photoUrl}
+                  alt={member.fullName}
+                  className="h-16 w-16 object-cover rounded-none border border-red-500/30"
+                />
+              ) : (
+                <div className="h-16 w-16 bg-[#B91C1C] flex items-center justify-center font-bold text-xl text-[#FBFBF9] rounded-none border border-red-500/30">
+                  {member.fullName.charAt(0)}
+                </div>
+              )}
+              {isManagement && (
+                <>
+                  <input
+                    type="file"
+                    ref={photoInputRef}
+                    accept="image/jpeg,image/png,image/webp"
+                    className="hidden"
+                    onChange={handlePhotoUpload}
+                  />
+                  <button
+                    type="button"
+                    disabled={isUploadingPhoto}
+                    onClick={() => photoInputRef.current?.click()}
+                    title="Change Member Photo"
+                    className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-[10px] text-white font-semibold uppercase tracking-wider"
+                  >
+                    {isUploadingPhoto ? '...' : 'Change'}
+                  </button>
+                </>
+              )}
             </div>
             <div>
               <div className="flex items-center gap-3">

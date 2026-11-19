@@ -39,7 +39,10 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-# OS Files
+# Uploads
+uploads/
+apps/api/uploads/*
+!apps/api/uploads/.gitkeep
 .DS_Store
 Thumbs.db
 
