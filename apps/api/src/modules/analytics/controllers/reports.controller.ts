@@ -12,7 +12,13 @@ export class ReportsController {
   constructor(private readonly reportingService: ReportingService) {}
 
   @Get('reports/:reportType')
-  @Roles(UserRole.SUPER_ADMIN, UserRole.GYM_OWNER, UserRole.BRANCH_MANAGER)
+  @Roles(
+    UserRole.SUPER_ADMIN,
+    UserRole.GYM_OWNER,
+    UserRole.BRANCH_MANAGER,
+    UserRole.FRONT_DESK,
+    UserRole.STAFF,
+  )
   async getReport(
     @CurrentUser() user: any,
     @Param('reportType') reportType: string,
@@ -22,7 +28,12 @@ export class ReportsController {
     @Query('page') page?: string,
     @Query('limit') limit?: string,
   ) {
-    const effectiveBranchId = user.role === UserRole.BRANCH_MANAGER ? user.branchId : branchId;
+    const effectiveBranchId =
+      user.role === UserRole.BRANCH_MANAGER ||
+      user.role === UserRole.FRONT_DESK ||
+      user.role === UserRole.STAFF
+        ? user.branchId
+        : branchId;
 
     return this.reportingService.generateReport(user.tenantId, reportType, {
       branchId: effectiveBranchId,

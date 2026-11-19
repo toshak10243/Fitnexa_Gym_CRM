@@ -3,18 +3,21 @@ import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../../lib/api-client';
 import { Button } from '../../components/ui/button';
 import { Skeleton } from '../../components/ui/skeleton';
+import { ErrorState } from '../../components/ui/error-state';
 import { formatPaiseToInr } from '../../lib/utils';
 import { DashboardMetricsDto } from '@fitnexa/shared';
 
 export function DashboardPage() {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<DashboardMetricsDto | null>(null);
   const [branches, setBranches] = useState<any[]>([]);
   const [selectedBranchId, setSelectedBranchId] = useState<string>('');
 
   const fetchDashboardData = async () => {
     setIsLoading(true);
+    setError(null);
     try {
       let url = '/analytics/dashboard';
       if (selectedBranchId) {
@@ -22,12 +25,12 @@ export function DashboardPage() {
       }
       const [dashRes, branchRes] = await Promise.all([
         apiClient.get(url),
-        apiClient.get('/tenant/branches'),
+        apiClient.get('/tenant/branches').catch(() => ({ data: [] })),
       ]);
       setData(dashRes.data?.data || dashRes.data);
       setBranches(Array.isArray(branchRes.data) ? branchRes.data : branchRes.data?.data || []);
-    } catch {
-      // Handled gracefully
+    } catch (err: any) {
+      setError(err?.message || 'Failed to load executive dashboard');
     } finally {
       setIsLoading(false);
     }
@@ -36,6 +39,17 @@ export function DashboardPage() {
   useEffect(() => {
     fetchDashboardData();
   }, [selectedBranchId]);
+
+  if (error) {
+    return (
+      <div className="p-8 max-w-7xl mx-auto space-y-4">
+        <ErrorState title="Dashboard Access" message={error} />
+        <Button variant="secondary" onClick={fetchDashboardData}>
+          Retry Loading
+        </Button>
+      </div>
+    );
+  }
 
   if (isLoading || !data) {
     return (

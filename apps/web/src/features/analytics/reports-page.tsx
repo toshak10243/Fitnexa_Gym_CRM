@@ -128,11 +128,10 @@ export function ReportsPage() {
               setActiveReport(tab.type);
               setPage(1);
             }}
-            className={`px-3 py-1.5 text-xs font-bold border transition-colors ${
-              activeReport === tab.type
+            className={`px-3 py-1.5 text-xs font-bold border transition-colors ${activeReport === tab.type
                 ? 'bg-[#0A192F] text-white border-[#0A192F]'
                 : 'bg-white text-[#6B7280] border-[#E5E7EB] hover:bg-[#F5F5F0]'
-            }`}
+              }`}
           >
             {tab.label}
           </button>

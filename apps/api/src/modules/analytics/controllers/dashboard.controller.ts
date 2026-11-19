@@ -12,12 +12,23 @@ export class DashboardController {
   constructor(private readonly dashboardService: DashboardService) {}
 
   @Get('dashboard')
-  @Roles(UserRole.SUPER_ADMIN, UserRole.GYM_OWNER, UserRole.BRANCH_MANAGER)
+  @Roles(
+    UserRole.SUPER_ADMIN,
+    UserRole.GYM_OWNER,
+    UserRole.BRANCH_MANAGER,
+    UserRole.FRONT_DESK,
+    UserRole.STAFF,
+  )
   async getDashboard(
     @CurrentUser() user: any,
     @Query('branchId') branchId?: string,
   ) {
-    const effectiveBranchId = user.role === UserRole.BRANCH_MANAGER ? user.branchId : branchId;
+    const effectiveBranchId =
+      user.role === UserRole.BRANCH_MANAGER ||
+      user.role === UserRole.FRONT_DESK ||
+      user.role === UserRole.STAFF
+        ? user.branchId
+        : branchId;
     return this.dashboardService.getExecutiveDashboard(user.tenantId, effectiveBranchId);
   }
 }
