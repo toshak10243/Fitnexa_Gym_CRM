@@ -16,6 +16,12 @@ import { MemberImportModule } from './modules/member-import/member-import.module
 import { BillingModule } from './modules/billing/billing.module';
 import { AttendanceModule } from './modules/attendance/attendance.module';
 import { DeviceModule } from './modules/device/device.module';
+import { InventoryModule } from './modules/inventory/inventory.module';
+import { PosModule } from './modules/pos/pos.module';
+import { TrainerModule } from './modules/trainer/trainer.module';
+import { CrmModule } from './modules/crm/crm.module';
+import { ExpenseModule } from './modules/expense/expense.module';
+import { NotificationModule } from './modules/notification/notification.module';
 
 @Module({
   imports: [
@@ -39,6 +45,12 @@ import { DeviceModule } from './modules/device/device.module';
     BillingModule,
     AttendanceModule,
     DeviceModule,
+    InventoryModule,
+    PosModule,
+    TrainerModule,
+    CrmModule,
+    ExpenseModule,
+    NotificationModule,
   ],
 })
 export class AppModule {}
