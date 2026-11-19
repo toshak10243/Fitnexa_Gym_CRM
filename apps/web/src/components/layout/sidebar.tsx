@@ -8,8 +8,55 @@ export function Sidebar() {
 
   const coreNavItems = [
     {
-      label: 'System Telemetry',
+      label: 'Executive Dashboard',
       path: '/',
+      enabled: true,
+      icon: (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+        >
+          <rect x="3" y="3" width="7" height="9" />
+          <rect x="14" y="3" width="7" height="5" />
+          <rect x="14" y="12" width="7" height="9" />
+          <rect x="3" y="16" width="7" height="5" />
+        </svg>
+      ),
+    },
+    {
+      label: 'Analytics & Reports',
+      path: '/reports',
+      enabled: true,
+      icon: (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+        >
+          <line x1="18" y1="20" x2="18" y2="10" />
+          <line x1="12" y1="20" x2="12" y2="4" />
+          <line x1="6" y1="20" x2="6" y2="14" />
+        </svg>
+      ),
+    },
+    {
+      label: 'System Telemetry',
+      path: '/telemetry',
       enabled: true,
       icon: (
         <svg
@@ -899,10 +946,10 @@ export function Sidebar() {
       <div className="p-4 border-t border-[#162E52] text-[11px] text-[#9CA3AF]">
         <div className="flex justify-between items-center">
           <span>Release</span>
-          <span className="font-mono text-[10px] text-[#E5E7EB]">Phase 5 Operations</span>
+          <span className="font-mono text-[10px] text-[#E5E7EB]">Phase 6 Enterprise</span>
         </div>
         <div className="flex justify-between items-center mt-1">
-          <span>Retail & CRM Engine</span>
+          <span>Analytics Engine</span>
           <span className="font-mono text-[10px] text-[#34D399]">Telemetry Active</span>
         </div>
       </div>

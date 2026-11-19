@@ -56,6 +56,8 @@ import { ExpenseCreatePage } from '../features/expense/expense-create-page';
 import { ExpenseCategoriesPage } from '../features/expense/expense-categories-page';
 import { NotificationsPage } from '../features/notification/notifications-page';
 import { NotificationSettingsPage } from '../features/notification/notification-settings-page';
+import { DashboardPage } from '../features/analytics/dashboard-page';
+import { ReportsPage } from '../features/analytics/reports-page';
 import { UserRole } from '@fitnexa/shared';
 
 export const router = createBrowserRouter([
@@ -69,6 +71,36 @@ export const router = createBrowserRouter([
   },
   {
     path: '/',
+    element: (
+      <ProtectedRoute>
+        <AppShell>
+          <DashboardPage />
+        </AppShell>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/dashboard',
+    element: (
+      <ProtectedRoute>
+        <AppShell>
+          <DashboardPage />
+        </AppShell>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/reports',
+    element: (
+      <ProtectedRoute>
+        <AppShell>
+          <ReportsPage />
+        </AppShell>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/telemetry',
     element: (
       <ProtectedRoute>
         <AppShell>
