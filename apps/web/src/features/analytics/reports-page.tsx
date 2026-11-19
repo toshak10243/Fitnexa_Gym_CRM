@@ -119,7 +119,7 @@ export function ReportsPage() {
       </div>
 
       {/* Report Types Tabs */}
-      <div className="flex flex-wrap items-center gap-1 border-b border-[#E5E7EB] pb-2">
+      <div className="flex flex-wrap items-center gap-1 pb-1">
         {reportTabs.map((tab) => (
           <button
             key={tab.type}

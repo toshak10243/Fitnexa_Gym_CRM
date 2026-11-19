@@ -97,7 +97,7 @@ export function NotificationSettingsPage() {
       <form onSubmit={handleSave} className="bg-[#FBFBF9] border border-[#E5E7EB] p-6 space-y-6">
         {/* In-App Alerts */}
         <div className="space-y-3">
-          <h2 className="text-xs font-bold uppercase tracking-wider text-[#0A192F] border-b border-[#E5E7EB] pb-2">
+          <h2 className="text-xs font-bold uppercase tracking-wider text-[#0A192F] pb-1">
             In-App Notification Center
           </h2>
           <div className="space-y-2">
@@ -133,7 +133,7 @@ export function NotificationSettingsPage() {
 
         {/* Transactional Outbound Channels */}
         <div className="space-y-3 pt-3 border-t border-[#E5E7EB]">
-          <h2 className="text-xs font-bold uppercase tracking-wider text-[#0A192F] border-b border-[#E5E7EB] pb-2">
+          <h2 className="text-xs font-bold uppercase tracking-wider text-[#0A192F] pb-1">
             Transactional Email & Messaging Channels
           </h2>
           <div className="space-y-2">

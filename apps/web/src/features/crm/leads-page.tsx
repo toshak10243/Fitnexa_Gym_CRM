@@ -69,7 +69,7 @@ export function LeadsPage() {
       </div>
 
       {/* Stage Tabs Bar */}
-      <div className="flex flex-wrap items-center gap-1 border-b border-[#E5E7EB] pb-2">
+      <div className="flex flex-wrap items-center gap-1 pb-1">
         <button
           type="button"
           onClick={() => setSelectedStage('')}

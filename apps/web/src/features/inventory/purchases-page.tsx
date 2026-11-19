@@ -245,7 +245,7 @@ export function PurchasesPage() {
       {isPoModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
           <div className="bg-[#FBFBF9] border border-[#E5E7EB] w-full max-w-2xl p-6 space-y-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-[#E5E7EB] pb-3">
+            <div className="flex items-center justify-between pb-2">
               <h2 className="text-sm font-bold uppercase tracking-tight text-[#0A192F]">
                 New Purchase Order
               </h2>
@@ -390,7 +390,7 @@ export function PurchasesPage() {
       {receiveTargetPo && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
           <div className="bg-[#FBFBF9] border border-[#E5E7EB] w-full max-w-lg p-6 space-y-4">
-            <div className="flex items-center justify-between border-b border-[#E5E7EB] pb-3">
+            <div className="flex items-center justify-between pb-2">
               <div>
                 <h2 className="text-sm font-bold uppercase tracking-tight text-[#0A192F]">
                   Goods Receipt Note (GRN)

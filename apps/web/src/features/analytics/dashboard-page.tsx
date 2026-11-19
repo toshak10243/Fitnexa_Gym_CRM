@@ -196,7 +196,7 @@ export function DashboardPage() {
 
       {/* Quadrant 2: Financial Integrity & Cash Flow Statement */}
       <div className="bg-[#FBFBF9] border border-[#E5E7EB] p-6 space-y-4">
-        <div className="flex items-center justify-between border-b border-[#E5E7EB] pb-3">
+        <div className="flex items-center justify-between pb-2">
           <div>
             <h2 className="text-sm font-bold uppercase tracking-tight text-[#0A192F]">
               Financial Performance & Operational Cash Flow
@@ -277,7 +277,7 @@ export function DashboardPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Membership Lifecycle & Retention Pipeline */}
         <div className="bg-[#FBFBF9] border border-[#E5E7EB] p-5 space-y-4">
-          <div className="flex items-center justify-between border-b border-[#E5E7EB] pb-3">
+          <div className="flex items-center justify-between pb-2">
             <h2 className="text-sm font-bold uppercase tracking-tight text-[#0A192F]">
               Membership Lifecycle & Renewals
             </h2>
@@ -328,7 +328,7 @@ export function DashboardPage() {
 
         {/* Operational Signals & Sales Velocity */}
         <div className="bg-[#FBFBF9] border border-[#E5E7EB] p-5 space-y-4">
-          <div className="flex items-center justify-between border-b border-[#E5E7EB] pb-3">
+          <div className="flex items-center justify-between pb-2">
             <h2 className="text-sm font-bold uppercase tracking-tight text-[#0A192F]">
               Operational Alerts & Sales CRM
             </h2>

@@ -480,7 +480,7 @@ export function MemberProfilePage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Residential Address */}
           <div className="border border-[#E5E7EB] bg-[#FBFBF9] p-5 space-y-3">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-[#0A192F] border-b border-[#E5E7EB] pb-2">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-[#0A192F] pb-1">
               Residential Address
             </h3>
             {member.address ? (
@@ -499,7 +499,7 @@ export function MemberProfilePage() {
 
           {/* Emergency Contact */}
           <div className="border border-[#E5E7EB] bg-[#FBFBF9] p-5 space-y-3">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-[#0A192F] border-b border-[#E5E7EB] pb-2">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-[#0A192F] pb-1">
               Emergency Contact
             </h3>
             {member.emergencyContact ? (
@@ -515,7 +515,7 @@ export function MemberProfilePage() {
 
           {/* Fitness & Body Metrics */}
           <div className="border border-[#E5E7EB] bg-[#FBFBF9] p-5 space-y-3">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-[#0A192F] border-b border-[#E5E7EB] pb-2">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-[#0A192F] pb-1">
               Fitness Profile & Schedule
             </h3>
             <div className="grid grid-cols-2 gap-2 text-xs text-[#4B5563]">
@@ -550,7 +550,7 @@ export function MemberProfilePage() {
 
           {/* Confidential Health Declaration */}
           <div className="border border-[#E5E7EB] bg-[#FBFBF9] p-5 space-y-3">
-            <div className="flex items-center justify-between border-b border-[#E5E7EB] pb-2">
+            <div className="flex items-center justify-between pb-1">
               <h3 className="text-xs font-bold uppercase tracking-wider text-[#0A192F]">
                 Health Declaration (Confidential)
               </h3>
@@ -1104,7 +1104,7 @@ export function MemberProfilePage() {
       {/* TAB 5: Attendance & Access History */}
       {activeTab === 'attendance' && (
         <div className="border border-[#E5E7EB] bg-[#FBFBF9] p-5 space-y-4">
-          <div className="flex items-center justify-between border-b border-[#E5E7EB] pb-3">
+          <div className="flex items-center justify-between pb-2">
             <h3 className="text-xs font-bold uppercase tracking-wider text-[#0A192F]">
               Gate Access & Facility Attendance Ledger
             </h3>
@@ -1200,7 +1200,7 @@ export function MemberProfilePage() {
       {isAssignModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="bg-[#FBFBF9] border border-[#E5E7EB] w-full max-w-md p-6 space-y-4">
-            <h3 className="text-sm font-bold uppercase tracking-wider text-[#0A192F] border-b border-[#E5E7EB] pb-2">
+            <h3 className="text-sm font-bold uppercase tracking-wider text-[#0A192F] pb-1">
               Enroll / Renew Membership Plan
             </h3>
             <form onSubmit={handleAssignPlan} className="space-y-4 text-xs">
@@ -1283,7 +1283,7 @@ export function MemberProfilePage() {
       {isFreezeModalOpen && selectedMembership && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="bg-[#FBFBF9] border border-[#E5E7EB] w-full max-w-md p-6 space-y-4">
-            <h3 className="text-sm font-bold uppercase tracking-wider text-[#0A192F] border-b border-[#E5E7EB] pb-2">
+            <h3 className="text-sm font-bold uppercase tracking-wider text-[#0A192F] pb-1">
               Freeze Membership: {selectedMembership.plan.name}
             </h3>
             <p className="text-xs text-[#6B7280]">
@@ -1344,7 +1344,7 @@ export function MemberProfilePage() {
       {isCancelModalOpen && selectedMembership && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="bg-[#FBFBF9] border border-[#E5E7EB] w-full max-w-md p-6 space-y-4">
-            <h3 className="text-sm font-bold uppercase tracking-wider text-red-700 border-b border-red-200 pb-2">
+            <h3 className="text-sm font-bold uppercase tracking-wider text-red-700 pb-1">
               Cancel Membership: {selectedMembership.plan.name}
             </h3>
             <form onSubmit={handleCancelMembership} className="space-y-4 text-xs">

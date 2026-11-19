@@ -131,7 +131,7 @@ export function DeviceDetailPage() {
       {/* Hardware Telemetry Card */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-[#FBFBF9] border border-[#E5E7EB] p-5 space-y-4">
-          <h2 className="text-xs font-bold uppercase tracking-wider text-[#0A192F] border-b border-[#E5E7EB] pb-2">
+          <h2 className="text-xs font-bold uppercase tracking-wider text-[#0A192F] pb-1">
             Terminal Specifications
           </h2>
           <div className="space-y-2 text-xs">
@@ -165,7 +165,7 @@ export function DeviceDetailPage() {
         </div>
 
         <div className="bg-[#FBFBF9] border border-[#E5E7EB] p-5 space-y-4">
-          <h2 className="text-xs font-bold uppercase tracking-wider text-[#0A192F] border-b border-[#E5E7EB] pb-2">
+          <h2 className="text-xs font-bold uppercase tracking-wider text-[#0A192F] pb-1">
             Cloud Webhook & Ingestion Integration
           </h2>
           <div className="space-y-3 text-xs">

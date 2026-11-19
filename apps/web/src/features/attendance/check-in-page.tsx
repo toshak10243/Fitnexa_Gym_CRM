@@ -323,7 +323,7 @@ export function CheckInPage() {
 
           {/* Access Evaluation & Dues Engine */}
           <div className="md:col-span-2 bg-[#FBFBF9] border border-[#E5E7EB] p-5 space-y-5">
-            <div className="flex items-center justify-between border-b border-[#E5E7EB] pb-3">
+            <div className="flex items-center justify-between pb-2">
               <h3 className="text-xs font-bold uppercase tracking-wider text-[#0A192F]">
                 Automated Access Policy & Financial Engine
               </h3>

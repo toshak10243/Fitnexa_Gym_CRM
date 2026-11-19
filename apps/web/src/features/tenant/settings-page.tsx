@@ -153,7 +153,7 @@ export function SettingsPage() {
 
       {/* Gym Profile Form */}
       <div className="border border-[#E5E7EB] bg-[#F5F5F0] p-6 rounded-sm space-y-4">
-        <h3 className="text-sm font-bold text-[#0A192F] uppercase tracking-wider border-b border-[#E5E7EB] pb-2">
+        <h3 className="text-sm font-bold text-[#0A192F] uppercase tracking-wider pb-1">
           Business Identity & Tax Compliance
         </h3>
 

@@ -96,7 +96,7 @@ export function MemberPrintPage() {
 
         {/* Section 1: Personal Details */}
         <div className="space-y-2">
-          <h2 className="text-xs font-bold uppercase tracking-wider text-[#0A192F] border-b border-[#E5E7EB] pb-1">
+          <h2 className="text-xs font-bold uppercase tracking-wider text-[#0A192F] pb-1">
             1. Member Identification
           </h2>
           <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-xs">
@@ -132,7 +132,7 @@ export function MemberPrintPage() {
 
         {/* Section 2: Address & Emergency Contact */}
         <div className="space-y-2">
-          <h2 className="text-xs font-bold uppercase tracking-wider text-[#0A192F] border-b border-[#E5E7EB] pb-1">
+          <h2 className="text-xs font-bold uppercase tracking-wider text-[#0A192F] pb-1">
             2. Address & Emergency Contact
           </h2>
           <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-xs">
@@ -157,7 +157,7 @@ export function MemberPrintPage() {
 
         {/* Section 3: Health & Safety Declaration */}
         <div className="space-y-2">
-          <h2 className="text-xs font-bold uppercase tracking-wider text-[#0A192F] border-b border-[#E5E7EB] pb-1">
+          <h2 className="text-xs font-bold uppercase tracking-wider text-[#0A192F] pb-1">
             3. Health Declaration & Medical Disclaimer
           </h2>
           <div className="text-xs text-[#374151] space-y-1">
@@ -181,7 +181,7 @@ export function MemberPrintPage() {
 
         {/* Section 4: Rules & Legal Acknowledgement */}
         <div className="space-y-2">
-          <h2 className="text-xs font-bold uppercase tracking-wider text-[#0A192F] border-b border-[#E5E7EB] pb-1">
+          <h2 className="text-xs font-bold uppercase tracking-wider text-[#0A192F] pb-1">
             4. Acknowledgement of Facility Regulations
           </h2>
           <ol className="list-decimal pl-4 text-[10px] text-[#4B5563] space-y-1">

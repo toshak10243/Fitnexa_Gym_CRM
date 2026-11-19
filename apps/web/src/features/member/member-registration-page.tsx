@@ -319,7 +319,7 @@ export function MemberRegistrationPage() {
         {/* STEP 1: Personal Details */}
         {activeStep === 1 && (
           <div className="space-y-4">
-            <h2 className="text-sm font-bold uppercase tracking-wider text-[#0A192F] border-b border-[#E5E7EB] pb-2">
+            <h2 className="text-sm font-bold uppercase tracking-wider text-[#0A192F] pb-1">
               Section 1: Personal Identification & Contact
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -458,7 +458,7 @@ export function MemberRegistrationPage() {
         {/* STEP 2: Residential Address */}
         {activeStep === 2 && (
           <div className="space-y-4">
-            <h2 className="text-sm font-bold uppercase tracking-wider text-[#0A192F] border-b border-[#E5E7EB] pb-2">
+            <h2 className="text-sm font-bold uppercase tracking-wider text-[#0A192F] pb-1">
               Section 2: Residential Address
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -530,7 +530,7 @@ export function MemberRegistrationPage() {
         {/* STEP 3: Emergency Contact */}
         {activeStep === 3 && (
           <div className="space-y-4">
-            <h2 className="text-sm font-bold uppercase tracking-wider text-[#0A192F] border-b border-[#E5E7EB] pb-2">
+            <h2 className="text-sm font-bold uppercase tracking-wider text-[#0A192F] pb-1">
               Section 3: Emergency Contact Details
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -577,7 +577,7 @@ export function MemberRegistrationPage() {
         {/* STEP 4: Fitness & Body Metrics */}
         {activeStep === 4 && (
           <div className="space-y-4">
-            <h2 className="text-sm font-bold uppercase tracking-wider text-[#0A192F] border-b border-[#E5E7EB] pb-2">
+            <h2 className="text-sm font-bold uppercase tracking-wider text-[#0A192F] pb-1">
               Section 4: Fitness Profile & Training Schedule
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -679,7 +679,7 @@ export function MemberRegistrationPage() {
         {/* STEP 5: Health Declaration */}
         {activeStep === 5 && (
           <div className="space-y-4">
-            <h2 className="text-sm font-bold uppercase tracking-wider text-[#0A192F] border-b border-[#E5E7EB] pb-2">
+            <h2 className="text-sm font-bold uppercase tracking-wider text-[#0A192F] pb-1">
               Section 5: Health Declaration & Medical Disclaimer (Confidential)
             </h2>
             <div className="bg-amber-50 border border-amber-200 p-3 text-xs text-amber-900">
@@ -765,7 +765,7 @@ export function MemberRegistrationPage() {
         {/* STEP 6: Consents & Minor Guardian */}
         {activeStep === 6 && (
           <div className="space-y-4">
-            <h2 className="text-sm font-bold uppercase tracking-wider text-[#0A192F] border-b border-[#E5E7EB] pb-2">
+            <h2 className="text-sm font-bold uppercase tracking-wider text-[#0A192F] pb-1">
               Section 6: Terms Acknowledgement & Guardian Consent
             </h2>
 

@@ -315,7 +315,7 @@ export function LeadDetailPage() {
 
         {/* Right Column: Follow-up Timeline */}
         <div className="md:col-span-2 bg-[#FBFBF9] border border-[#E5E7EB] p-5 space-y-4">
-          <div className="flex items-center justify-between border-b border-[#E5E7EB] pb-3">
+          <div className="flex items-center justify-between pb-2">
             <span className="text-[10px] font-bold uppercase tracking-wider text-[#6B7280]">
               Scheduled Follow-Ups & Interaction History ({lead.followUps?.length || 0})
             </span>
@@ -395,7 +395,7 @@ export function LeadDetailPage() {
       {isFollowUpModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
           <div className="bg-[#FBFBF9] border border-[#E5E7EB] w-full max-w-md p-6 space-y-4">
-            <div className="flex items-center justify-between border-b border-[#E5E7EB] pb-3">
+            <div className="flex items-center justify-between pb-2">
               <h2 className="text-sm font-bold uppercase tracking-tight text-[#0A192F]">
                 Schedule Follow-Up Reminder
               </h2>
@@ -476,7 +476,7 @@ export function LeadDetailPage() {
       {isConvertModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
           <div className="bg-[#FBFBF9] border border-[#E5E7EB] w-full max-w-lg p-6 space-y-4">
-            <div className="flex items-center justify-between border-b border-[#E5E7EB] pb-3">
+            <div className="flex items-center justify-between pb-2">
               <h2 className="text-sm font-bold uppercase tracking-tight text-[#0A192F]">
                 Convert Inquiry to Registered Gym Member
               </h2>

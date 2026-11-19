@@ -127,7 +127,7 @@ export function AttendancePoliciesPage() {
       <form onSubmit={handleSave} className="bg-[#FBFBF9] border border-[#E5E7EB] p-6 space-y-6">
         {/* Section 1: Financial & Dues Policy */}
         <div className="space-y-4">
-          <div className="border-b border-[#E5E7EB] pb-2">
+          <div className="pb-1">
             <h2 className="text-xs font-bold uppercase tracking-wider text-[#0A192F]">
               1. Fee Dues & Admission Gating
             </h2>
@@ -182,7 +182,7 @@ export function AttendancePoliciesPage() {
 
         {/* Section 2: Membership Expiry & Grace Periods */}
         <div className="space-y-4">
-          <div className="border-b border-[#E5E7EB] pb-2">
+          <div className="pb-1">
             <h2 className="text-xs font-bold uppercase tracking-wider text-[#0A192F]">
               2. Membership Expiry & Grace Periods
             </h2>
@@ -231,7 +231,7 @@ export function AttendancePoliciesPage() {
 
         {/* Section 3: Hardware Debounce & Session Limits */}
         <div className="space-y-4">
-          <div className="border-b border-[#E5E7EB] pb-2">
+          <div className="pb-1">
             <h2 className="text-xs font-bold uppercase tracking-wider text-[#0A192F]">
               3. Terminal Debouncing & Session Lifecycle
             </h2>
@@ -276,7 +276,7 @@ export function AttendancePoliciesPage() {
 
         {/* Section 4: Operating Hours */}
         <div className="space-y-4">
-          <div className="border-b border-[#E5E7EB] pb-2">
+          <div className="pb-1">
             <h2 className="text-xs font-bold uppercase tracking-wider text-[#0A192F]">
               4. Facility Operating Hours (Daily Gating)
             </h2>

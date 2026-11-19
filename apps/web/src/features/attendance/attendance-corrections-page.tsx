@@ -277,7 +277,7 @@ export function AttendanceCorrectionsPage() {
       {showCreateModal && (
         <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
           <div className="bg-[#FBFBF9] border border-[#E5E7EB] w-full max-w-lg p-6 space-y-4">
-            <div className="flex items-center justify-between border-b border-[#E5E7EB] pb-3">
+            <div className="flex items-center justify-between pb-2">
               <h2 className="text-sm font-bold uppercase tracking-wider text-[#0A192F]">
                 Request Attendance Correction
               </h2>
@@ -373,7 +373,7 @@ export function AttendanceCorrectionsPage() {
       {selectedCorrection && (
         <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
           <div className="bg-[#FBFBF9] border border-[#E5E7EB] w-full max-w-md p-6 space-y-4">
-            <div className="flex items-center justify-between border-b border-[#E5E7EB] pb-3">
+            <div className="flex items-center justify-between pb-2">
               <h2 className="text-sm font-bold uppercase tracking-wider text-[#0A192F]">
                 Manager Review Decision
               </h2>

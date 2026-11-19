@@ -235,7 +235,7 @@ export function InvoiceCreatePage() {
 
         {/* Line Items Section */}
         <div className="space-y-3">
-          <div className="flex items-center justify-between border-b border-[#E5E7EB] pb-2">
+          <div className="flex items-center justify-between pb-1">
             <h2 className="text-xs font-bold uppercase tracking-wider text-[#0A192F]">
               Itemized Charges & Tax
             </h2>
