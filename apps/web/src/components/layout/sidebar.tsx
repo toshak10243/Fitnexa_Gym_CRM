@@ -1,6 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '../../lib/utils';
 import { useAuth } from '../../context/auth-context';
+import fitnexaLogo from '../../assets/logo.png';
 
 export function Sidebar() {
   const location = useLocation();
@@ -916,12 +917,16 @@ export function Sidebar() {
   return (
     <aside className="w-64 flex-shrink-0 bg-[#0A192F] text-[#FBFBF9] flex flex-col border-r border-[#162E52] select-none">
       {/* Brand Header */}
-      <div className="h-16 flex items-center px-6 border-b border-[#162E52] space-x-3">
-        <div className="h-7 w-7 bg-[#B91C1C] flex items-center justify-center font-bold text-xs tracking-widest text-[#FBFBF9] rounded-none">
-          FX
+      <div className="h-16 flex items-center px-4 border-b border-[#162E52] space-x-3">
+        <div className="h-9 w-9 flex-shrink-0 flex items-center justify-center overflow-hidden rounded-sm bg-white/10 p-0.5 border border-[#162E52]">
+          <img
+            src={fitnexaLogo}
+            alt="Fitnexa Logo"
+            className="h-full w-full object-contain"
+          />
         </div>
         <div className="flex flex-col min-w-0">
-          <span className="font-bold text-sm tracking-wider uppercase text-[#FBFBF9] truncate">
+          <span className="font-bold text-sm tracking-wider uppercase text-[#FBFBF9] truncate" title={tenant?.name || 'Fitnexa'}>
             {tenant?.name || 'Fitnexa'}
           </span>
           <span className="text-[10px] text-[#9CA3AF] tracking-tight uppercase">

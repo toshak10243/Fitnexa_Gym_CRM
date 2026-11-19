@@ -7,6 +7,7 @@ import { useAuth } from '../../context/auth-context';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { ErrorState } from '../../components/ui/error-state';
+import fitnexaLogo from '../../assets/logo.png';
 
 export function RegisterPage() {
   const { registerOwner } = useAuth();
@@ -48,8 +49,8 @@ export function RegisterPage() {
       <div className="w-full max-w-2xl border border-[#E5E7EB] bg-[#F5F5F0] p-8 rounded-sm">
         {/* Brand Header */}
         <div className="flex items-center space-x-3 border-b border-[#E5E7EB] pb-4 mb-6">
-          <div className="h-8 w-8 bg-[#B91C1C] flex items-center justify-center font-bold text-xs tracking-widest text-[#FBFBF9] rounded-sm">
-            FX
+          <div className="h-10 w-10 flex-shrink-0 flex items-center justify-center overflow-hidden rounded-sm bg-white p-1 border border-[#E5E7EB]">
+            <img src={fitnexaLogo} alt="Fitnexa Logo" className="h-full w-full object-contain" />
           </div>
           <div>
             <h1 className="text-base font-bold text-[#0A192F] tracking-wide uppercase">
