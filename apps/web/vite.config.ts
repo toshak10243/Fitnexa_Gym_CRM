@@ -8,8 +8,11 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
-      '@fitnexa/shared': path.resolve(__dirname, '../../packages/shared/src'),
+      '@fitnexa/shared': path.resolve(__dirname, '../../packages/shared/src/index.ts'),
     },
+  },
+  optimizeDeps: {
+    exclude: ['@fitnexa/shared'],
   },
   server: {
     port: 5173,
