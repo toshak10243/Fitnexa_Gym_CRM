@@ -29,7 +29,7 @@ export function ReportsPage() {
     const fetchBranches = async () => {
       try {
         const res = await apiClient.get('/tenant/branches');
-        setBranches(res.data.data || []);
+        setBranches(Array.isArray(res.data) ? res.data : res.data?.data || []);
       } catch {
         // Handled gracefully
       }
@@ -45,7 +45,7 @@ export function ReportsPage() {
         url += `&branchId=${selectedBranchId}`;
       }
       const res = await apiClient.get(url);
-      setReportData(res.data.data);
+      setReportData(res.data?.data || res.data);
     } catch {
       // Handled gracefully
     } finally {

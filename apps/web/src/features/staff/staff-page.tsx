@@ -38,12 +38,12 @@ async function fetchStaffList(search?: string, role?: string): Promise<Paginated
   if (search) params.search = search;
   if (role) params.role = role;
   const { data } = await apiClient.get('/staff', { params });
-  return data.data;
+  return data?.data || data;
 }
 
 async function fetchBranches(): Promise<TenantDetailResponse> {
   const { data } = await apiClient.get('/tenant/profile');
-  return data.data;
+  return data?.data || data;
 }
 
 export function StaffPage() {

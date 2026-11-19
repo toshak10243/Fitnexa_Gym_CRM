@@ -24,8 +24,8 @@ export function DashboardPage() {
         apiClient.get(url),
         apiClient.get('/tenant/branches'),
       ]);
-      setData(dashRes.data.data);
-      setBranches(branchRes.data.data || []);
+      setData(dashRes.data?.data || dashRes.data);
+      setBranches(Array.isArray(branchRes.data) ? branchRes.data : branchRes.data?.data || []);
     } catch {
       // Handled gracefully
     } finally {

@@ -25,7 +25,7 @@ async function fetchAuditLogs(page = 1): Promise<PaginatedResult<AuditLogRespons
   const { data } = await apiClient.get('/audit-logs', {
     params: { page, limit: 25 },
   });
-  return data.data;
+  return data?.data || data;
 }
 
 export function AuditPage() {

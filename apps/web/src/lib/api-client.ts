@@ -13,7 +13,25 @@ export const apiClient = axios.create({
 });
 
 apiClient.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // Standardize response payload so that both response.data and response.data.data always work transparently
+    if (response.data && typeof response.data === 'object') {
+      if (!('data' in response.data)) {
+        try {
+          Object.defineProperty(response.data, 'data', {
+            get() {
+              return this;
+            },
+            enumerable: false,
+            configurable: true,
+          });
+        } catch {
+          // In case response.data is frozen
+        }
+      }
+    }
+    return response;
+  },
   (error) => {
     // Standard error logging without alerting or modal blocking
     const message =

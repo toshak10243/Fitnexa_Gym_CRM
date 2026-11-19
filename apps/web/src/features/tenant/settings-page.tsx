@@ -33,7 +33,7 @@ import {
 
 async function fetchTenantProfile(): Promise<TenantDetailResponse> {
   const { data } = await apiClient.get('/tenant/profile');
-  return data.data;
+  return data?.data || data;
 }
 
 export function SettingsPage() {
