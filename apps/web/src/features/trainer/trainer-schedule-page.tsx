@@ -35,9 +35,12 @@ export function TrainerSchedulePage() {
         apiClient.get('/trainers'),
         apiClient.get('/members?limit=50'),
       ]);
-      setSessions(schedRes.data.data || []);
-      setTrainers(trainRes.data.data || []);
-      setMembers(memRes.data.data.items || []);
+      const rawSched = schedRes.data?.data || schedRes.data;
+      setSessions(Array.isArray(rawSched) ? rawSched : (rawSched?.items || []));
+      const rawTrain = trainRes.data?.data || trainRes.data;
+      setTrainers(Array.isArray(rawTrain) ? rawTrain : (rawTrain?.items || []));
+      const rawMem = memRes.data?.data || memRes.data;
+      setMembers(Array.isArray(rawMem) ? rawMem : (rawMem?.items || []));
     } catch {
       // Handled gracefully
     } finally {

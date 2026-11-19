@@ -54,7 +54,8 @@ export function AttendanceCorrectionsPage() {
     setIsLoading(true);
     try {
       const res = await apiClient.get('/attendance/corrections');
-      setItems(res.data.data.items || []);
+      const raw = res.data?.data || res.data;
+      setItems(raw?.items || (Array.isArray(raw) ? raw : []));
     } catch {
       // Handled gracefully
     } finally {

@@ -31,7 +31,8 @@ export function StaffAttendancePage() {
     setIsLoading(true);
     try {
       const res = await apiClient.get('/staff-attendance/history?limit=25');
-      setShifts(res.data.data.items || []);
+      const raw = res.data?.data || res.data;
+      setShifts(raw?.items || (Array.isArray(raw) ? raw : []));
     } catch {
       // Handled gracefully
     } finally {

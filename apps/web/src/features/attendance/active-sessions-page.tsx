@@ -12,9 +12,11 @@ interface ActiveSessionItem {
   member: {
     id: string;
     memberCode: string;
-    firstName: string;
-    lastName: string;
+    fullName?: string;
+    firstName?: string;
+    lastName?: string;
     phone: string;
+    emergencyContact?: string;
     emergencyContacts?: Array<{
       name: string;
       relationship: string;
@@ -35,9 +37,11 @@ export function ActiveSessionsPage() {
     setIsLoading(true);
     try {
       const res = await apiClient.get('/attendance/active');
-      setSessions(res.data.data || []);
+      const payload = res.data?.data || res.data;
+      const list = Array.isArray(payload) ? payload : (payload?.items || []);
+      setSessions(list);
     } catch {
-      // Handled gracefully
+      setSessions([]);
     } finally {
       setIsLoading(false);
     }
@@ -77,14 +81,15 @@ export function ActiveSessionsPage() {
     return `${mins}m`;
   };
 
-  const filteredSessions = sessions.filter((s) => {
+  const sessionList = Array.isArray(sessions) ? sessions : [];
+  const filteredSessions = sessionList.filter((s) => {
     if (!filterText) return true;
     const q = filterText.toLowerCase();
-    const name = `${s.member.firstName} ${s.member.lastName}`.toLowerCase();
+    const name = (s.member?.fullName || `${s.member?.firstName || ''} ${s.member?.lastName || ''}`).toLowerCase();
     return (
       name.includes(q) ||
-      s.member.memberCode.toLowerCase().includes(q) ||
-      s.member.phone.includes(q)
+      (s.member?.memberCode && s.member.memberCode.toLowerCase().includes(q)) ||
+      (s.member?.phone && s.member.phone.includes(q))
     );
   });
 
@@ -174,23 +179,29 @@ export function ActiveSessionsPage() {
                   </tr>
                 ) : (
                   filteredSessions.map((s) => {
-                    const memberName = `${s.member.firstName} ${s.member.lastName}`;
-                    const emContact = s.member.emergencyContacts?.[0];
+                    const memberName =
+                      s.member?.fullName ||
+                      `${s.member?.firstName || ''} ${s.member?.lastName || ''}`.trim() ||
+                      'Unknown Member';
+                    const emContact =
+                      s.member?.emergencyContact ||
+                      s.member?.emergencyContacts?.[0]?.phone ||
+                      null;
                     return (
                       <tr key={s.id} className="hover:bg-[#F5F5F0] transition-colors">
                         <td className="py-3 px-4 font-bold text-[#0A192F]">
                           <button
                             type="button"
                             className="hover:underline text-left"
-                            onClick={() => navigate(`/members/${s.member.id}`)}
+                            onClick={() => navigate(`/members/${s.member?.id || s.memberId}`)}
                           >
                             {memberName}
                           </button>
                         </td>
                         <td className="py-3 px-4 font-mono text-[#6B7280]">
-                          {s.member.memberCode}
+                          {s.member?.memberCode || '—'}
                         </td>
-                        <td className="py-3 px-4 text-[#6B7280]">{s.member.phone}</td>
+                        <td className="py-3 px-4 text-[#6B7280]">{s.member?.phone || '—'}</td>
                         <td className="py-3 px-4 font-mono text-[#0A192F]">
                           {new Date(s.checkInTime).toLocaleTimeString('en-IN', {
                             hour: '2-digit',
@@ -202,9 +213,7 @@ export function ActiveSessionsPage() {
                         </td>
                         <td className="py-3 px-4 text-[#6B7280]">
                           {emContact ? (
-                            <span>
-                              {emContact.name} ({emContact.relationship}) - {emContact.phone}
-                            </span>
+                            <span>{emContact}</span>
                           ) : (
                             <span className="text-[#9CA3AF]">Not registered</span>
                           )}

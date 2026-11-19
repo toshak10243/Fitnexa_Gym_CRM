@@ -44,8 +44,10 @@ export function AttendanceDashboardPage() {
           apiClient.get('/attendance/occupancy'),
           apiClient.get('/attendance/history?limit=8'),
         ]);
-        setOccupancy(occRes.data.data);
-        setRecentActivities(histRes.data.data.items || []);
+        const occRaw = occRes.data?.data || occRes.data;
+        setOccupancy(occRaw);
+        const histRaw = histRes.data?.data || histRes.data;
+        setRecentActivities(histRaw?.items || (Array.isArray(histRaw) ? histRaw : []));
       } catch {
         // Handled gracefully
       } finally {

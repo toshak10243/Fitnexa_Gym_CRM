@@ -59,6 +59,7 @@ import { NotificationSettingsPage } from '../features/notification/notification-
 import { DashboardPage } from '../features/analytics/dashboard-page';
 import { ReportsPage } from '../features/analytics/reports-page';
 import { UserRole } from '@fitnexa/shared';
+import { RouteErrorBoundary } from '../components/ui/route-error-boundary';
 
 export const router = createBrowserRouter([
   {
@@ -71,6 +72,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '/',
+    errorElement: <RouteErrorBoundary />,
     element: (
       <ProtectedRoute>
         <AppShell>
@@ -81,6 +83,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '/dashboard',
+    errorElement: <RouteErrorBoundary />,
     element: (
       <ProtectedRoute>
         <AppShell>
@@ -91,6 +94,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '/reports',
+    errorElement: <RouteErrorBoundary />,
     element: (
       <ProtectedRoute allowedRoles={[UserRole.GYM_OWNER, UserRole.BRANCH_MANAGER, UserRole.SUPER_ADMIN]}>
         <AppShell>
@@ -101,6 +105,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '/telemetry',
+    errorElement: <RouteErrorBoundary />,
     element: (
       <ProtectedRoute allowedRoles={[UserRole.GYM_OWNER, UserRole.SUPER_ADMIN]}>
         <AppShell>
@@ -111,6 +116,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '/members',
+    errorElement: <RouteErrorBoundary />,
     element: (
       <ProtectedRoute>
         <AppShell>
@@ -121,6 +127,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '/members/new',
+    errorElement: <RouteErrorBoundary />,
     element: (
       <ProtectedRoute
         allowedRoles={[
@@ -138,6 +145,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '/members/:id',
+    errorElement: <RouteErrorBoundary />,
     element: (
       <ProtectedRoute>
         <AppShell>
@@ -148,6 +156,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '/members/:id/print',
+    errorElement: <RouteErrorBoundary />,
     element: (
       <ProtectedRoute>
         <MemberPrintPage />
@@ -156,6 +165,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '/plans',
+    errorElement: <RouteErrorBoundary />,
     element: (
       <ProtectedRoute>
         <AppShell>
@@ -166,6 +176,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '/imports',
+    errorElement: <RouteErrorBoundary />,
     element: (
       <ProtectedRoute
         allowedRoles={[UserRole.GYM_OWNER, UserRole.BRANCH_MANAGER, UserRole.SUPER_ADMIN]}
@@ -178,6 +189,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '/settings',
+    errorElement: <RouteErrorBoundary />,
     element: (
       <ProtectedRoute
         allowedRoles={[UserRole.GYM_OWNER, UserRole.BRANCH_MANAGER, UserRole.SUPER_ADMIN]}
@@ -190,6 +202,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '/staff',
+    errorElement: <RouteErrorBoundary />,
     element: (
       <ProtectedRoute
         allowedRoles={[UserRole.GYM_OWNER, UserRole.BRANCH_MANAGER, UserRole.SUPER_ADMIN]}
@@ -202,6 +215,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '/audit-logs',
+    errorElement: <RouteErrorBoundary />,
     element: (
       <ProtectedRoute allowedRoles={[UserRole.GYM_OWNER, UserRole.SUPER_ADMIN]}>
         <AppShell>
@@ -212,6 +226,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '/billing',
+    errorElement: <RouteErrorBoundary />,
     element: (
       <ProtectedRoute>
         <AppShell>
@@ -222,6 +237,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '/billing/invoices',
+    errorElement: <RouteErrorBoundary />,
     element: (
       <ProtectedRoute>
         <AppShell>
@@ -232,6 +248,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '/billing/invoices/new',
+    errorElement: <RouteErrorBoundary />,
     element: (
       <ProtectedRoute
         allowedRoles={[
@@ -249,6 +266,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '/billing/invoices/:id',
+    errorElement: <RouteErrorBoundary />,
     element: (
       <ProtectedRoute>
         <AppShell>
@@ -259,6 +277,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '/billing/payments',
+    errorElement: <RouteErrorBoundary />,
     element: (
       <ProtectedRoute>
         <AppShell>
@@ -269,6 +288,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '/billing/dues',
+    errorElement: <RouteErrorBoundary />,
     element: (
       <ProtectedRoute>
         <AppShell>
@@ -279,6 +299,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '/billing/receipts/:id',
+    errorElement: <RouteErrorBoundary />,
     element: (
       <ProtectedRoute>
         <ReceiptPrintPage />
@@ -287,6 +308,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '/billing/cash-register',
+    errorElement: <RouteErrorBoundary />,
     element: (
       <ProtectedRoute
         allowedRoles={[
@@ -304,6 +326,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '/billing/refunds',
+    errorElement: <RouteErrorBoundary />,
     element: (
       <ProtectedRoute
         allowedRoles={[
@@ -321,6 +344,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '/attendance',
+    errorElement: <RouteErrorBoundary />,
     element: (
       <ProtectedRoute>
         <AppShell>
@@ -331,6 +355,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '/attendance/check-in',
+    errorElement: <RouteErrorBoundary />,
     element: (
       <ProtectedRoute>
         <AppShell>
@@ -341,6 +366,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '/attendance/active',
+    errorElement: <RouteErrorBoundary />,
     element: (
       <ProtectedRoute>
         <AppShell>
@@ -351,6 +377,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '/attendance/history',
+    errorElement: <RouteErrorBoundary />,
     element: (
       <ProtectedRoute>
         <AppShell>
@@ -361,6 +388,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '/attendance/corrections',
+    errorElement: <RouteErrorBoundary />,
     element: (
       <ProtectedRoute>
         <AppShell>
@@ -371,6 +399,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '/attendance/policies',
+    errorElement: <RouteErrorBoundary />,
     element: (
       <ProtectedRoute
         allowedRoles={[
@@ -387,6 +416,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '/staff-attendance',
+    errorElement: <RouteErrorBoundary />,
     element: (
       <ProtectedRoute>
         <AppShell>
@@ -397,6 +427,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '/devices',
+    errorElement: <RouteErrorBoundary />,
     element: (
       <ProtectedRoute allowedRoles={[UserRole.GYM_OWNER, UserRole.BRANCH_MANAGER, UserRole.SUPER_ADMIN]}>
         <AppShell>
@@ -407,6 +438,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '/devices/new',
+    errorElement: <RouteErrorBoundary />,
     element: (
       <ProtectedRoute
         allowedRoles={[
@@ -423,6 +455,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '/devices/:id',
+    errorElement: <RouteErrorBoundary />,
     element: (
       <ProtectedRoute allowedRoles={[UserRole.GYM_OWNER, UserRole.BRANCH_MANAGER, UserRole.SUPER_ADMIN]}>
         <AppShell>
@@ -433,6 +466,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '/devices/:id/mappings',
+    errorElement: <RouteErrorBoundary />,
     element: (
       <ProtectedRoute allowedRoles={[UserRole.GYM_OWNER, UserRole.BRANCH_MANAGER, UserRole.SUPER_ADMIN]}>
         <AppShell>
@@ -446,6 +480,7 @@ export const router = createBrowserRouter([
   // --------------------------------------------------------------------------
   {
     path: '/inventory',
+    errorElement: <RouteErrorBoundary />,
     element: (
       <ProtectedRoute allowedRoles={[UserRole.GYM_OWNER, UserRole.BRANCH_MANAGER, UserRole.SUPER_ADMIN]}>
         <AppShell>
@@ -456,6 +491,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '/inventory/products',
+    errorElement: <RouteErrorBoundary />,
     element: (
       <ProtectedRoute>
         <AppShell>
@@ -466,6 +502,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '/inventory/products/new',
+    errorElement: <RouteErrorBoundary />,
     element: (
       <ProtectedRoute allowedRoles={[UserRole.GYM_OWNER, UserRole.BRANCH_MANAGER, UserRole.SUPER_ADMIN]}>
         <AppShell>
@@ -476,6 +513,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '/inventory/products/:id',
+    errorElement: <RouteErrorBoundary />,
     element: (
       <ProtectedRoute>
         <AppShell>
@@ -486,6 +524,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '/inventory/movements',
+    errorElement: <RouteErrorBoundary />,
     element: (
       <ProtectedRoute allowedRoles={[UserRole.GYM_OWNER, UserRole.BRANCH_MANAGER, UserRole.SUPER_ADMIN]}>
         <AppShell>
@@ -496,6 +535,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '/inventory/purchases',
+    errorElement: <RouteErrorBoundary />,
     element: (
       <ProtectedRoute allowedRoles={[UserRole.GYM_OWNER, UserRole.BRANCH_MANAGER, UserRole.SUPER_ADMIN]}>
         <AppShell>
@@ -506,6 +546,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '/inventory/suppliers',
+    errorElement: <RouteErrorBoundary />,
     element: (
       <ProtectedRoute allowedRoles={[UserRole.GYM_OWNER, UserRole.BRANCH_MANAGER, UserRole.SUPER_ADMIN]}>
         <AppShell>
@@ -516,6 +557,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '/inventory/transfers',
+    errorElement: <RouteErrorBoundary />,
     element: (
       <ProtectedRoute allowedRoles={[UserRole.GYM_OWNER, UserRole.BRANCH_MANAGER, UserRole.SUPER_ADMIN]}>
         <AppShell>
@@ -526,6 +568,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '/pos',
+    errorElement: <RouteErrorBoundary />,
     element: (
       <ProtectedRoute>
         <AppShell>
@@ -536,6 +579,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '/pos/sales',
+    errorElement: <RouteErrorBoundary />,
     element: (
       <ProtectedRoute>
         <AppShell>
@@ -546,6 +590,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '/pos/sales/:id',
+    errorElement: <RouteErrorBoundary />,
     element: (
       <ProtectedRoute>
         <AppShell>
@@ -560,6 +605,7 @@ export const router = createBrowserRouter([
   // --------------------------------------------------------------------------
   {
     path: '/trainers',
+    errorElement: <RouteErrorBoundary />,
     element: (
       <ProtectedRoute>
         <AppShell>
@@ -570,6 +616,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '/trainers/schedule',
+    errorElement: <RouteErrorBoundary />,
     element: (
       <ProtectedRoute>
         <AppShell>
@@ -580,6 +627,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '/trainers/:id',
+    errorElement: <RouteErrorBoundary />,
     element: (
       <ProtectedRoute>
         <AppShell>
@@ -594,6 +642,7 @@ export const router = createBrowserRouter([
   // --------------------------------------------------------------------------
   {
     path: '/leads',
+    errorElement: <RouteErrorBoundary />,
     element: (
       <ProtectedRoute>
         <AppShell>
@@ -604,6 +653,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '/leads/new',
+    errorElement: <RouteErrorBoundary />,
     element: (
       <ProtectedRoute>
         <AppShell>
@@ -614,6 +664,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '/leads/follow-ups',
+    errorElement: <RouteErrorBoundary />,
     element: (
       <ProtectedRoute>
         <AppShell>
@@ -624,6 +675,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '/leads/:id',
+    errorElement: <RouteErrorBoundary />,
     element: (
       <ProtectedRoute>
         <AppShell>
@@ -638,6 +690,7 @@ export const router = createBrowserRouter([
   // --------------------------------------------------------------------------
   {
     path: '/expenses',
+    errorElement: <RouteErrorBoundary />,
     element: (
       <ProtectedRoute>
         <AppShell>
@@ -648,6 +701,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '/expenses/new',
+    errorElement: <RouteErrorBoundary />,
     element: (
       <ProtectedRoute>
         <AppShell>
@@ -658,6 +712,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '/expenses/categories',
+    errorElement: <RouteErrorBoundary />,
     element: (
       <ProtectedRoute>
         <AppShell>
@@ -672,6 +727,7 @@ export const router = createBrowserRouter([
   // --------------------------------------------------------------------------
   {
     path: '/notifications',
+    errorElement: <RouteErrorBoundary />,
     element: (
       <ProtectedRoute>
         <AppShell>
@@ -682,6 +738,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '/notifications/settings',
+    errorElement: <RouteErrorBoundary />,
     element: (
       <ProtectedRoute>
         <AppShell>
@@ -692,6 +749,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '*',
+    errorElement: <RouteErrorBoundary />,
     element: (
       <ProtectedRoute>
         <AppShell>

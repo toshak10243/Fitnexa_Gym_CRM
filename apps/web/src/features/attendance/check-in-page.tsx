@@ -77,7 +77,9 @@ export function CheckInPage() {
 
       // 2. Check if member has active session right now
       const activeRes = await apiClient.get('/attendance/active');
-      const foundSession = (activeRes.data.data || []).find((s: any) => s.memberId === member.id);
+      const rawActive = activeRes.data?.data || activeRes.data;
+      const activeList = Array.isArray(rawActive) ? rawActive : (rawActive?.items || []);
+      const foundSession = activeList.find((s: any) => s.memberId === member.id);
       setActiveSession(foundSession || null);
     } catch (err: any) {
       setFeedback({ type: 'error', message: err.message || 'Could not verify member access' });

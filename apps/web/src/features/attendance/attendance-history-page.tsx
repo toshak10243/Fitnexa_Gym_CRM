@@ -53,8 +53,9 @@ export function AttendanceHistoryPage() {
       if (sourceFilter) url += `&source=${sourceFilter}`;
 
       const res = await apiClient.get(url);
-      setItems(res.data.data.items || []);
-      setTotal(res.data.data.total || 0);
+      const raw = res.data?.data || res.data;
+      setItems(raw?.items || (Array.isArray(raw) ? raw : []));
+      setTotal(raw?.meta?.total ?? raw?.total ?? 0);
     } catch {
       // Handled gracefully
     } finally {
