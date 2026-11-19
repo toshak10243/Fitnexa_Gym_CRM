@@ -9,7 +9,26 @@ export enum UserRole {
   BRANCH_MANAGER = 'BRANCH_MANAGER',
   FRONT_DESK = 'FRONT_DESK',
   TRAINER = 'TRAINER',
+  STAFF = 'STAFF',
   MEMBER = 'MEMBER',
+}
+
+export enum UserStatus {
+  ACTIVE = 'ACTIVE',
+  SUSPENDED = 'SUSPENDED',
+  INVITED = 'INVITED',
+  DEACTIVATED = 'DEACTIVATED',
+}
+
+export enum TenantStatus {
+  ACTIVE = 'ACTIVE',
+  SUSPENDED = 'SUSPENDED',
+  PENDING = 'PENDING',
+}
+
+export enum BranchStatus {
+  ACTIVE = 'ACTIVE',
+  INACTIVE = 'INACTIVE',
 }
 
 export enum AttendanceSource {

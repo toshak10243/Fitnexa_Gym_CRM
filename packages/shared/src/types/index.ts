@@ -1,5 +1,5 @@
 export * from '../contracts/api-response';
-export * from '../constants';
+export * from '../constants/index';
 
 export interface BaseEntity {
   id: string;

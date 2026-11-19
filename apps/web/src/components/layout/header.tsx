@@ -1,10 +1,13 @@
 import * as React from 'react';
+import { useAuth } from '../../context/auth-context';
+import { Button } from '../ui/button';
 
 interface HeaderProps {
   status?: 'ok' | 'error' | 'degraded';
 }
 
 export function Header({ status = 'ok' }: HeaderProps) {
+  const { user, tenant, logout } = useAuth();
   const [time, setTime] = React.useState<string>('');
 
   React.useEffect(() => {
@@ -28,12 +31,16 @@ export function Header({ status = 'ok' }: HeaderProps) {
   return (
     <header className="h-16 bg-[#FBFBF9] border-b border-[#E5E7EB] px-8 flex items-center justify-between select-none">
       <div className="flex items-center space-x-4">
-        <h1 className="text-sm font-semibold text-[#0A192F] tracking-wide uppercase">
-          Fitnexa Infrastructure Console
-        </h1>
-        <span className="text-xs px-2 py-0.5 border border-[#D1D5DB] bg-[#F5F5F0] text-[#374151] font-mono rounded-sm">
-          Phase 0 Foundation
-        </span>
+        <div>
+          <span className="text-sm font-semibold text-[#0A192F] tracking-wide uppercase">
+            {tenant?.name || 'Fitnexa Console'}
+          </span>
+          {tenant?.city && (
+            <span className="text-xs text-[#6B7280] ml-2">
+              ({tenant.city}, {tenant.state})
+            </span>
+          )}
+        </div>
       </div>
 
       <div className="flex items-center space-x-6">
@@ -48,11 +55,7 @@ export function Header({ status = 'ok' }: HeaderProps) {
             }`}
           />
           <span className="text-xs font-medium text-[#374151]">
-            {status === 'ok'
-              ? 'Backend Online'
-              : status === 'degraded'
-              ? 'Degraded (Redis Optional)'
-              : 'Service Unavailable'}
+            {status === 'ok' ? 'All Systems Operational' : 'Degraded Mode'}
           </span>
         </div>
 
@@ -62,14 +65,32 @@ export function Header({ status = 'ok' }: HeaderProps) {
 
         <div className="h-4 w-px bg-[#E5E7EB]" />
 
-        <a
-          href="http://localhost:3000/api/docs"
-          target="_blank"
-          rel="noreferrer"
-          className="text-xs font-medium text-[#0A192F] hover:text-[#B91C1C] underline-offset-4 hover:underline"
-        >
-          API Swagger
-        </a>
+        {/* User Account / Role & Sign Out */}
+        {user ? (
+          <div className="flex items-center space-x-3">
+            <div className="text-right">
+              <div className="text-xs font-bold text-[#0A192F]">{user.fullName}</div>
+              <div className="text-[10px] uppercase font-mono font-bold text-[#B91C1C]">
+                {user.role.replace('_', ' ')}
+              </div>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 text-xs border-[#E5E7EB] hover:bg-[#B91C1C] hover:text-[#FBFBF9] hover:border-[#B91C1C]"
+              onClick={() => logout()}
+            >
+              Sign Out
+            </Button>
+          </div>
+        ) : (
+          <a
+            href="/login"
+            className="text-xs font-medium text-[#0A192F] hover:text-[#B91C1C]"
+          >
+            Sign In
+          </a>
+        )}
       </div>
     </header>
   );

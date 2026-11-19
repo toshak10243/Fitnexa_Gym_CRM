@@ -5,6 +5,10 @@ import { PrismaModule } from './database/prisma.module';
 import { RedisModule } from './modules/redis/redis.module';
 import { JobQueueModule } from './jobs/bullmq.module';
 import { HealthModule } from './modules/health/health.module';
+import { AuditLogModule } from './modules/audit-log/audit-log.module';
+import { AuthModule } from './modules/auth/auth.module';
+import { TenantModule } from './modules/tenant/tenant.module';
+import { StaffModule } from './modules/staff/staff.module';
 
 @Module({
   imports: [
@@ -17,6 +21,10 @@ import { HealthModule } from './modules/health/health.module';
     RedisModule,
     JobQueueModule,
     HealthModule,
+    AuditLogModule,
+    AuthModule,
+    TenantModule,
+    StaffModule,
   ],
 })
 export class AppModule {}
