@@ -12,10 +12,12 @@ export function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
   const [authError, setAuthError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<LoginInput>({
     resolver: zodResolver(LoginSchema),
@@ -33,6 +35,12 @@ export function LoginPage() {
     } catch (err: any) {
       setAuthError(err.message || 'Failed to authenticate. Please check your credentials.');
     }
+  };
+
+  const setCredentials = (email: string) => {
+    setValue('email', email, { shouldValidate: true });
+    setValue('password', 'Password@2026', { shouldValidate: true });
+    setAuthError(null);
   };
 
   return (
@@ -68,13 +76,22 @@ export function LoginPage() {
             {...register('email')}
           />
 
-          <Input
-            label="Password"
-            type="password"
-            placeholder="Enter secure password"
-            error={errors.password?.message}
-            {...register('password')}
-          />
+          <div className="relative">
+            <Input
+              label="Password"
+              type={showPassword ? 'text' : 'password'}
+              placeholder="Enter secure password"
+              error={errors.password?.message}
+              {...register('password')}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((prev) => !prev)}
+              className="absolute right-3 top-8 text-xs font-semibold text-[#6B7280] hover:text-[#0A192F] select-none"
+            >
+              {showPassword ? 'HIDE' : 'SHOW'}
+            </button>
+          </div>
 
           <div className="pt-2">
             <Button
@@ -87,6 +104,42 @@ export function LoginPage() {
             </Button>
           </div>
         </form>
+
+        {/* Quick Demo Fill Credentials */}
+        <div className="mt-6 p-3 bg-[#EFEFEA] border border-[#E5E7EB] rounded-sm text-xs">
+          <div className="font-semibold text-[#0A192F] mb-1.5 uppercase tracking-wider text-[10px]">
+            Quick Test Accounts (Click to Auto-Fill):
+          </div>
+          <div className="flex flex-col space-y-1.5">
+            <button
+              type="button"
+              onClick={() => setCredentials('toshak10243@gmail.com')}
+              className="text-left px-2 py-1 bg-[#FBFBF9] border border-[#D1D5DB] rounded-sm hover:border-[#0A192F] hover:bg-white text-[11px] font-mono text-[#0A192F] flex justify-between items-center"
+            >
+              <span><strong>Owner:</strong> toshak10243@gmail.com</span>
+              <span className="text-[10px] text-[#6B7280]">Fill</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setCredentials('manager@fitnexa.com')}
+              className="text-left px-2 py-1 bg-[#FBFBF9] border border-[#D1D5DB] rounded-sm hover:border-[#0A192F] hover:bg-white text-[11px] font-mono text-[#0A192F] flex justify-between items-center"
+            >
+              <span><strong>Manager:</strong> manager@fitnexa.com</span>
+              <span className="text-[10px] text-[#6B7280]">Fill</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setCredentials('frontdesk@fitnexa.com')}
+              className="text-left px-2 py-1 bg-[#FBFBF9] border border-[#D1D5DB] rounded-sm hover:border-[#0A192F] hover:bg-white text-[11px] font-mono text-[#0A192F] flex justify-between items-center"
+            >
+              <span><strong>Front Desk:</strong> frontdesk@fitnexa.com</span>
+              <span className="text-[10px] text-[#6B7280]">Fill</span>
+            </button>
+          </div>
+          <div className="mt-2 text-[10px] text-[#6B7280] font-mono">
+            Default Password: <code className="font-bold text-[#0A192F]">Password@2026</code>
+          </div>
+        </div>
 
         <div className="mt-6 pt-4 border-t border-[#E5E7EB] flex justify-between items-center text-xs">
           <span className="text-[#6B7280]">New gym business?</span>
