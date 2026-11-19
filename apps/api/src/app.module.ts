@@ -14,6 +14,8 @@ import { MembershipPlanModule } from './modules/membership-plan/membership-plan.
 import { MembershipModule } from './modules/membership/membership.module';
 import { MemberImportModule } from './modules/member-import/member-import.module';
 import { BillingModule } from './modules/billing/billing.module';
+import { AttendanceModule } from './modules/attendance/attendance.module';
+import { DeviceModule } from './modules/device/device.module';
 
 @Module({
   imports: [
@@ -35,6 +37,8 @@ import { BillingModule } from './modules/billing/billing.module';
     MembershipModule,
     MemberImportModule,
     BillingModule,
+    AttendanceModule,
+    DeviceModule,
   ],
 })
 export class AppModule {}

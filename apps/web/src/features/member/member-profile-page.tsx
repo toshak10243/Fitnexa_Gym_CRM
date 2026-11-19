@@ -17,7 +17,10 @@ export function MemberProfilePage() {
   const [plans, setPlans] = useState<any[]>([]);
   const [branches, setBranches] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [activeTab, setActiveTab] = useState<'details' | 'memberships' | 'billing' | 'notes' | 'activity'>('details');
+  const [activeTab, setActiveTab] = useState<'details' | 'memberships' | 'billing' | 'attendance' | 'notes' | 'activity'>('details');
+
+  // Attendance state
+  const [memberAttendances, setMemberAttendances] = useState<any[]>([]);
 
   // Billing state
   const [memberInvoices, setMemberInvoices] = useState<any[]>([]);
@@ -105,6 +108,11 @@ export function MemberProfilePage() {
   useEffect(() => {
     fetchMember();
     fetchFinancials();
+    apiClient.get(`/attendance/history?memberId=${id}&limit=50`).then((res) => {
+      if (res.data.data?.items) {
+        setMemberAttendances(res.data.data.items);
+      }
+    }).catch(() => {});
     apiClient.get('/plans?isActive=true').then((res) => {
       setPlans(res.data.data.items || []);
       if (res.data.data.items?.length > 0) {
@@ -434,6 +442,16 @@ export function MemberProfilePage() {
               DUE
             </span>
           )}
+        </button>
+        <button
+          onClick={() => setActiveTab('attendance')}
+          className={`py-3 px-6 text-xs font-bold uppercase tracking-wider border-b-2 transition-colors whitespace-nowrap ${
+            activeTab === 'attendance'
+              ? 'border-[#0A192F] text-[#0A192F]'
+              : 'border-transparent text-[#6B7280] hover:text-[#111827]'
+          }`}
+        >
+          Attendance & Access ({memberAttendances.length})
         </button>
         <button
           onClick={() => setActiveTab('notes')}
@@ -1079,6 +1097,101 @@ export function MemberProfilePage() {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* TAB 5: Attendance & Access History */}
+      {activeTab === 'attendance' && (
+        <div className="border border-[#E5E7EB] bg-[#FBFBF9] p-5 space-y-4">
+          <div className="flex items-center justify-between border-b border-[#E5E7EB] pb-3">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-[#0A192F]">
+              Gate Access & Facility Attendance Ledger
+            </h3>
+            <span className="text-xs font-mono text-[#6B7280]">
+              Total Logged Visits: {memberAttendances.length}
+            </span>
+          </div>
+
+          <div className="overflow-x-auto bg-white border border-[#E5E7EB]">
+            <table className="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr className="border-b border-[#E5E7EB] bg-[#F5F5F0] text-[#6B7280] uppercase tracking-wider text-[10px]">
+                  <th className="py-2.5 px-4 font-semibold">Timestamp</th>
+                  <th className="py-2.5 px-4 font-semibold">Direction</th>
+                  <th className="py-2.5 px-4 font-semibold">Access Decision</th>
+                  <th className="py-2.5 px-4 font-semibold">Source</th>
+                  <th className="py-2.5 px-4 font-semibold">Gate / Terminal</th>
+                  <th className="py-2.5 px-4 font-semibold">Session Duration</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#E5E7EB]">
+                {memberAttendances.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="py-10 text-center text-[#6B7280]">
+                      No attendance events recorded for this athlete yet.
+                    </td>
+                  </tr>
+                ) : (
+                  memberAttendances.map((act) => {
+                    const isCheckIn = act.direction === 'CHECK_IN';
+                    return (
+                      <tr key={act.id} className="hover:bg-[#F5F5F0] transition-colors">
+                        <td className="py-3 px-4 font-mono text-[#0A192F]">
+                          {new Date(act.timestamp).toLocaleDateString('en-IN')}{' '}
+                          {new Date(act.timestamp).toLocaleTimeString('en-IN', {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                        </td>
+                        <td className="py-3 px-4">
+                          <span
+                            className={`inline-flex items-center px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider border ${
+                              isCheckIn
+                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                : 'bg-blue-50 text-blue-700 border-blue-200'
+                            }`}
+                          >
+                            {act.direction.replace('_', ' ')}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4">
+                          {act.accessDecision ? (
+                            <div>
+                              <span
+                                className={`inline-flex items-center px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider border ${
+                                  act.accessDecision.decision === 'GRANTED'
+                                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                    : 'bg-red-50 text-red-700 border-red-200'
+                                }`}
+                              >
+                                {act.accessDecision.decision}
+                              </span>
+                              <span className="block text-[10px] text-[#6B7280] mt-0.5">
+                                {act.accessDecision.reasonCode}
+                              </span>
+                            </div>
+                          ) : (
+                            <span className="text-[#6B7280]">—</span>
+                          )}
+                        </td>
+                        <td className="py-3 px-4 font-mono text-[11px] text-[#6B7280]">
+                          {act.source}
+                        </td>
+                        <td className="py-3 px-4 text-[#6B7280]">
+                          {act.device?.name || 'Front Desk'}
+                        </td>
+                        <td className="py-3 px-4 font-mono text-[#0A192F]">
+                          {act.session?.durationInMinutes != null
+                            ? `${act.session.durationInMinutes} mins`
+                            : '—'}
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
           </div>
         </div>
       )}

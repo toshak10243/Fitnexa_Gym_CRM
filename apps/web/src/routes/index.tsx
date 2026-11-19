@@ -22,6 +22,17 @@ import { DuesPage } from '../features/billing/dues-page';
 import { ReceiptPrintPage } from '../features/billing/receipt-print-page';
 import { CashRegisterPage } from '../features/billing/cash-register-page';
 import { RefundsPage } from '../features/billing/refunds-page';
+import { AttendanceDashboardPage } from '../features/attendance/attendance-dashboard-page';
+import { CheckInPage } from '../features/attendance/check-in-page';
+import { ActiveSessionsPage } from '../features/attendance/active-sessions-page';
+import { AttendanceHistoryPage } from '../features/attendance/attendance-history-page';
+import { AttendanceCorrectionsPage } from '../features/attendance/attendance-corrections-page';
+import { AttendancePoliciesPage } from '../features/attendance/attendance-policies-page';
+import { StaffAttendancePage } from '../features/attendance/staff-attendance-page';
+import { DevicesPage } from '../features/device/devices-page';
+import { DeviceCreatePage } from '../features/device/device-create-page';
+import { DeviceDetailPage } from '../features/device/device-detail-page';
+import { DeviceMappingsPage } from '../features/device/device-mappings-page';
 import { UserRole } from '@fitnexa/shared';
 
 export const router = createBrowserRouter([
@@ -249,6 +260,128 @@ export const router = createBrowserRouter([
       >
         <AppShell>
           <RefundsPage />
+        </AppShell>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/attendance',
+    element: (
+      <ProtectedRoute>
+        <AppShell>
+          <AttendanceDashboardPage />
+        </AppShell>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/attendance/check-in',
+    element: (
+      <ProtectedRoute>
+        <AppShell>
+          <CheckInPage />
+        </AppShell>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/attendance/active',
+    element: (
+      <ProtectedRoute>
+        <AppShell>
+          <ActiveSessionsPage />
+        </AppShell>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/attendance/history',
+    element: (
+      <ProtectedRoute>
+        <AppShell>
+          <AttendanceHistoryPage />
+        </AppShell>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/attendance/corrections',
+    element: (
+      <ProtectedRoute>
+        <AppShell>
+          <AttendanceCorrectionsPage />
+        </AppShell>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/attendance/policies',
+    element: (
+      <ProtectedRoute
+        allowedRoles={[
+          UserRole.GYM_OWNER,
+          UserRole.BRANCH_MANAGER,
+          UserRole.SUPER_ADMIN,
+        ]}
+      >
+        <AppShell>
+          <AttendancePoliciesPage />
+        </AppShell>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/staff-attendance',
+    element: (
+      <ProtectedRoute>
+        <AppShell>
+          <StaffAttendancePage />
+        </AppShell>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/devices',
+    element: (
+      <ProtectedRoute>
+        <AppShell>
+          <DevicesPage />
+        </AppShell>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/devices/new',
+    element: (
+      <ProtectedRoute
+        allowedRoles={[
+          UserRole.GYM_OWNER,
+          UserRole.BRANCH_MANAGER,
+          UserRole.SUPER_ADMIN,
+        ]}
+      >
+        <AppShell>
+          <DeviceCreatePage />
+        </AppShell>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/devices/:id',
+    element: (
+      <ProtectedRoute>
+        <AppShell>
+          <DeviceDetailPage />
+        </AppShell>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/devices/:id/mappings',
+    element: (
+      <ProtectedRoute>
+        <AppShell>
+          <DeviceMappingsPage />
         </AppShell>
       </ProtectedRoute>
     ),
