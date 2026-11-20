@@ -78,6 +78,7 @@ export interface AuthTenantResponse {
   subscriptionPlan?: string;
   subscriptionStatus?: string;
   enabledModules?: string[];
+  rolePermissions?: Record<string, string[]> | null;
 }
 
 export interface AuthTokensResponse {

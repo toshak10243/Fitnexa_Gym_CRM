@@ -1,4 +1,4 @@
-import { UserRole } from '@fitnexa/shared';
+import { UserRole, DEFAULT_ROLE_PERMISSIONS } from '@fitnexa/shared';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '../../lib/utils';
 import { useAuth } from '../../context/auth-context';
@@ -40,6 +40,7 @@ export function Sidebar() {
       path: '/reports',
       roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER'],
       module: 'ANALYTICS',
+      permission: 'REPORTS',
       enabled: true,
       icon: (
         <svg
@@ -65,6 +66,7 @@ export function Sidebar() {
       path: '/telemetry',
       roles: ['SUPER_ADMIN', 'GYM_OWNER'],
       module: 'ANALYTICS',
+      permission: 'TELEMETRY',
       enabled: true,
       icon: (
         <svg
@@ -87,6 +89,7 @@ export function Sidebar() {
       label: 'Gym Settings & Profile',
       path: '/settings',
       roles: ['SUPER_ADMIN', 'GYM_OWNER'],
+      permission: 'SETTINGS',
       enabled: true,
       icon: (
         <svg
@@ -110,6 +113,7 @@ export function Sidebar() {
       label: 'Staff & Roles',
       path: '/staff',
       roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER'],
+      permission: 'STAFF',
       enabled: true,
       icon: (
         <svg
@@ -135,6 +139,7 @@ export function Sidebar() {
       label: 'Audit Trail',
       path: '/audit-logs',
       roles: ['SUPER_ADMIN', 'GYM_OWNER'],
+      permission: 'AUDIT_LOGS',
       enabled: true,
       icon: (
         <svg
@@ -165,6 +170,7 @@ export function Sidebar() {
       path: '/members',
       roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER', 'FRONT_DESK', 'TRAINER'],
       module: 'MEMBERS',
+      permission: 'MEMBERS',
       enabled: true,
       icon: (
         <svg
@@ -189,6 +195,7 @@ export function Sidebar() {
       path: '/plans',
       roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER', 'FRONT_DESK'],
       module: 'MEMBERS',
+      permission: 'PLANS',
       enabled: true,
       icon: (
         <svg
@@ -213,6 +220,7 @@ export function Sidebar() {
       path: '/imports',
       roles: ['SUPER_ADMIN', 'GYM_OWNER'],
       module: 'MEMBERS',
+      permission: 'DATA_MIGRATION',
       enabled: true,
       icon: (
         <svg
@@ -240,6 +248,8 @@ export function Sidebar() {
       label: 'Billing Overview',
       path: '/billing',
       roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER'],
+      module: 'BILLING',
+      permission: 'BILLING_OVERVIEW',
       enabled: true,
       icon: (
         <svg
@@ -264,6 +274,8 @@ export function Sidebar() {
       label: 'Tax Invoices',
       path: '/billing/invoices',
       roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER', 'FRONT_DESK'],
+      module: 'BILLING',
+      permission: 'INVOICES',
       enabled: true,
       icon: (
         <svg
@@ -289,6 +301,8 @@ export function Sidebar() {
       label: 'Collections & Payments',
       path: '/billing/payments',
       roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER', 'FRONT_DESK'],
+      module: 'BILLING',
+      permission: 'PAYMENTS',
       enabled: true,
       icon: (
         <svg
@@ -313,6 +327,8 @@ export function Sidebar() {
       label: 'Dues & Aging Ledger',
       path: '/billing/dues',
       roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER', 'FRONT_DESK'],
+      module: 'BILLING',
+      permission: 'DUES',
       enabled: true,
       icon: (
         <svg
@@ -336,6 +352,8 @@ export function Sidebar() {
       label: 'Cash Register Drawer',
       path: '/billing/cash-register',
       roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER', 'FRONT_DESK'],
+      module: 'BILLING',
+      permission: 'CASH_REGISTER',
       enabled: true,
       icon: (
         <svg
@@ -359,6 +377,8 @@ export function Sidebar() {
       label: 'Refunds & Adjustments',
       path: '/billing/refunds',
       roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER'],
+      module: 'BILLING',
+      permission: 'REFUNDS',
       enabled: true,
       icon: (
         <svg
@@ -385,6 +405,8 @@ export function Sidebar() {
       label: 'Attendance Telemetry',
       path: '/attendance',
       roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER'],
+      module: 'ATTENDANCE',
+      permission: 'ATTENDANCE_POLICIES',
       enabled: true,
       icon: (
         <svg
@@ -409,6 +431,8 @@ export function Sidebar() {
       label: 'Front-Desk Check-in',
       path: '/attendance/check-in',
       roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER', 'FRONT_DESK'],
+      module: 'ATTENDANCE',
+      permission: 'ATTENDANCE_CHECKIN',
       enabled: true,
       icon: (
         <svg
@@ -435,6 +459,8 @@ export function Sidebar() {
       label: 'Active Gym Floor',
       path: '/attendance/active',
       roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER', 'FRONT_DESK', 'TRAINER', 'STAFF'],
+      module: 'ATTENDANCE',
+      permission: 'ATTENDANCE_ACTIVE',
       enabled: true,
       icon: (
         <svg
@@ -459,6 +485,8 @@ export function Sidebar() {
       label: 'Event History Ledger',
       path: '/attendance/history',
       roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER', 'FRONT_DESK', 'TRAINER', 'STAFF'],
+      module: 'ATTENDANCE',
+      permission: 'ATTENDANCE_HISTORY',
       enabled: true,
       icon: (
         <svg
@@ -482,6 +510,8 @@ export function Sidebar() {
       label: 'Correction Requests',
       path: '/attendance/corrections',
       roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER', 'FRONT_DESK'],
+      module: 'ATTENDANCE',
+      permission: 'ATTENDANCE_CORRECTIONS',
       enabled: true,
       icon: (
         <svg
@@ -505,6 +535,8 @@ export function Sidebar() {
       label: 'Access Policies',
       path: '/attendance/policies',
       roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER'],
+      module: 'ATTENDANCE',
+      permission: 'ATTENDANCE_POLICIES',
       enabled: true,
       icon: (
         <svg
@@ -528,6 +560,8 @@ export function Sidebar() {
       label: 'Staff Attendance',
       path: '/staff-attendance',
       roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER'],
+      module: 'ATTENDANCE',
+      permission: 'STAFF_ATTENDANCE',
       enabled: true,
       icon: (
         <svg
@@ -556,6 +590,8 @@ export function Sidebar() {
       label: 'Biometric Terminals',
       path: '/devices',
       roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER'],
+      module: 'DEVICES',
+      permission: 'DEVICES',
       enabled: true,
       icon: (
         <svg
@@ -580,6 +616,8 @@ export function Sidebar() {
       label: 'Register Terminal',
       path: '/devices/new',
       roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER'],
+      module: 'DEVICES',
+      permission: 'DEVICES',
       enabled: true,
       icon: (
         <svg
@@ -606,6 +644,8 @@ export function Sidebar() {
       label: 'Inventory Overview',
       path: '/inventory',
       roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER'],
+      module: 'INVENTORY',
+      permission: 'INVENTORY_OVERVIEW',
       enabled: true,
       icon: (
         <svg
@@ -630,6 +670,8 @@ export function Sidebar() {
       label: 'Retail Catalog',
       path: '/inventory/products',
       roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER', 'FRONT_DESK'],
+      module: 'INVENTORY',
+      permission: 'RETAIL_CATALOG',
       enabled: true,
       icon: (
         <svg
@@ -654,6 +696,8 @@ export function Sidebar() {
       label: 'POS Counter',
       path: '/pos',
       roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER', 'FRONT_DESK'],
+      module: 'POS',
+      permission: 'POS_COUNTER',
       enabled: true,
       icon: (
         <svg
@@ -678,6 +722,8 @@ export function Sidebar() {
       label: 'POS Sales Register',
       path: '/pos/sales',
       roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER', 'FRONT_DESK'],
+      module: 'POS',
+      permission: 'POS_SALES',
       enabled: true,
       icon: (
         <svg
@@ -701,6 +747,8 @@ export function Sidebar() {
       label: 'Stock Ledger',
       path: '/inventory/movements',
       roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER'],
+      module: 'INVENTORY',
+      permission: 'STOCK_MOVEMENTS',
       enabled: true,
       icon: (
         <svg
@@ -723,6 +771,8 @@ export function Sidebar() {
       label: 'Purchase Orders',
       path: '/inventory/purchases',
       roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER'],
+      module: 'INVENTORY',
+      permission: 'PURCHASES',
       enabled: true,
       icon: (
         <svg
@@ -748,6 +798,8 @@ export function Sidebar() {
       label: 'Suppliers Directory',
       path: '/inventory/suppliers',
       roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER'],
+      module: 'INVENTORY',
+      permission: 'SUPPLIERS',
       enabled: true,
       icon: (
         <svg
@@ -775,6 +827,8 @@ export function Sidebar() {
       label: 'Leads Pipeline',
       path: '/leads',
       roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER', 'FRONT_DESK'],
+      module: 'CRM',
+      permission: 'LEADS',
       enabled: true,
       icon: (
         <svg
@@ -797,6 +851,8 @@ export function Sidebar() {
       label: 'CRM Follow-Ups',
       path: '/leads/follow-ups',
       roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER', 'FRONT_DESK'],
+      module: 'CRM',
+      permission: 'FOLLOW_UPS',
       enabled: true,
       icon: (
         <svg
@@ -820,6 +876,8 @@ export function Sidebar() {
       label: 'Trainer Profiles',
       path: '/trainers',
       roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER', 'FRONT_DESK', 'TRAINER'],
+      module: 'TRAINERS',
+      permission: 'TRAINERS',
       enabled: true,
       icon: (
         <svg
@@ -842,6 +900,8 @@ export function Sidebar() {
       label: 'PT Session Schedule',
       path: '/trainers/schedule',
       roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER', 'TRAINER'],
+      module: 'TRAINERS',
+      permission: 'TRAINER_SCHEDULE',
       enabled: true,
       icon: (
         <svg
@@ -870,6 +930,8 @@ export function Sidebar() {
       label: 'Expense Ledger',
       path: '/expenses',
       roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER'],
+      module: 'EXPENSES',
+      permission: 'EXPENSES',
       enabled: true,
       icon: (
         <svg
@@ -893,6 +955,8 @@ export function Sidebar() {
       label: 'Notifications & Alerts',
       path: '/notifications',
       roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER', 'FRONT_DESK', 'TRAINER', 'STAFF'],
+      module: 'NOTIFICATIONS',
+      permission: 'NOTIFICATIONS',
       enabled: true,
       icon: (
         <svg
@@ -921,6 +985,7 @@ export function Sidebar() {
     icon: React.ReactNode;
     roles?: string[];
     module?: string;
+    permission?: string;
   }
 
   const renderNavGroup = (title: string, items: NavItem[], groupModule?: string) => {
@@ -934,13 +999,25 @@ export function Sidebar() {
 
     const visibleItems = items.filter((item) => {
       if (!item.enabled) return false;
-      // Feature flag: If item requires a module, check tenant.enabledModules
+
+      // 1. Module Feature Flag check
       if (item.module) {
         const allowedModules = tenant?.enabledModules;
         if (allowedModules && allowedModules.length > 0 && !allowedModules.includes(item.module)) {
           return false;
         }
       }
+
+      // 2. Granular Role Permission Matrix Check (Configured by Super Admin per client)
+      if (item.permission && userRole) {
+        const rolePerms =
+          (tenant?.rolePermissions as any)?.[userRole] ?? DEFAULT_ROLE_PERMISSIONS[userRole];
+        if (rolePerms && Array.isArray(rolePerms)) {
+          return rolePerms.includes(item.permission);
+        }
+      }
+
+      // 3. Fallback standard role check
       if (userRole === UserRole.GYM_OWNER) return true;
       if (!item.roles || item.roles.length === 0) return false;
       return userRole ? item.roles.includes(userRole) : false;

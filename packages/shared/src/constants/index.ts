@@ -130,6 +130,136 @@ export const SAAS_MODULES_LIST: Array<{ id: SaaSModule; label: string; descripti
   { id: SaaSModule.ANALYTICS, label: 'Analytics & Telemetry', description: 'Executive business intelligence, revenue analytics & system telemetry' },
 ];
 
+export interface RolePermissionDefinition {
+  id: string;
+  label: string;
+  category: 'Administration' | 'Members' | 'Billing' | 'Attendance' | 'Biometrics' | 'Inventory' | 'CRM' | 'Trainers' | 'Operations';
+  description: string;
+}
+
+export const ALL_PERMISSIONS: RolePermissionDefinition[] = [
+  // Administration
+  { id: 'SETTINGS', label: 'Gym Settings & Profile', category: 'Administration', description: 'Logo, legal GST/PAN, contact info, and facility branches' },
+  { id: 'STAFF', label: 'Staff & Roles Management', category: 'Administration', description: 'Create, edit, and deactivate employee accounts' },
+  { id: 'AUDIT_LOGS', label: 'Audit Trail Ledger', category: 'Administration', description: 'Immutable security and financial change logs' },
+  { id: 'TELEMETRY', label: 'System Telemetry', category: 'Administration', description: 'Service health, latencies, and platform metrics' },
+  { id: 'REPORTS', label: 'Analytics & Reports Center', category: 'Administration', description: 'Business KPIs, retention, and collection charts' },
+
+  // Members & Plans
+  { id: 'MEMBERS', label: 'Member Directory & Roster', category: 'Members', description: 'View, search, and manage member profiles' },
+  { id: 'MEMBERS_REGISTER', label: 'New Member Registration', category: 'Members', description: 'Admit new gym members and collect KYC' },
+  { id: 'PLANS', label: 'Membership Plans', category: 'Members', description: 'View and manage pricing tiers and duration plans' },
+  { id: 'DATA_MIGRATION', label: 'Data Migration Import', category: 'Members', description: 'Bulk CSV / Excel import tool for members' },
+
+  // Billing & Finance
+  { id: 'BILLING_OVERVIEW', label: 'Billing Overview & P&L', category: 'Billing', description: 'High-level financial summaries and cash movement' },
+  { id: 'INVOICES', label: 'Tax Invoices Register', category: 'Billing', description: 'Generate and view GST compliant tax invoices' },
+  { id: 'PAYMENTS', label: 'Collections & Payments', category: 'Billing', description: 'Record member cash, UPI, card, and bank payments' },
+  { id: 'DUES', label: 'Dues & Aging Ledger', category: 'Billing', description: 'Track overdue receivables and fee balances' },
+  { id: 'CASH_REGISTER', label: 'Cash Drawer Register', category: 'Billing', description: 'Front-desk daily cash balance and shift reconciliation' },
+  { id: 'REFUNDS', label: 'Refunds & Adjustments', category: 'Billing', description: 'Process fee reversals and member refunds' },
+
+  // Attendance
+  { id: 'ATTENDANCE_CHECKIN', label: 'Front-Desk Check-In', category: 'Attendance', description: 'Manual and barcode check-in terminal' },
+  { id: 'ATTENDANCE_ACTIVE', label: 'Active Gym Floor Roster', category: 'Attendance', description: 'Real-time live gym occupancy list' },
+  { id: 'ATTENDANCE_HISTORY', label: 'Event History Ledger', category: 'Attendance', description: 'Complete chronological check-in/out audit log' },
+  { id: 'ATTENDANCE_CORRECTIONS', label: 'Correction Requests', category: 'Attendance', description: 'Request or approve manual punch corrections' },
+  { id: 'ATTENDANCE_POLICIES', label: 'Access Control Policies', category: 'Attendance', description: 'Facility entry hours, grace periods, and rules' },
+  { id: 'STAFF_ATTENDANCE', label: 'Staff Attendance', category: 'Attendance', description: 'Employee clock-in and work shift tracking' },
+
+  // Biometrics & Devices
+  { id: 'DEVICES', label: 'Biometric Terminals', category: 'Biometrics', description: 'Register and monitor hardware terminals and biometric locks' },
+
+  // Retail & Inventory
+  { id: 'INVENTORY_OVERVIEW', label: 'Inventory Stock Overview', category: 'Inventory', description: 'Warehouse stock balance and reorder telemetry' },
+  { id: 'RETAIL_CATALOG', label: 'Retail Products Catalog', category: 'Inventory', description: 'Supplements, merchandise, and retail SKU list' },
+  { id: 'POS_COUNTER', label: 'POS Sales Counter', category: 'Inventory', description: 'Point of Sale register to sell retail items' },
+  { id: 'POS_SALES', label: 'POS Sales Register', category: 'Inventory', description: 'Receipt history and retail sales logs' },
+  { id: 'STOCK_MOVEMENTS', label: 'Stock Movements & Adjustments', category: 'Inventory', description: 'Inward/outward stock ledger and shrinkage audit' },
+  { id: 'PURCHASES', label: 'Purchase Orders', category: 'Inventory', description: 'Create and receive supplier purchase orders' },
+  { id: 'SUPPLIERS', label: 'Suppliers Directory', category: 'Inventory', description: 'Vendor contact information and ledger' },
+
+  // CRM & Trainers
+  { id: 'LEADS', label: 'Leads Pipeline', category: 'CRM', description: 'Prospective member inquiries and conversion funnel' },
+  { id: 'FOLLOW_UPS', label: 'CRM Follow-Ups', category: 'CRM', description: 'Scheduled inquiry reminders and outreach logs' },
+  { id: 'TRAINERS', label: 'Trainer Profiles', category: 'Trainers', description: 'Gym trainers roster, specialty, and commission' },
+  { id: 'TRAINER_SCHEDULE', label: 'PT Session Schedule', category: 'Trainers', description: 'Book and manage personal training time slots' },
+
+  // Operations
+  { id: 'EXPENSES', label: 'Expense Ledger', category: 'Operations', description: 'Record facility maintenance, rent, and utility expenses' },
+  { id: 'NOTIFICATIONS', label: 'Notifications & Alerts', category: 'Operations', description: 'System announcements and operational alerts' },
+];
+
+export const DEFAULT_ROLE_PERMISSIONS: Record<string, string[]> = {
+  GYM_OWNER: ALL_PERMISSIONS.map((p) => p.id),
+  BRANCH_MANAGER: [
+    'REPORTS',
+    'STAFF',
+    'MEMBERS',
+    'MEMBERS_REGISTER',
+    'PLANS',
+    'BILLING_OVERVIEW',
+    'INVOICES',
+    'PAYMENTS',
+    'DUES',
+    'CASH_REGISTER',
+    'REFUNDS',
+    'ATTENDANCE_CHECKIN',
+    'ATTENDANCE_ACTIVE',
+    'ATTENDANCE_HISTORY',
+    'ATTENDANCE_CORRECTIONS',
+    'ATTENDANCE_POLICIES',
+    'STAFF_ATTENDANCE',
+    'DEVICES',
+    'INVENTORY_OVERVIEW',
+    'RETAIL_CATALOG',
+    'POS_COUNTER',
+    'POS_SALES',
+    'STOCK_MOVEMENTS',
+    'PURCHASES',
+    'SUPPLIERS',
+    'LEADS',
+    'FOLLOW_UPS',
+    'TRAINERS',
+    'TRAINER_SCHEDULE',
+    'EXPENSES',
+    'NOTIFICATIONS',
+  ],
+  FRONT_DESK: [
+    'MEMBERS',
+    'MEMBERS_REGISTER',
+    'PLANS',
+    'INVOICES',
+    'PAYMENTS',
+    'DUES',
+    'CASH_REGISTER',
+    'ATTENDANCE_CHECKIN',
+    'ATTENDANCE_ACTIVE',
+    'ATTENDANCE_HISTORY',
+    'ATTENDANCE_CORRECTIONS',
+    'RETAIL_CATALOG',
+    'POS_COUNTER',
+    'POS_SALES',
+    'LEADS',
+    'FOLLOW_UPS',
+    'TRAINERS',
+    'NOTIFICATIONS',
+  ],
+  TRAINER: [
+    'MEMBERS',
+    'ATTENDANCE_ACTIVE',
+    'ATTENDANCE_HISTORY',
+    'TRAINERS',
+    'TRAINER_SCHEDULE',
+    'NOTIFICATIONS',
+  ],
+  STAFF: [
+    'ATTENDANCE_ACTIVE',
+    'ATTENDANCE_HISTORY',
+    'NOTIFICATIONS',
+  ],
+};
+
 export enum BranchStatus {
   ACTIVE = 'ACTIVE',
   INACTIVE = 'INACTIVE',

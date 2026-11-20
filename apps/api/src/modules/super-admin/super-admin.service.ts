@@ -133,6 +133,7 @@ export class SuperAdminService {
       paymentMode: t.paymentMode,
       paymentReference: t.paymentReference,
       enabledModules: t.enabledModules,
+      rolePermissions: t.rolePermissions,
       createdAt: t.createdAt,
       owner: t.users[0] || null,
       stats: {
@@ -621,6 +622,43 @@ export class SuperAdminService {
     return {
       success: true,
       message: `Tenant "${tenant.name}" (${tenant.slug}) and all related data have been permanently deleted.`,
+    };
+  }
+
+  async updateTenantRolePermissions(
+    tenantId: string,
+    rolePermissions: Record<string, string[]>,
+    adminUserId: string,
+  ) {
+    const tenant = await this.prisma.tenant.findUnique({
+      where: { id: tenantId },
+    });
+    if (!tenant) throw new NotFoundException('Client tenant not found');
+
+    const updated = await this.prisma.tenant.update({
+      where: { id: tenantId },
+      data: {
+        rolePermissions,
+      },
+    });
+
+    await this.auditLogService.record({
+      tenantId: tenant.id,
+      userId: adminUserId,
+      action: 'SAAS_ROLE_PERMISSIONS_UPDATED',
+      resource: 'Tenant',
+      resourceId: tenant.id,
+      details: {
+        gymName: tenant.name,
+        rolePermissions,
+      },
+      ipAddress: '127.0.0.1',
+      userAgent: 'Fitnexa-SaaS-Engine',
+    });
+
+    return {
+      success: true,
+      rolePermissions: updated.rolePermissions,
     };
   }
 }

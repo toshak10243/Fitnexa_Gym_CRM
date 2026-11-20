@@ -89,6 +89,20 @@ export class SuperAdminController {
     return this.superAdminService.impersonateTenant(tenantId, adminUserId);
   }
 
+  @Patch('tenants/:id/permissions')
+  @ApiOperation({ summary: 'Update granular role permissions matrix for a gym client' })
+  async updateRolePermissions(
+    @CurrentUser('userId') adminUserId: string,
+    @Param('id') tenantId: string,
+    @Body() body: { rolePermissions: Record<string, string[]> },
+  ) {
+    return this.superAdminService.updateTenantRolePermissions(
+      tenantId,
+      body.rolePermissions,
+      adminUserId,
+    );
+  }
+
   @Delete('tenants/:id')
   @ApiOperation({ summary: 'Permanently delete gym tenant and cascade delete all associated data' })
   async deleteTenant(

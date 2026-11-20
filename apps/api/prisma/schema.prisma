@@ -171,6 +171,9 @@ model Tenant {
   // Modular Feature Flags (Client-level feature delegation)
   enabledModules     String[]  @default(["MEMBERS", "BILLING", "ATTENDANCE", "DEVICES", "INVENTORY", "POS", "CRM", "TRAINERS", "EXPENSES", "NOTIFICATIONS", "ANALYTICS"])
 
+  // Role Permissions Matrix (Role -> Allowed Permission Keys JSON mapping)
+  rolePermissions    Json?
+
   createdAt DateTime     @default(now())
   updatedAt DateTime     @updatedAt
 

@@ -85,6 +85,7 @@ export interface TenantDetailResponse {
   isLifetime?: boolean;
   planExpiresAt?: string;
   enabledModules?: string[];
+  rolePermissions?: Record<string, string[]> | null;
   branches: BranchResponse[];
   createdAt: string;
   updatedAt: string;

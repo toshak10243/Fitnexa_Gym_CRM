@@ -10,6 +10,8 @@ import {
   SAAS_MODULES_LIST,
   SaaSSubscriptionPlan,
   SaaSModule,
+  ALL_PERMISSIONS,
+  DEFAULT_ROLE_PERMISSIONS,
 } from '@fitnexa/shared';
 
 interface TenantClient {
@@ -34,6 +36,7 @@ interface TenantClient {
   paymentMode: string | null;
   paymentReference: string | null;
   enabledModules: string[];
+  rolePermissions?: Record<string, string[]> | null;
   createdAt: string;
   owner: {
     id: string;
@@ -123,6 +126,14 @@ export function SuperAdminPage() {
 
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [formError, setFormError] = useState<string | null>(null);
+
+  // State for Role Permissions Matrix Modal
+  const [isPermissionsModalOpen, setIsPermissionsModalOpen] = useState<boolean>(false);
+  const [permissionsTenant, setPermissionsTenant] = useState<TenantClient | null>(null);
+  const [currentPermissions, setCurrentPermissions] = useState<Record<string, string[]>>({});
+  const [permissionCategoryFilter, setPermissionCategoryFilter] = useState<string>('ALL');
+  const [permissionSearch, setPermissionSearch] = useState<string>('');
+  const [isSavingPermissions, setIsSavingPermissions] = useState<boolean>(false);
 
   const fetchDashboardData = async () => {
     setIsLoading(true);
@@ -319,6 +330,66 @@ export function SuperAdminPage() {
           : [...prev.enabledModules, mod],
       };
     });
+  };
+
+  const handleOpenPermissionsModal = (client: TenantClient) => {
+    setPermissionsTenant(client);
+    const initial =
+      client.rolePermissions && Object.keys(client.rolePermissions).length > 0
+        ? JSON.parse(JSON.stringify(client.rolePermissions))
+        : JSON.parse(JSON.stringify(DEFAULT_ROLE_PERMISSIONS));
+    setCurrentPermissions(initial);
+    setPermissionCategoryFilter('ALL');
+    setPermissionSearch('');
+    setIsPermissionsModalOpen(true);
+  };
+
+  const togglePermission = (role: string, permId: string) => {
+    setCurrentPermissions((prev) => {
+      const roleList = prev[role] || [];
+      const exists = roleList.includes(permId);
+      return {
+        ...prev,
+        [role]: exists ? roleList.filter((p) => p !== permId) : [...roleList, permId],
+      };
+    });
+  };
+
+  const handleResetToDefaults = () => {
+    if (confirm('Reset role permissions to system standard defaults for this client?')) {
+      setCurrentPermissions(JSON.parse(JSON.stringify(DEFAULT_ROLE_PERMISSIONS)));
+    }
+  };
+
+  const handleGrantAllForRole = (role: string) => {
+    setCurrentPermissions((prev) => ({
+      ...prev,
+      [role]: ALL_PERMISSIONS.map((p) => p.id),
+    }));
+  };
+
+  const handleRevokeAllForRole = (role: string) => {
+    setCurrentPermissions((prev) => ({
+      ...prev,
+      [role]: [],
+    }));
+  };
+
+  const handleSavePermissions = async () => {
+    if (!permissionsTenant) return;
+    setIsSavingPermissions(true);
+    try {
+      await apiClient.patch(`/super-admin/tenants/${permissionsTenant.id}/permissions`, {
+        rolePermissions: currentPermissions,
+      });
+      alert(`Role permissions matrix updated successfully for ${permissionsTenant.name}.`);
+      setIsPermissionsModalOpen(false);
+      fetchDashboardData();
+    } catch (err: any) {
+      alert(err?.response?.data?.message || 'Failed to update role permissions.');
+    } finally {
+      setIsSavingPermissions(false);
+    }
   };
 
   const filteredTenants = tenants.filter((t) => {
@@ -581,6 +652,15 @@ export function SuperAdminPage() {
                             className="whitespace-nowrap px-3 py-1.5 text-xs font-semibold rounded-none border border-[#D1D5DB] bg-white text-[#111827] hover:bg-[#F3F4F6] transition-colors"
                           >
                             Edit Plan
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => handleOpenPermissionsModal(client)}
+                            className="whitespace-nowrap px-3 py-1.5 text-xs font-semibold rounded-none border border-blue-300 bg-blue-50 text-blue-800 hover:bg-blue-100 transition-colors"
+                            title="Manage Granular Role Permissions Matrix"
+                          >
+                            Permissions
                           </button>
 
                           <button
@@ -1189,6 +1269,225 @@ export function SuperAdminPage() {
               >
                 {isDeletingTenant ? 'Permanently Deleting...' : 'I understand the consequences, delete this tenant'}
               </Button>
+            </div>
+          </div>
+        </div>,
+        document.body,
+      )}
+
+      {/* MODAL: ROLE PERMISSIONS MATRIX */}
+      {isPermissionsModalOpen && permissionsTenant && createPortal(
+        <div className="fixed inset-0 z-[9999] bg-black/60 flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-[#FBFBF9] border border-[#E5E7EB] w-full max-w-6xl max-h-[92vh] flex flex-col p-6 space-y-4">
+            {/* Header */}
+            <div className="border-b border-[#E5E7EB] pb-3 flex items-center justify-between shrink-0">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="bg-[#0A192F] text-[#FBFBF9] text-[10px] font-mono px-2 py-0.5 font-bold uppercase tracking-wider">
+                    Role Access Control Matrix
+                  </span>
+                  <span className="text-xs font-mono text-[#6B7280]">
+                    Subdomain: {permissionsTenant.slug}.fitnexa.in
+                  </span>
+                </div>
+                <h3 className="text-base font-bold text-[#0A192F] uppercase tracking-wide mt-1">
+                  Manage Role Permissions: {permissionsTenant.name}
+                </h3>
+                <p className="text-xs text-[#6B7280]">
+                  Configure exact permissions per role using interactive ticks (✓ Allowed) and crosses (✕ Blocked). Unchecked features are completely hidden from the client staff.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsPermissionsModalOpen(false)}
+                className="text-[#6B7280] hover:text-[#0A192F] text-xl font-bold p-1"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Filter Toolbar */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-[#F5F5F0] border border-[#E5E7EB] shrink-0 text-xs">
+              <div className="flex flex-wrap items-center gap-1.5">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[#6B7280] mr-1">
+                  Filter Category:
+                </span>
+                {['ALL', 'Administration', 'Members', 'Billing', 'Attendance', 'Biometrics', 'Inventory', 'CRM', 'Trainers', 'Operations'].map((cat) => (
+                  <button
+                    key={cat}
+                    type="button"
+                    onClick={() => setPermissionCategoryFilter(cat)}
+                    className={
+                      permissionCategoryFilter === cat
+                        ? 'px-2 py-0.5 text-[11px] font-semibold border transition-colors rounded-none bg-[#0A192F] text-[#FBFBF9] border-[#0A192F]'
+                        : 'px-2 py-0.5 text-[11px] font-semibold border transition-colors rounded-none bg-white text-[#4B5563] border-[#D1D5DB] hover:bg-[#E5E7EB]'
+                    }
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
+
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={permissionSearch}
+                  onChange={(e) => setPermissionSearch(e.target.value)}
+                  placeholder="Search permission..."
+                  className="px-2.5 py-1 text-xs border border-[#D1D5DB] bg-white rounded-none w-48 font-medium"
+                />
+                <button
+                  type="button"
+                  onClick={handleResetToDefaults}
+                  className="whitespace-nowrap px-2.5 py-1 text-[11px] font-semibold border border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100 rounded-none"
+                  title="Reset to system standard role defaults"
+                >
+                  Reset Defaults
+                </button>
+              </div>
+            </div>
+
+            {/* Permissions Matrix Table */}
+            <div className="flex-1 overflow-y-auto border border-[#E5E7EB] bg-white min-h-[300px]">
+              <table className="w-full border-collapse text-left text-xs">
+                <thead className="bg-[#0A192F] text-[#FBFBF9] uppercase text-[10px] tracking-wider font-bold sticky top-0 z-10 select-none">
+                  <tr>
+                    <th className="py-2.5 px-4 w-72 border-r border-[#162E52]">Feature & Module</th>
+                    {[
+                      { key: 'GYM_OWNER', label: 'Gym Owner', icon: '👑' },
+                      { key: 'BRANCH_MANAGER', label: 'Branch Manager', icon: '🏢' },
+                      { key: 'FRONT_DESK', label: 'Front Desk', icon: '🛎️' },
+                      { key: 'TRAINER', label: 'Trainer', icon: '🏋️' },
+                      { key: 'STAFF', label: 'Staff', icon: '🧹' },
+                    ].map((role) => (
+                      <th key={role.key} className="py-2.5 px-2 text-center border-r border-[#162E52] last:border-r-0">
+                        <div className="flex flex-col items-center gap-0.5">
+                          <span>{role.icon} {role.label}</span>
+                          <div className="flex items-center gap-1 font-mono text-[9px] lowercase font-normal opacity-80">
+                            <span
+                              onClick={() => handleGrantAllForRole(role.key)}
+                              className="cursor-pointer hover:underline text-emerald-300 font-bold"
+                              title="Grant all permissions to this role"
+                            >
+                              all ✓
+                            </span>
+                            <span>/</span>
+                            <span
+                              onClick={() => handleRevokeAllForRole(role.key)}
+                              className="cursor-pointer hover:underline text-red-300 font-bold"
+                              title="Revoke all permissions from this role"
+                            >
+                              none ✕
+                            </span>
+                          </div>
+                        </div>
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#E5E7EB]">
+                  {ALL_PERMISSIONS.filter((p) => {
+                    const matchesCategory =
+                      permissionCategoryFilter === 'ALL' || p.category === permissionCategoryFilter;
+                    const matchesSearch =
+                      permissionSearch === '' ||
+                      p.label.toLowerCase().includes(permissionSearch.toLowerCase()) ||
+                      p.description.toLowerCase().includes(permissionSearch.toLowerCase()) ||
+                      p.id.toLowerCase().includes(permissionSearch.toLowerCase());
+                    return matchesCategory && matchesSearch;
+                  }).length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="py-8 text-center text-xs text-[#6B7280]">
+                        No permissions match your filter.
+                      </td>
+                    </tr>
+                  ) : (
+                    ALL_PERMISSIONS.filter((p) => {
+                      const matchesCategory =
+                        permissionCategoryFilter === 'ALL' || p.category === permissionCategoryFilter;
+                      const matchesSearch =
+                        permissionSearch === '' ||
+                        p.label.toLowerCase().includes(permissionSearch.toLowerCase()) ||
+                        p.description.toLowerCase().includes(permissionSearch.toLowerCase()) ||
+                        p.id.toLowerCase().includes(permissionSearch.toLowerCase());
+                      return matchesCategory && matchesSearch;
+                    }).map((perm) => (
+                      <tr key={perm.id} className="hover:bg-[#F9FAFB] transition-colors">
+                        <td className="py-2 px-4 border-r border-[#E5E7EB]">
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold text-[#0A192F]">{perm.label}</span>
+                            <span className="text-[9px] font-mono px-1.5 py-0.5 bg-[#F3F4F6] text-[#6B7280] border border-[#E5E7EB] uppercase">
+                              {perm.category}
+                            </span>
+                          </div>
+                          <p className="text-[10px] text-[#6B7280] mt-0.5 leading-snug">{perm.description}</p>
+                        </td>
+
+                        {['GYM_OWNER', 'BRANCH_MANAGER', 'FRONT_DESK', 'TRAINER', 'STAFF'].map((roleKey) => {
+                          const isAllowed = (currentPermissions[roleKey] || []).includes(perm.id);
+                          return (
+                            <td key={roleKey} className="py-2 px-2 text-center border-r border-[#E5E7EB] last:border-r-0">
+                              <button
+                                type="button"
+                                onClick={() => togglePermission(roleKey, perm.id)}
+                                className={
+                                  isAllowed
+                                    ? 'inline-flex items-center justify-center gap-1 px-2.5 py-1 text-xs font-bold rounded-none border transition-all select-none w-24 bg-emerald-50 border-emerald-300 text-emerald-800 hover:bg-emerald-100'
+                                    : 'inline-flex items-center justify-center gap-1 px-2.5 py-1 text-xs font-bold rounded-none border transition-all select-none w-24 bg-red-50 border-red-200 text-[#B91C1C] hover:bg-red-100'
+                                }
+                                title={
+                                  isAllowed
+                                    ? `Click to block ${perm.label} for ${roleKey}`
+                                    : `Click to allow ${perm.label} for ${roleKey}`
+                                }
+                              >
+                                {isAllowed ? (
+                                  <>
+                                    <span className="text-emerald-700 font-extrabold text-sm">✓</span>
+                                    <span className="text-[10px] uppercase font-bold tracking-wider">Allowed</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <span className="text-[#B91C1C] font-extrabold text-sm">✕</span>
+                                    <span className="text-[10px] uppercase font-bold tracking-wider">Blocked</span>
+                                  </>
+                                )}
+                              </button>
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-t border-[#E5E7EB] shrink-0 text-xs">
+              <span className="text-[11px] text-[#6B7280]">
+                Click any cell button to flip between Allowed (✓) and Blocked (✕). Changes take effect instantly for all staff under this client.
+              </span>
+
+              <div className="flex items-center space-x-3">
+                <Button
+                  variant="outline"
+                  type="button"
+                  onClick={() => setIsPermissionsModalOpen(false)}
+                  disabled={isSavingPermissions}
+                  className="rounded-none text-xs border-[#D1D5DB] text-[#111827] hover:bg-[#F3F4F6]"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="button"
+                  onClick={handleSavePermissions}
+                  isLoading={isSavingPermissions}
+                  className="rounded-none text-xs bg-[#0A192F] text-[#FBFBF9] hover:bg-[#162E52] font-bold uppercase tracking-wider px-5"
+                >
+                  Save Permissions Matrix
+                </Button>
+              </div>
             </div>
           </div>
         </div>,

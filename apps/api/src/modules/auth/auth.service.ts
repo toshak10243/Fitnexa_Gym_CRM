@@ -294,6 +294,7 @@ export class AuthService {
           subscriptionPlan: user.tenant.subscriptionPlan,
           subscriptionStatus: user.tenant.subscriptionStatus,
           enabledModules: user.tenant.enabledModules,
+          rolePermissions: user.tenant.rolePermissions as any,
         }
         : null,
     };
@@ -433,6 +434,7 @@ export class AuthService {
           subscriptionPlan: user.tenant.subscriptionPlan,
           subscriptionStatus: user.tenant.subscriptionStatus,
           enabledModules: user.tenant.enabledModules,
+          rolePermissions: user.tenant.rolePermissions as any,
           branches: user.tenant.branches,
         }
         : null,

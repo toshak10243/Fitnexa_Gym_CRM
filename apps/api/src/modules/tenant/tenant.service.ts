@@ -70,6 +70,7 @@ export class TenantService {
       isLifetime: tenant.isLifetime,
       planExpiresAt: tenant.planExpiresAt?.toISOString(),
       enabledModules: tenant.enabledModules,
+      rolePermissions: tenant.rolePermissions as any,
       branches,
       createdAt: tenant.createdAt.toISOString(),
       updatedAt: tenant.updatedAt.toISOString(),
