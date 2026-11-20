@@ -1040,7 +1040,7 @@ export function Sidebar() {
               className={cn(
                 'flex items-center space-x-3 px-3 py-1.5 text-xs font-medium rounded-none transition-colors',
                 isActive
-                  ? 'bg-[#1D4ED8] text-[#FBFBF9] font-semibold'
+                  ? 'bg-[#B91C1C] text-[#FBFBF9] font-semibold'
                   : 'text-[#E5E7EB] hover:bg-[#162E52] hover:text-[#FBFBF9]',
               )}
             >
@@ -1083,7 +1083,7 @@ export function Sidebar() {
       </div>
 
       {/* Navigation */}
-      <div className="flex-1 py-4 px-3 overflow-y-auto">
+      <div className="flex-1 py-4 px-3 overflow-y-auto sidebar-scroll">
         {renderNavGroup('Administration', coreNavItems)}
         {renderNavGroup('Member Operations', memberNavItems, 'MEMBERS')}
         {renderNavGroup('Billing & Finance', billingNavItems, 'BILLING')}

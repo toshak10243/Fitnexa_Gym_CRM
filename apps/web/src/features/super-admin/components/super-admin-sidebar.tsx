@@ -65,7 +65,7 @@ export function SuperAdminSidebar() {
             className={cn(
               'flex items-center space-x-3 px-3 py-2 text-xs font-semibold rounded-none transition-colors group',
               isActive
-                ? 'bg-[#1D4ED8] text-[#FBFBF9]'
+                ? 'bg-[#B91C1C] text-[#FBFBF9]'
                 : 'text-[#E5E7EB] hover:bg-[#162E52] hover:text-[#FBFBF9]',
             )}
           >
@@ -102,7 +102,7 @@ export function SuperAdminSidebar() {
       </div>
 
       {/* Navigation (Only Essential SaaS Platform Controls) */}
-      <div className="flex-1 py-4 px-3 overflow-y-auto">
+      <div className="flex-1 py-4 px-3 overflow-y-auto sidebar-scroll">
         {renderNavGroup('Platform SaaS Control', coreManagementItems)}
         {renderNavGroup('Platform Health & Audit', infrastructureItems)}
       </div>

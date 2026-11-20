@@ -41,3 +41,91 @@
     outline-offset: 2px;
   }
 }
+
+/* Custom Sleek Blue Scrollbars (Global & Cross-browser) */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-button {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1D4ED8; /* Enterprise Cobalt Blue */
+  border-radius: 2px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #2563EB; /* Bright Blue on hover */
+}
+
+/* Dedicated Sidebar Blue Scrollbar */
+.sidebar-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #1D4ED8 #0A192F;
+}
+
+.sidebar-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar-scroll::-webkit-scrollbar-button {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+.sidebar-scroll::-webkit-scrollbar-track {
+  background: #071324;
+}
+
+.sidebar-scroll::-webkit-scrollbar-thumb {
+  background: #1D4ED8;
+  border-radius: 3px;
+}
+
+.sidebar-scroll::-webkit-scrollbar-thumb:hover {
+  background: #3B82F6;
+}
+
+aside ::-webkit-scrollbar,
+aside::-webkit-scrollbar {
+  width: 6px;
+}
+
+aside ::-webkit-scrollbar-button,
+aside::-webkit-scrollbar-button {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+aside ::-webkit-scrollbar-track,
+aside::-webkit-scrollbar-track {
+  background: #071324;
+}
+
+aside ::-webkit-scrollbar-thumb,
+aside::-webkit-scrollbar-thumb {
+  background: #1D4ED8;
+  border-radius: 3px;
+}
+
+aside ::-webkit-scrollbar-thumb:hover,
+aside::-webkit-scrollbar-thumb:hover {
+  background: #3B82F6;
+}
+
+/* Global Firefox scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #1D4ED8 transparent;
+}
