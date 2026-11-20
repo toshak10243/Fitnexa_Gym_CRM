@@ -27,7 +27,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
     private readonly auditLogService: AuditLogService,
-  ) {}
+  ) { }
 
   private generateSlug(name: string): string {
     const baseSlug = name
@@ -282,19 +282,19 @@ export class AuthService {
       },
       tenant: user.tenant
         ? {
-            id: user.tenant.id,
-            name: user.tenant.name,
-            slug: user.tenant.slug,
-            logoUrl: user.tenant.logoUrl,
-            currency: user.tenant.currency,
-            timezone: user.tenant.timezone,
-            gstin: user.tenant.gstin,
-            city: user.tenant.city,
-            state: user.tenant.state,
-            subscriptionPlan: user.tenant.subscriptionPlan,
-            subscriptionStatus: user.tenant.subscriptionStatus,
-            enabledModules: user.tenant.enabledModules,
-          }
+          id: user.tenant.id,
+          name: user.tenant.name,
+          slug: user.tenant.slug,
+          logoUrl: user.tenant.logoUrl,
+          currency: user.tenant.currency,
+          timezone: user.tenant.timezone,
+          gstin: user.tenant.gstin,
+          city: user.tenant.city,
+          state: user.tenant.state,
+          subscriptionPlan: user.tenant.subscriptionPlan,
+          subscriptionStatus: user.tenant.subscriptionStatus,
+          enabledModules: user.tenant.enabledModules,
+        }
         : null,
     };
   }
@@ -415,26 +415,26 @@ export class AuthService {
       },
       tenant: user.tenant
         ? {
-            id: user.tenant.id,
-            name: user.tenant.name,
-            slug: user.tenant.slug,
-            logoUrl: user.tenant.logoUrl,
-            gstin: user.tenant.gstin,
-            pan: user.tenant.pan,
-            phone: user.tenant.phone,
-            email: user.tenant.email,
-            address: user.tenant.address,
-            city: user.tenant.city,
-            state: user.tenant.state,
-            pincode: user.tenant.pincode,
-            currency: user.tenant.currency,
-            timezone: user.tenant.timezone,
-            status: user.tenant.status,
-            subscriptionPlan: user.tenant.subscriptionPlan,
-            subscriptionStatus: user.tenant.subscriptionStatus,
-            enabledModules: user.tenant.enabledModules,
-            branches: user.tenant.branches,
-          }
+          id: user.tenant.id,
+          name: user.tenant.name,
+          slug: user.tenant.slug,
+          logoUrl: user.tenant.logoUrl,
+          gstin: user.tenant.gstin,
+          pan: user.tenant.pan,
+          phone: user.tenant.phone,
+          email: user.tenant.email,
+          address: user.tenant.address,
+          city: user.tenant.city,
+          state: user.tenant.state,
+          pincode: user.tenant.pincode,
+          currency: user.tenant.currency,
+          timezone: user.tenant.timezone,
+          status: user.tenant.status,
+          subscriptionPlan: user.tenant.subscriptionPlan,
+          subscriptionStatus: user.tenant.subscriptionStatus,
+          enabledModules: user.tenant.enabledModules,
+          branches: user.tenant.branches,
+        }
         : null,
     };
   }

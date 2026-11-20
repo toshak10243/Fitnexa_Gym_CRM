@@ -61,14 +61,18 @@ export class AuditLogService {
   }
 
   async findByTenant(
-    tenantId: string,
+    tenantId?: string | null,
     page = 1,
     limit = 20,
     action?: string,
     resource?: string,
   ): Promise<PaginatedResult<AuditLogResponse>> {
     const skip = (page - 1) * limit;
-    const where: any = { tenantId };
+    const where: any = {};
+
+    if (tenantId) {
+      where.tenantId = tenantId;
+    }
 
     if (action) where.action = { contains: action, mode: 'insensitive' };
     if (resource) where.resource = { contains: resource, mode: 'insensitive' };
