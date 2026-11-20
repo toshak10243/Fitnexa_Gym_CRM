@@ -229,7 +229,7 @@ export class AuthService {
       throw new UnauthorizedException('Invalid email or password');
     }
 
-    if (!user.tenant) {
+    if (!user.tenant && user.role !== UserRole.SUPER_ADMIN) {
       throw new UnauthorizedException('User account is not linked to an active gym tenant');
     }
 
