@@ -8,7 +8,6 @@ export function Sidebar() {
   const location = useLocation();
   const { tenant, user } = useAuth();
   const userRole = user?.role;
-  const isSuperOrOwner = userRole === UserRole.SUPER_ADMIN || userRole === UserRole.GYM_OWNER;
 
   const coreNavItems = [
     {
@@ -40,6 +39,7 @@ export function Sidebar() {
       label: 'Analytics & Reports',
       path: '/reports',
       roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER'],
+      module: 'ANALYTICS',
       enabled: true,
       icon: (
         <svg
@@ -64,6 +64,7 @@ export function Sidebar() {
       label: 'System Telemetry',
       path: '/telemetry',
       roles: ['SUPER_ADMIN', 'GYM_OWNER'],
+      module: 'ANALYTICS',
       enabled: true,
       icon: (
         <svg
@@ -163,6 +164,7 @@ export function Sidebar() {
       label: 'Members',
       path: '/members',
       roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER', 'FRONT_DESK', 'TRAINER', 'STAFF'],
+      module: 'MEMBERS',
       enabled: true,
       icon: (
         <svg
@@ -186,6 +188,7 @@ export function Sidebar() {
       label: 'Membership Plans',
       path: '/plans',
       roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER', 'FRONT_DESK', 'STAFF'],
+      module: 'MEMBERS',
       enabled: true,
       icon: (
         <svg
@@ -209,6 +212,7 @@ export function Sidebar() {
       label: 'Data Migration',
       path: '/imports',
       roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER'],
+      module: 'MEMBERS',
       enabled: true,
       icon: (
         <svg
@@ -916,12 +920,29 @@ export function Sidebar() {
     enabled: boolean;
     icon: React.ReactNode;
     roles?: string[];
+    module?: string;
   }
 
-  const renderNavGroup = (title: string, items: NavItem[]) => {
+  const renderNavGroup = (title: string, items: NavItem[], groupModule?: string) => {
+    // If the entire group requires a specific module, check tenant.enabledModules
+    if (groupModule && userRole !== UserRole.SUPER_ADMIN) {
+      const allowedModules = tenant?.enabledModules;
+      if (allowedModules && allowedModules.length > 0 && !allowedModules.includes(groupModule)) {
+        return null;
+      }
+    }
+
     const visibleItems = items.filter((item) => {
       if (!item.enabled) return false;
-      if (isSuperOrOwner) return true;
+      // Feature flag: If item requires a module, check tenant.enabledModules
+      if (item.module && userRole !== UserRole.SUPER_ADMIN) {
+        const allowedModules = tenant?.enabledModules;
+        if (allowedModules && allowedModules.length > 0 && !allowedModules.includes(item.module)) {
+          return false;
+        }
+      }
+      if (userRole === UserRole.SUPER_ADMIN) return true;
+      if (userRole === UserRole.GYM_OWNER) return true;
       if (!item.roles || item.roles.length === 0) return false;
       return userRole ? item.roles.includes(userRole) : false;
     });
@@ -961,31 +982,62 @@ export function Sidebar() {
       {/* Brand Header */}
       <div className="h-16 flex items-center px-4 border-b border-[#162E52] space-x-3">
         <div className="h-9 w-9 flex-shrink-0 flex items-center justify-center overflow-hidden rounded-sm bg-white/10 p-0.5 border border-[#162E52]">
-          <img
-            src={fitnexaLogo}
-            alt="Fitnexa Logo"
-            className="h-full w-full object-contain"
-          />
+          {tenant?.logoUrl ? (
+            <img
+              src={tenant.logoUrl}
+              alt={tenant.name}
+              className="h-full w-full object-contain"
+            />
+          ) : (
+            <img
+              src={fitnexaLogo}
+              alt="Fitnexa Logo"
+              className="h-full w-full object-contain"
+            />
+          )}
         </div>
         <div className="flex flex-col min-w-0">
           <span className="font-bold text-sm tracking-wider uppercase text-[#FBFBF9] truncate" title={tenant?.name || 'Fitnexa'}>
-            {tenant?.name || 'Fitnexa'}
+            {tenant?.name || 'Fitnexa SaaS'}
           </span>
           <span className="text-[10px] text-[#9CA3AF] tracking-tight uppercase">
-            Gym Management CRM
+            {userRole === UserRole.SUPER_ADMIN ? 'Platform Management' : 'Gym Management CRM'}
           </span>
         </div>
       </div>
 
       {/* Navigation */}
       <div className="flex-1 py-4 px-3 overflow-y-auto">
+        {/* PLATFORM SAAS OWNER ACCESS */}
+        {userRole === UserRole.SUPER_ADMIN && (
+          <div className="space-y-1 mb-4">
+            <div className="px-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-[#B91C1C]">
+              Platform SaaS Owner
+            </div>
+            <Link
+              to="/super-admin"
+              className={cn(
+                'flex items-center space-x-3 px-3 py-1.5 text-xs font-semibold rounded-none transition-colors',
+                location.pathname === '/super-admin'
+                  ? 'bg-[#B91C1C] text-[#FBFBF9]'
+                  : 'text-[#FBFBF9] hover:bg-[#162E52]',
+              )}
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 3m8.5-3l1 3m0 0l.5 1.5m-.5-1.5h-9.5m0 0l-.5 1.5" />
+              </svg>
+              <span>SaaS Clients & Revenue</span>
+            </Link>
+          </div>
+        )}
+
         {renderNavGroup('Administration', coreNavItems)}
-        {renderNavGroup('Member Operations', memberNavItems)}
-        {renderNavGroup('Billing & Finance', billingNavItems)}
-        {renderNavGroup('Attendance & Check-in', attendanceNavItems)}
-        {renderNavGroup('Biometric Terminals', deviceNavItems)}
-        {renderNavGroup('Inventory & Retail POS', inventoryNavItems)}
-        {renderNavGroup('Leads CRM & Trainers', crmNavItems)}
+        {renderNavGroup('Member Operations', memberNavItems, 'MEMBERS')}
+        {renderNavGroup('Billing & Finance', billingNavItems, 'BILLING')}
+        {renderNavGroup('Attendance & Check-in', attendanceNavItems, 'ATTENDANCE')}
+        {renderNavGroup('Biometric Terminals', deviceNavItems, 'DEVICES')}
+        {renderNavGroup('Inventory & Retail POS', inventoryNavItems, 'INVENTORY')}
+        {renderNavGroup('Leads CRM & Trainers', crmNavItems, 'CRM')}
         {renderNavGroup('Expenses & Notifications', operationsNavItems)}
       </div>
 

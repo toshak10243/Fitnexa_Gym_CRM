@@ -58,6 +58,7 @@ import { NotificationsPage } from '../features/notification/notifications-page';
 import { NotificationSettingsPage } from '../features/notification/notification-settings-page';
 import { DashboardPage } from '../features/analytics/dashboard-page';
 import { ReportsPage } from '../features/analytics/reports-page';
+import { SuperAdminPage } from '../features/super-admin/super-admin-page';
 import { UserRole } from '@fitnexa/shared';
 import { RouteErrorBoundary } from '../components/ui/route-error-boundary';
 
@@ -77,6 +78,17 @@ export const router = createBrowserRouter([
       <ProtectedRoute>
         <AppShell>
           <DashboardPage />
+        </AppShell>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/super-admin',
+    errorElement: <RouteErrorBoundary />,
+    element: (
+      <ProtectedRoute allowedRoles={[UserRole.SUPER_ADMIN]}>
+        <AppShell>
+          <SuperAdminPage />
         </AppShell>
       </ProtectedRoute>
     ),

@@ -23,6 +23,7 @@ import { CrmModule } from './modules/crm/crm.module';
 import { ExpenseModule } from './modules/expense/expense.module';
 import { NotificationModule } from './modules/notification/notification.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
+import { SuperAdminModule } from './modules/super-admin/super-admin.module';
 
 @Module({
   imports: [
@@ -53,6 +54,7 @@ import { AnalyticsModule } from './modules/analytics/analytics.module';
     ExpenseModule,
     NotificationModule,
     AnalyticsModule,
+    SuperAdminModule,
   ],
 })
 export class AppModule {}

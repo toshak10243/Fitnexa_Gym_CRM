@@ -1,14 +1,17 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { apiClient } from '../../lib/api-client';
+import { useAuth } from '../../context/auth-context';
 import {
   CreateBranchInput,
   CreateBranchSchema,
   TenantDetailResponse,
   UpdateTenantProfileInput,
   UpdateTenantProfileSchema,
+  SAAS_PLANS,
+  SaaSSubscriptionPlan,
 } from '@fitnexa/shared';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
@@ -38,8 +41,11 @@ async function fetchTenantProfile(): Promise<TenantDetailResponse> {
 
 export function SettingsPage() {
   const queryClient = useQueryClient();
+  const { reloadProfile } = useAuth();
   const [isBranchModalOpen, setIsBranchModalOpen] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [logoUploading, setLogoUploading] = useState(false);
+  const logoInputRef = useRef<HTMLInputElement | null>(null);
 
   const { data: tenant, isLoading, error } = useQuery({
     queryKey: ['tenant-profile'],
@@ -49,6 +55,8 @@ export function SettingsPage() {
   const {
     register: registerProfile,
     handleSubmit: handleProfileSubmit,
+    setValue,
+    getValues,
     formState: { isSubmitting: isProfileSubmitting },
   } = useForm<UpdateTenantProfileInput>({
     resolver: zodResolver(UpdateTenantProfileSchema),
@@ -63,11 +71,50 @@ export function SettingsPage() {
           city: tenant.city,
           state: tenant.state,
           pincode: tenant.pincode,
+          logoUrl: tenant.logoUrl || '',
+          website: tenant.website || '',
+          instagram: tenant.instagram || '',
+          whatsapp: tenant.whatsapp || '',
           currency: tenant.currency,
           timezone: tenant.timezone,
         }
       : undefined,
   });
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 3 * 1024 * 1024) {
+      alert('Logo size exceeds 3MB limit.');
+      return;
+    }
+
+    setLogoUploading(true);
+    try {
+      const uploadData = new FormData();
+      uploadData.append('logo', file);
+
+      const res = await apiClient.post('/tenant/upload-logo', uploadData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+
+      const newLogoUrl = res.data?.data?.logoUrl;
+      if (newLogoUrl) {
+        setValue('logoUrl', newLogoUrl);
+        await updateProfileMutation.mutateAsync({
+          ...getValues(),
+          logoUrl: newLogoUrl,
+        });
+        reloadProfile();
+      }
+    } catch {
+      alert('Failed to upload logo.');
+    } finally {
+      setLogoUploading(false);
+      if (logoInputRef.current) logoInputRef.current.value = '';
+    }
+  };
 
   const {
     register: registerBranch,
@@ -151,6 +198,83 @@ export function SettingsPage() {
         </div>
       )}
 
+      {/* Active SaaS Subscription Status Banner */}
+      <div className="border border-[#E5E7EB] bg-[#0A192F] text-[#FBFBF9] p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <span className="text-[10px] font-mono uppercase font-bold text-[#34D399] tracking-wider">
+            Active Multi-Tenant License
+          </span>
+          <h3 className="text-lg font-bold text-[#FBFBF9] mt-0.5">
+            {tenant.subscriptionPlan
+              ? SAAS_PLANS[tenant.subscriptionPlan as SaaSSubscriptionPlan]?.name || tenant.subscriptionPlan
+              : 'Standard Enterprise License'}
+          </h3>
+          <p className="text-xs text-[#9CA3AF] mt-0.5">
+            Company Subdomain: <span className="font-mono text-[#FBFBF9]">{tenant.slug}.fitnexa.in</span>
+          </p>
+        </div>
+
+        <div className="flex items-center space-x-3 text-xs">
+          <div className="sm:text-right">
+            <div className="font-mono text-[#34D399] font-bold">
+              {tenant.isLifetime
+                ? 'LIFETIME AMC INCLUDED'
+                : tenant.planExpiresAt
+                ? `Expires: ${tenant.planExpiresAt.split('T')[0]}`
+                : 'ACTIVE'}
+            </div>
+            <div className="text-[11px] text-[#9CA3AF]">
+              Unlimited Staff & Members Provisioned
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Brand Identity & Logo Card */}
+      <div className="border border-[#E5E7EB] bg-[#F5F5F0] p-6 rounded-sm space-y-4">
+        <h3 className="text-sm font-bold text-[#0A192F] uppercase tracking-wider pb-1">
+          Brand Logo & Custom Identity
+        </h3>
+        <p className="text-xs text-[#6B7280]">
+          Upload your official gym logo. This logo automatically appears on printed member admission forms, invoice receipts, and system navigation.
+        </p>
+
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5 p-4 bg-[#FBFBF9] border border-[#E5E7EB]">
+          <div className="h-20 w-20 flex-shrink-0 border border-[#E5E7EB] bg-white flex items-center justify-center p-1 overflow-hidden">
+            {tenant.logoUrl ? (
+              <img src={tenant.logoUrl} alt="Gym Logo" className="h-full w-full object-contain" />
+            ) : (
+              <div className="text-center p-2 text-[#9CA3AF]">
+                <span className="text-[10px] font-bold uppercase">No Logo</span>
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <input
+              type="file"
+              ref={logoInputRef}
+              accept="image/png,image/jpeg,image/webp,image/svg+xml"
+              className="hidden"
+              onChange={handleLogoUpload}
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={logoUploading}
+              onClick={() => logoInputRef.current?.click()}
+              className="rounded-none text-xs h-8 border-[#0A192F] text-[#0A192F] hover:bg-[#0A192F] hover:text-[#FBFBF9]"
+            >
+              {logoUploading ? 'Uploading Logo...' : tenant.logoUrl ? 'Change Gym Logo' : 'Upload Brand Logo'}
+            </Button>
+            <span className="text-[11px] text-[#6B7280] block">
+              PNG, JPG, or SVG up to 3MB (Square format recommended)
+            </span>
+          </div>
+        </div>
+      </div>
+
       {/* Gym Profile Form */}
       <div className="border border-[#E5E7EB] bg-[#F5F5F0] p-6 rounded-sm space-y-4">
         <h3 className="text-sm font-bold text-[#0A192F] uppercase tracking-wider pb-1">
@@ -199,6 +323,24 @@ export function SettingsPage() {
             <Input label="City" {...registerProfile('city')} />
             <Input label="State" {...registerProfile('state')} />
             <Input label="PIN Code" {...registerProfile('pincode')} />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 border-t border-[#E5E7EB] pt-4">
+            <Input
+              label="Official Website URL"
+              placeholder="e.g. https://cultfit.in"
+              {...registerProfile('website')}
+            />
+            <Input
+              label="Instagram Profile / Handle"
+              placeholder="e.g. @cultfit_official"
+              {...registerProfile('instagram')}
+            />
+            <Input
+              label="WhatsApp Business Number"
+              placeholder="e.g. 9876543210"
+              {...registerProfile('whatsapp')}
+            />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

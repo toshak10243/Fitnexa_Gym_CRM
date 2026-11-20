@@ -150,6 +150,27 @@ model Tenant {
   currency  String       @default("INR") @db.VarChar(10)
   timezone  String       @default("Asia/Kolkata") @db.VarChar(50)
   status    TenantStatus @default(ACTIVE)
+
+  // White-Label Branding & Socials
+  logoUrl   String?      @db.VarChar(255)
+  website   String?      @db.VarChar(255)
+  instagram String?      @db.VarChar(100)
+  whatsapp  String?      @db.VarChar(20)
+
+  // SaaS Subscription & Licensing
+  subscriptionPlan   String    @default("TRIAL_7_DAYS") @db.VarChar(50)
+  subscriptionPrice  Int       @default(0)
+  subscriptionStatus String    @default("ACTIVE") @db.VarChar(20)
+  planStartedAt      DateTime  @default(now())
+  planExpiresAt      DateTime?
+  isLifetime         Boolean   @default(false)
+  paymentStatus      String    @default("PAID") @db.VarChar(20)
+  paymentReference   String?   @db.VarChar(100)
+  paymentMode        String?   @db.VarChar(50)
+
+  // Modular Feature Flags (Client-level feature delegation)
+  enabledModules     String[]  @default(["MEMBERS", "BILLING", "ATTENDANCE", "DEVICES", "INVENTORY", "POS", "CRM", "TRAINERS", "EXPENSES", "NOTIFICATIONS", "ANALYTICS"])
+
   createdAt DateTime     @default(now())
   updatedAt DateTime     @updatedAt
 
@@ -218,6 +239,7 @@ model User {
   role             UserRole   @default(STAFF)
   status           UserStatus @default(ACTIVE)
   refreshTokenHash String?    @db.VarChar(255)
+  mustChangePassword Boolean  @default(false)
   lastLoginAt      DateTime?
   createdAt        DateTime   @default(now())
   updatedAt        DateTime   @updatedAt

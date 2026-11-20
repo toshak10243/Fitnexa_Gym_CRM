@@ -62,4 +62,24 @@ export class UpdateTenantDto {
   @IsString()
   @Matches(/^\d{6}$/, { message: 'PIN code must be a 6-digit number' })
   pincode?: string;
+
+  @ApiPropertyOptional({ example: '/uploads/branding/logo.png' })
+  @IsOptional()
+  @IsString()
+  logoUrl?: string;
+
+  @ApiPropertyOptional({ example: 'https://fitpulse.in' })
+  @IsOptional()
+  @IsString()
+  website?: string;
+
+  @ApiPropertyOptional({ example: 'fitpulse_gym' })
+  @IsOptional()
+  @IsString()
+  instagram?: string;
+
+  @ApiPropertyOptional({ example: '9876543210' })
+  @IsOptional()
+  @IsString()
+  whatsapp?: string;
 }

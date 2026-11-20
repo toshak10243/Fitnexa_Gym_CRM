@@ -19,6 +19,10 @@ export const UpdateTenantProfileSchema = z.object({
   city: z.string().max(50).optional(),
   state: z.string().max(50).optional(),
   pincode: z.string().regex(/^\d{6}$/).optional(),
+  logoUrl: z.string().optional().or(z.literal('')),
+  website: z.string().optional().or(z.literal('')),
+  instagram: z.string().optional().or(z.literal('')),
+  whatsapp: z.string().optional().or(z.literal('')),
   currency: z.string().default('INR'),
   timezone: z.string().default('Asia/Kolkata'),
 });
@@ -72,6 +76,15 @@ export interface TenantDetailResponse {
   currency: string;
   timezone: string;
   status: TenantStatus;
+  logoUrl?: string | null;
+  website?: string | null;
+  instagram?: string | null;
+  whatsapp?: string | null;
+  subscriptionPlan?: string;
+  subscriptionStatus?: string;
+  isLifetime?: boolean;
+  planExpiresAt?: string;
+  enabledModules?: string[];
   branches: BranchResponse[];
   createdAt: string;
   updatedAt: string;

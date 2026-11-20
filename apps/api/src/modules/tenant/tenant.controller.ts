@@ -9,9 +9,16 @@ import {
   Post,
   Req,
   UseGuards,
+  UseInterceptors,
+  UploadedFile,
+  BadRequestException,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags, ApiConsumes } from '@nestjs/swagger';
 import { Request } from 'express';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import * as path from 'path';
+import * as fs from 'fs';
 import { TenantService } from './tenant.service';
 import { UpdateTenantDto } from './dto/update-tenant.dto';
 import { CreateBranchDto } from './dto/create-branch.dto';
@@ -47,6 +54,46 @@ export class TenantController {
   @ApiResponse({ status: 200, description: 'Gym profile retrieved successfully.' })
   async getProfile(@CurrentTenant() tenantId: string) {
     return this.tenantService.getProfile(tenantId);
+  }
+
+  @Post('upload-logo')
+  @Roles(UserRole.GYM_OWNER, UserRole.SUPER_ADMIN)
+  @ApiOperation({ summary: 'Upload gym brand logo' })
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(
+    FileInterceptor('logo', {
+      storage: diskStorage({
+        destination: (_req, _file, cb) => {
+          const uploadPath = path.join(process.cwd(), 'uploads', 'branding');
+          if (!fs.existsSync(uploadPath)) {
+            fs.mkdirSync(uploadPath, { recursive: true });
+          }
+          cb(null, uploadPath);
+        },
+        filename: (_req, file, cb) => {
+          const ext = path.extname(file.originalname).toLowerCase();
+          const cleanName = `gym-logo-${Date.now()}${ext}`;
+          cb(null, cleanName);
+        },
+      }),
+      limits: { fileSize: 3 * 1024 * 1024 },
+      fileFilter: (_req, file, cb) => {
+        if (!file.mimetype.match(/\/(jpg|jpeg|png|webp|svg\+xml)$/i)) {
+          return cb(
+            new BadRequestException('Only JPG, PNG, WebP, or SVG logo files are permitted.'),
+            false,
+          );
+        }
+        cb(null, true);
+      },
+    }),
+  )
+  uploadLogo(@UploadedFile() file: Express.Multer.File) {
+    if (!file) throw new BadRequestException('No logo file uploaded.');
+    return {
+      status: 'success',
+      data: { logoUrl: `/uploads/branding/${file.filename}` },
+    };
   }
 
   @Patch('profile')

@@ -31,8 +31,12 @@ export function LoginPage() {
   const onSubmit = async (data: LoginInput) => {
     try {
       setAuthError(null);
-      await login(data);
-      navigate('/');
+      const res = await login(data);
+      if (res?.user?.role === 'SUPER_ADMIN') {
+        navigate('/super-admin');
+      } else {
+        navigate('/');
+      }
     } catch (err: any) {
       setAuthError(err.message || 'Failed to authenticate. Please check your credentials.');
     }
@@ -112,6 +116,18 @@ export function LoginPage() {
             Quick Test Accounts (Click to Auto-Fill):
           </div>
           <div className="flex flex-col space-y-1.5">
+            <button
+              type="button"
+              onClick={() => {
+                setValue('email', 'superadmin@fitnexa.com', { shouldValidate: true });
+                setValue('password', 'SuperAdmin@2026', { shouldValidate: true });
+                setAuthError(null);
+              }}
+              className="text-left px-2 py-1 bg-[#0A192F] text-[#FBFBF9] border border-[#0A192F] rounded-sm hover:bg-[#162E52] text-[11px] font-mono flex justify-between items-center"
+            >
+              <span><strong>Super Admin (SaaS Owner):</strong> superadmin@fitnexa.com</span>
+              <span className="text-[10px] text-[#34D399] font-bold">Fill</span>
+            </button>
             <button
               type="button"
               onClick={() => setCredentials('toshak10243@gmail.com')}

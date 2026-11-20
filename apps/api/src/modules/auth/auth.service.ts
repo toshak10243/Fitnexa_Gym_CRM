@@ -233,11 +233,13 @@ export class AuthService {
       throw new UnauthorizedException('User account is not linked to an active gym tenant');
     }
 
+    const tenantId = user.tenant?.id || 'system-platform';
+
     const tokens = await this.generateTokens({
       id: user.id,
       email: user.email,
       role: user.role,
-      tenantId: user.tenant.id,
+      tenantId,
       branchId: user.branchId,
     });
 
@@ -249,16 +251,18 @@ export class AuthService {
       data: { refreshTokenHash, lastLoginAt: loginTime },
     });
 
-    await this.auditLogService.record({
-      tenantId: user.tenant.id,
-      userId: user.id,
-      action: 'USER_LOGIN',
-      resource: 'Auth',
-      resourceId: user.id,
-      details: { role: user.role, email: user.email },
-      ipAddress,
-      userAgent,
-    });
+    if (user.tenant?.id) {
+      await this.auditLogService.record({
+        tenantId: user.tenant.id,
+        userId: user.id,
+        action: 'USER_LOGIN',
+        resource: 'Auth',
+        resourceId: user.id,
+        details: { role: user.role, email: user.email },
+        ipAddress,
+        userAgent,
+      });
+    }
 
     return {
       accessToken: tokens.accessToken,
@@ -271,20 +275,27 @@ export class AuthService {
         phone: user.phone,
         role: user.role as UserRole,
         status: user.status as UserStatus,
-        tenantId: user.tenant.id,
+        mustChangePassword: user.mustChangePassword,
+        tenantId: user.tenant?.id || null,
         branchId: user.branchId,
         lastLoginAt: loginTime.toISOString(),
       },
-      tenant: {
-        id: user.tenant.id,
-        name: user.tenant.name,
-        slug: user.tenant.slug,
-        currency: user.tenant.currency,
-        timezone: user.tenant.timezone,
-        gstin: user.tenant.gstin,
-        city: user.tenant.city,
-        state: user.tenant.state,
-      },
+      tenant: user.tenant
+        ? {
+            id: user.tenant.id,
+            name: user.tenant.name,
+            slug: user.tenant.slug,
+            logoUrl: user.tenant.logoUrl,
+            currency: user.tenant.currency,
+            timezone: user.tenant.timezone,
+            gstin: user.tenant.gstin,
+            city: user.tenant.city,
+            state: user.tenant.state,
+            subscriptionPlan: user.tenant.subscriptionPlan,
+            subscriptionStatus: user.tenant.subscriptionStatus,
+            enabledModules: user.tenant.enabledModules,
+          }
+        : null,
     };
   }
 
@@ -385,7 +396,7 @@ export class AuthService {
       },
     });
 
-    if (!user || !user.tenant) {
+    if (!user) {
       throw new NotFoundException('User profile not found');
     }
 
@@ -397,27 +408,34 @@ export class AuthService {
         phone: user.phone,
         role: user.role as UserRole,
         status: user.status as UserStatus,
-        tenantId: user.tenant.id,
+        mustChangePassword: user.mustChangePassword,
+        tenantId: user.tenant?.id || null,
         branchId: user.branchId,
         lastLoginAt: user.lastLoginAt?.toISOString() || null,
       },
-      tenant: {
-        id: user.tenant.id,
-        name: user.tenant.name,
-        slug: user.tenant.slug,
-        gstin: user.tenant.gstin,
-        pan: user.tenant.pan,
-        phone: user.tenant.phone,
-        email: user.tenant.email,
-        address: user.tenant.address,
-        city: user.tenant.city,
-        state: user.tenant.state,
-        pincode: user.tenant.pincode,
-        currency: user.tenant.currency,
-        timezone: user.tenant.timezone,
-        status: user.tenant.status,
-        branches: user.tenant.branches,
-      },
+      tenant: user.tenant
+        ? {
+            id: user.tenant.id,
+            name: user.tenant.name,
+            slug: user.tenant.slug,
+            logoUrl: user.tenant.logoUrl,
+            gstin: user.tenant.gstin,
+            pan: user.tenant.pan,
+            phone: user.tenant.phone,
+            email: user.tenant.email,
+            address: user.tenant.address,
+            city: user.tenant.city,
+            state: user.tenant.state,
+            pincode: user.tenant.pincode,
+            currency: user.tenant.currency,
+            timezone: user.tenant.timezone,
+            status: user.tenant.status,
+            subscriptionPlan: user.tenant.subscriptionPlan,
+            subscriptionStatus: user.tenant.subscriptionStatus,
+            enabledModules: user.tenant.enabledModules,
+            branches: user.tenant.branches,
+          }
+        : null,
     };
   }
 
@@ -449,6 +467,7 @@ export class AuthService {
       where: { id: userId },
       data: {
         passwordHash: newPasswordHash,
+        mustChangePassword: false,
         refreshTokenHash: null, // Force re-login on other devices
       },
     });

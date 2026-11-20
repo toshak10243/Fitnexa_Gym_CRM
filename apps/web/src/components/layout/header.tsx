@@ -31,6 +31,7 @@ export function Header({ status = 'ok' }: HeaderProps) {
   }, []);
 
   const getPageTitle = (path: string): string => {
+    if (path.startsWith('/super-admin')) return 'SaaS Platform Control Center';
     if (path === '/' || path === '/dashboard') return 'Executive Dashboard';
     if (path.startsWith('/reports')) return 'Analytics & Reports';
     if (path.startsWith('/telemetry')) return 'System Telemetry';

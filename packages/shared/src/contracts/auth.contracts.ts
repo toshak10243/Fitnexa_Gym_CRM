@@ -59,7 +59,8 @@ export interface AuthUserResponse {
   phone: string;
   role: UserRole;
   status: UserStatus;
-  tenantId: string;
+  mustChangePassword?: boolean;
+  tenantId?: string | null;
   branchId?: string | null;
   lastLoginAt?: string | null;
 }
@@ -68,11 +69,15 @@ export interface AuthTenantResponse {
   id: string;
   name: string;
   slug: string;
+  logoUrl?: string | null;
   currency: string;
   timezone: string;
   gstin?: string | null;
   city?: string | null;
   state?: string | null;
+  subscriptionPlan?: string;
+  subscriptionStatus?: string;
+  enabledModules?: string[];
 }
 
 export interface AuthTokensResponse {

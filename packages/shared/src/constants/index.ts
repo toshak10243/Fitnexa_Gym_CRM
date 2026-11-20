@@ -26,6 +26,110 @@ export enum TenantStatus {
   PENDING = 'PENDING',
 }
 
+export enum SaaSSubscriptionPlan {
+  TRIAL_7_DAYS = 'TRIAL_7_DAYS',
+  MONTH_1 = 'MONTH_1',
+  MONTH_3 = 'MONTH_3',
+  MONTH_6 = 'MONTH_6',
+  MONTH_12 = 'MONTH_12',
+  LIFETIME = 'LIFETIME',
+}
+
+export interface SaaSPlanConfig {
+  id: SaaSSubscriptionPlan;
+  name: string;
+  price: number;
+  durationDays: number;
+  durationLabel: string;
+  isLifetime: boolean;
+  features: string[];
+}
+
+export const SAAS_PLANS: Record<SaaSSubscriptionPlan, SaaSPlanConfig> = {
+  [SaaSSubscriptionPlan.TRIAL_7_DAYS]: {
+    id: SaaSSubscriptionPlan.TRIAL_7_DAYS,
+    name: '7-Day Free Trial',
+    price: 0,
+    durationDays: 7,
+    durationLabel: '7 Days',
+    isLifetime: false,
+    features: ['Unlimited Users', 'All Core Modules', 'Free Onboarding Support'],
+  },
+  [SaaSSubscriptionPlan.MONTH_1]: {
+    id: SaaSSubscriptionPlan.MONTH_1,
+    name: '1-Month Standard Plan',
+    price: 800,
+    durationDays: 30,
+    durationLabel: '1 Month',
+    isLifetime: false,
+    features: ['Unlimited Users', 'Selected Modules', 'Full Billing & Invoicing'],
+  },
+  [SaaSSubscriptionPlan.MONTH_3]: {
+    id: SaaSSubscriptionPlan.MONTH_3,
+    name: '3-Month Quarterly Plan',
+    price: 2500,
+    durationDays: 90,
+    durationLabel: '3 Months',
+    isLifetime: false,
+    features: ['Unlimited Users', 'Selected Modules', 'Priority Support'],
+  },
+  [SaaSSubscriptionPlan.MONTH_6]: {
+    id: SaaSSubscriptionPlan.MONTH_6,
+    name: '6-Month Semi-Annual Plan',
+    price: 4500,
+    durationDays: 180,
+    durationLabel: '6 Months',
+    isLifetime: false,
+    features: ['Unlimited Users', 'Selected Modules', 'Biometric IoT Ready'],
+  },
+  [SaaSSubscriptionPlan.MONTH_12]: {
+    id: SaaSSubscriptionPlan.MONTH_12,
+    name: '12-Month Annual Enterprise Plan',
+    price: 8000,
+    durationDays: 365,
+    durationLabel: '12 Months',
+    isLifetime: false,
+    features: ['Unlimited Users', 'All Modules Access', 'Free Staff Training & AMC'],
+  },
+  [SaaSSubscriptionPlan.LIFETIME]: {
+    id: SaaSSubscriptionPlan.LIFETIME,
+    name: 'Lifetime License + Free AMC',
+    price: 25000,
+    durationDays: 36500,
+    durationLabel: 'Lifetime',
+    isLifetime: true,
+    features: ['Unlimited Users Forever', 'Lifetime Free AMC & Upgrades', 'All Enterprise Modules Included'],
+  },
+};
+
+export enum SaaSModule {
+  MEMBERS = 'MEMBERS',
+  BILLING = 'BILLING',
+  ATTENDANCE = 'ATTENDANCE',
+  DEVICES = 'DEVICES',
+  INVENTORY = 'INVENTORY',
+  POS = 'POS',
+  CRM = 'CRM',
+  TRAINERS = 'TRAINERS',
+  EXPENSES = 'EXPENSES',
+  NOTIFICATIONS = 'NOTIFICATIONS',
+  ANALYTICS = 'ANALYTICS',
+}
+
+export const SAAS_MODULES_LIST: Array<{ id: SaaSModule; label: string; description: string }> = [
+  { id: SaaSModule.MEMBERS, label: 'Members & Admissions', description: 'Member directory, A4 admission forms, profile KYC & plans' },
+  { id: SaaSModule.BILLING, label: 'Billing & Invoicing', description: 'Tax invoices, fee collections, payment dues ledger & cash drawer' },
+  { id: SaaSModule.ATTENDANCE, label: 'Attendance & Check-Ins', description: 'Front-desk check-in, active gym floor telemetry & attendance logs' },
+  { id: SaaSModule.DEVICES, label: 'Biometric Terminals', description: 'ZKTeco / Essl biometric turnstiles, face & fingerprint integration' },
+  { id: SaaSModule.INVENTORY, label: 'Retail & Stock Inventory', description: 'Supplements, merchandise stock ledger, purchases & POs' },
+  { id: SaaSModule.POS, label: 'Point of Sale (POS)', description: 'Fast retail checkout register with barcode and thermal receipt printing' },
+  { id: SaaSModule.CRM, label: 'Leads Pipeline & CRM', description: 'Enquiry capture, stage conversions, follow-up call schedules' },
+  { id: SaaSModule.TRAINERS, label: 'Trainers & PT Sessions', description: 'Trainer profiles, client assignments, PT calendar schedules' },
+  { id: SaaSModule.EXPENSES, label: 'Gym Expense Ledger', description: 'Operating expenses, utilities, maintenance, petty cash tracking' },
+  { id: SaaSModule.NOTIFICATIONS, label: 'Alerts & Notifications', description: 'Automated SMS, email, and in-app member broadcast alerts' },
+  { id: SaaSModule.ANALYTICS, label: 'Analytics & Telemetry', description: 'Executive business intelligence, revenue analytics & system telemetry' },
+];
+
 export enum BranchStatus {
   ACTIVE = 'ACTIVE',
   INACTIVE = 'INACTIVE',
