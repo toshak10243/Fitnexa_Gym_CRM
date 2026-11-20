@@ -21,71 +21,38 @@ import { Skeleton } from '../../components/ui/skeleton';
 import { ErrorState } from '../../components/ui/error-state';
 import { formatPaiseToInr } from '../../lib/utils';
 import { useAuth } from '../../context/auth-context';
-import { UserRole } from '@fitnexa/shared';
-
-interface ExecutiveDashboardResponse {
-  branches: Array<{ id: string; name: string; code: string }>;
-  metrics: {
-    memberships: {
-      totalActiveMembers: number;
-      newRegistrationsToday: number;
-      newRegistrationsThisMonth: number;
-      activeMemberships: number;
-      expiringIn7Days: number;
-      expiringIn30Days: number;
-      expiredMemberships: number;
-    };
-    attendance: {
-      currentOccupancy: number;
-      todayCheckIns: number;
-      peakHour: string;
-      capacityUtilizationPercent: number;
-    };
-    financials: {
-      grossInvoicedRevenuePaise: number;
-      grossCollectionsPaise: number;
-      todayCollectionsPaise: number;
-      operatingExpensesPaise: number;
-      netOperationalCashPaise: number;
-      outstandingDuesPaise: number;
-      posRetailSalesPaise: number;
-      refundsPaidPaise: number;
-    };
-    operations: {
-      lowStockItemsCount: number;
-      scheduledPtSessionsToday: number;
-      completedPtSessionsToday: number;
-      newLeadsThisMonth: number;
-      leadConversionRatePercent: number;
-    };
-  };
-}
+import { DashboardMetricsDto, UserRole } from '@fitnexa/shared';
 
 export function DashboardPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [selectedBranchId, setSelectedBranchId] = useState<string>('');
+  const [branches, setBranches] = useState<any[]>([]);
 
   const isTrainer = user?.role === UserRole.TRAINER;
   const canBilling = user?.role === UserRole.GYM_OWNER || user?.role === UserRole.BRANCH_MANAGER;
 
   const {
-    data: responseData,
+    data,
     isLoading,
     error,
     refetch: fetchDashboardData,
-  } = useQuery({
+  } = useQuery<DashboardMetricsDto>({
     queryKey: ['executive-dashboard', selectedBranchId],
     queryFn: async () => {
-      const { data } = await apiClient.get<ExecutiveDashboardResponse>('/analytics/dashboard', {
-        params: { branchId: selectedBranchId || undefined },
-      });
-      return data;
+      let url = '/analytics/dashboard';
+      if (selectedBranchId) {
+        url += `?branchId=${selectedBranchId}`;
+      }
+      const [dashRes, branchRes] = await Promise.all([
+        apiClient.get(url),
+        apiClient.get('/tenant/branches').catch(() => ({ data: [] })),
+      ]);
+      setBranches(Array.isArray(branchRes.data) ? branchRes.data : branchRes.data?.data || []);
+      const raw = dashRes.data?.data || dashRes.data;
+      return raw as DashboardMetricsDto;
     },
   });
-
-  const branches = responseData?.branches || [];
-  const data = responseData?.metrics;
 
   // Chart 1: Hourly Gym Rush & Occupancy Curve
   const occupancyCurveData = useMemo(() => {
@@ -261,7 +228,7 @@ export function DashboardPage() {
             <span>{attendance.currentOccupancy}</span>
             <span className="inline-block h-2.5 w-2.5 rounded-full bg-emerald-600 animate-pulse" />
             <span className="text-xs font-mono font-normal text-[#6B7280]">
-              ({attendance.capacityUtilizationPercent || 14}% capacity)
+              ({Math.min(100, Math.round((attendance.currentOccupancy / 50) * 100))}% floor load)
             </span>
           </div>
           <div className="mt-2 text-[11px] text-[#4B5563] flex items-center gap-1.5">
