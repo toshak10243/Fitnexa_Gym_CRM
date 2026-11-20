@@ -409,13 +409,13 @@ export function SuperAdminPage() {
           <table className="w-full text-left text-xs text-[#111827]">
             <thead className="bg-[#0A192F] text-[#FBFBF9] uppercase tracking-wider text-[11px] font-semibold">
               <tr>
-                <th className="py-3 px-4">Gym Client & Subdomain</th>
-                <th className="py-3 px-4">Owner & Contact</th>
-                <th className="py-3 px-4">SaaS Subscription</th>
-                <th className="py-3 px-4">Payment Status</th>
-                <th className="py-3 px-4">Validity / Expiry</th>
-                <th className="py-3 px-4">Active Modules</th>
-                <th className="py-3 px-4 text-right">Actions</th>
+                <th className="py-3 px-4 whitespace-nowrap">Gym Client & Subdomain</th>
+                <th className="py-3 px-4 whitespace-nowrap">Owner & Contact</th>
+                <th className="py-3 px-4 whitespace-nowrap">SaaS Subscription</th>
+                <th className="py-3 px-4 whitespace-nowrap">Payment Status</th>
+                <th className="py-3 px-4 whitespace-nowrap">Validity / Expiry</th>
+                <th className="py-3 px-4 whitespace-nowrap">Active Modules</th>
+                <th className="py-3 px-4 text-right whitespace-nowrap min-w-[340px]">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#E5E7EB]">
@@ -529,47 +529,43 @@ export function SuperAdminPage() {
                         </div>
                       </td>
 
-                      <td className="py-3 px-4 text-right">
-                        <div className="flex items-center justify-end space-x-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
+                      <td className="py-3 px-4 text-right whitespace-nowrap min-w-[340px]">
+                        <div className="inline-flex items-center justify-end gap-2">
+                          <button
+                            type="button"
                             onClick={() => handleImpersonate(client.id)}
-                            className="h-7 text-xs rounded-none border-[#0A192F] text-[#0A192F] hover:bg-[#0A192F] hover:text-[#FBFBF9]"
+                            className="whitespace-nowrap px-3 py-1.5 text-xs font-semibold rounded-none bg-[#0A192F] text-[#FBFBF9] hover:bg-[#162E52] transition-colors"
                             title="Login directly into this client's console"
                           >
                             Login as Client
-                          </Button>
+                          </button>
 
-                          <Button
-                            variant="outline"
-                            size="sm"
+                          <button
+                            type="button"
                             onClick={() => handleOpenEdit(client)}
-                            className="h-7 text-xs rounded-none border-[#E5E7EB] hover:bg-[#F5F5F0]"
+                            className="whitespace-nowrap px-3 py-1.5 text-xs font-semibold rounded-none border border-[#D1D5DB] bg-white text-[#111827] hover:bg-[#F3F4F6] transition-colors"
                           >
                             Edit Plan
-                          </Button>
+                          </button>
 
-                          <Button
-                            variant="outline"
-                            size="sm"
+                          <button
+                            type="button"
                             onClick={() => handleResetPassword(client)}
-                            className="h-7 text-xs rounded-none border-red-200 text-[#B91C1C] hover:bg-red-50"
+                            className="whitespace-nowrap px-3 py-1.5 text-xs font-semibold rounded-none border border-red-300 bg-red-50 text-[#B91C1C] hover:bg-red-100 transition-colors"
                             title="Reset gym owner password"
                           >
                             Reset Pass
-                          </Button>
+                          </button>
 
                           {!client.isLifetime && client.planExpiresAt && (
-                            <Button
-                              variant="outline"
-                              size="sm"
+                            <button
+                              type="button"
                               onClick={() => handleSendReminder(client)}
-                              className="h-7 text-xs rounded-none border-amber-200 text-amber-800 hover:bg-amber-50"
+                              className="whitespace-nowrap px-3 py-1.5 text-xs font-semibold rounded-none border border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100 transition-colors"
                               title="Send subscription renewal reminder email"
                             >
                               Send Reminder
-                            </Button>
+                            </button>
                           )}
                         </div>
                       </td>
