@@ -104,6 +104,32 @@ export class TenantService {
     return this.getProfile(tenantId);
   }
 
+  async updateRolePermissions(
+    tenantId: string,
+    userId: string,
+    rolePermissions: Record<string, string[]>,
+    ipAddress: string,
+    userAgent: string,
+  ): Promise<TenantDetailResponse> {
+    await this.prisma.tenant.update({
+      where: { id: tenantId },
+      data: { rolePermissions },
+    });
+
+    await this.auditLogService.record({
+      tenantId,
+      userId,
+      action: 'TENANT_ROLE_PERMISSIONS_UPDATED',
+      resource: 'Tenant',
+      resourceId: tenantId,
+      details: { rolePermissions },
+      ipAddress,
+      userAgent,
+    });
+
+    return this.getProfile(tenantId);
+  }
+
   async getBranches(tenantId: string): Promise<BranchResponse[]> {
     const branches = await this.prisma.branch.findMany({
       where: { tenantId },

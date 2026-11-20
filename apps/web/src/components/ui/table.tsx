@@ -21,7 +21,10 @@ export const TableHeader = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <thead
     ref={ref}
-    className={cn('bg-[#0F223D] text-[#FBFBF9] uppercase text-xs tracking-wider', className)}
+    className={cn(
+      'bg-[#0A192F] text-[#FBFBF9] uppercase text-xs tracking-wider [&_tr]:hover:bg-transparent [&_tr]:bg-[#0A192F]',
+      className,
+    )}
     {...props}
   />
 ));
@@ -46,7 +49,7 @@ export const TableRow = React.forwardRef<
   <tr
     ref={ref}
     className={cn(
-      'transition-colors hover:bg-[#F5F5F0] data-[state=selected]:bg-[#EFEFEA]',
+      'transition-colors hover:bg-[#F0F0EA] data-[state=selected]:bg-[#EFEFEA]',
       className,
     )}
     {...props}
@@ -61,7 +64,7 @@ export const TableHead = React.forwardRef<
   <th
     ref={ref}
     className={cn(
-      'h-10 px-4 text-left align-middle font-semibold text-xs tracking-wider text-[#FBFBF9]',
+      'h-10 px-4 text-left align-middle font-bold text-xs tracking-wider bg-[#0A192F] text-[#FBFBF9] border-b border-[#162E52]',
       className,
     )}
     {...props}

@@ -110,6 +110,20 @@ export class TenantController {
     return this.tenantService.updateProfile(tenantId, userId, dto, ipAddress, userAgent);
   }
 
+  @Patch('role-permissions')
+  @Roles(UserRole.GYM_OWNER, UserRole.SUPER_ADMIN)
+  @ApiOperation({ summary: 'Update granular role permissions matrix for current gym' })
+  @ApiResponse({ status: 200, description: 'Role permissions matrix updated successfully.' })
+  async updateRolePermissions(
+    @CurrentTenant() tenantId: string,
+    @CurrentUser('userId') userId: string,
+    @Body('rolePermissions') rolePermissions: Record<string, string[]>,
+    @Req() req: Request,
+  ) {
+    const { ipAddress, userAgent } = this.extractClientMetadata(req);
+    return this.tenantService.updateRolePermissions(tenantId, userId, rolePermissions, ipAddress, userAgent);
+  }
+
   @Get('branches')
   @Roles(
     UserRole.GYM_OWNER,

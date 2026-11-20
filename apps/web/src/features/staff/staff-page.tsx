@@ -4,8 +4,10 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { apiClient } from '../../lib/api-client';
 import {
+  ALL_PERMISSIONS,
   CreateStaffInput,
   CreateStaffSchema,
+  DEFAULT_ROLE_PERMISSIONS,
   PaginatedResult,
   StaffResponse,
   TenantDetailResponse,
@@ -16,6 +18,7 @@ import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Skeleton } from '../../components/ui/skeleton';
 import { ErrorState } from '../../components/ui/error-state';
+import { RolePermissionsModal } from '../../components/role-permissions-modal';
 import {
   Dialog,
   DialogContent,
@@ -67,6 +70,7 @@ export function StaffPage() {
     register,
     handleSubmit,
     reset,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<CreateStaffInput>({
     resolver: zodResolver(CreateStaffSchema),
@@ -77,6 +81,29 @@ export function StaffPage() {
       password: '',
       role: UserRole.TRAINER,
       branchId: '',
+    },
+  });
+
+  const [isPermissionsModalOpen, setIsPermissionsModalOpen] = useState(false);
+  const selectedFormRole = watch('role') || UserRole.TRAINER;
+
+  // Active permissions for the selected role in the form
+  const activeRolePerms =
+    tenant?.rolePermissions?.[selectedFormRole] ??
+    DEFAULT_ROLE_PERMISSIONS[selectedFormRole] ??
+    [];
+
+  const savePermissionsMutation = useMutation({
+    mutationFn: async (updatedPermissions: Record<string, string[]>) => {
+      const { data } = await apiClient.patch('/tenant/role-permissions', {
+        rolePermissions: updatedPermissions,
+      });
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tenant-profile'] });
+      setSuccessMessage('Role access control matrix saved successfully.');
+      setTimeout(() => setSuccessMessage(null), 4000);
     },
   });
 
@@ -142,12 +169,25 @@ export function StaffPage() {
           </p>
         </div>
 
-        <Dialog open={isAddStaffOpen} onOpenChange={setIsAddStaffOpen}>
-          <DialogTrigger asChild>
-            <Button variant="primary" size="sm">
-              Add Staff Member
-            </Button>
-          </DialogTrigger>
+        <div className="flex flex-wrap items-center gap-2.5">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setIsPermissionsModalOpen(true)}
+            className="border-[#0A192F] text-[#0A192F] hover:bg-[#0A192F] hover:text-[#FBFBF9] font-semibold gap-1.5 inline-flex items-center h-8"
+          >
+            <span className="text-emerald-700 font-bold">✓</span>
+            <span className="text-red-700 font-bold">✕</span>
+            <span>Role Permissions Matrix</span>
+          </Button>
+
+          <Dialog open={isAddStaffOpen} onOpenChange={setIsAddStaffOpen}>
+            <DialogTrigger asChild>
+              <Button variant="primary" size="sm" className="h-8">
+                Add Staff Member
+              </Button>
+            </DialogTrigger>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Add Staff Member</DialogTitle>
@@ -225,6 +265,49 @@ export function StaffPage() {
                 </div>
               </div>
 
+              {/* Role Permissions Live Summary */}
+              <div className="p-3 bg-[#F0F0EA] border border-[#E5E7EB] rounded-none space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#0A192F]">
+                      Permissions for {selectedFormRole.replace('_', ' ')}
+                    </span>
+                    <span className="text-[10px] font-mono text-[#0A192F] bg-white px-1.5 py-0.5 border border-[#D1D5DB] font-semibold">
+                      {activeRolePerms.length} of {ALL_PERMISSIONS.length} allowed
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsPermissionsModalOpen(true)}
+                    className="text-[11px] font-semibold text-[#1D4ED8] hover:underline"
+                  >
+                    Edit Matrix (✓/✕) →
+                  </button>
+                </div>
+                <div className="flex flex-wrap gap-1 max-h-20 overflow-y-auto sidebar-scroll">
+                  {activeRolePerms.length === 0 ? (
+                    <span className="text-[11px] text-[#991B1B]">No permissions granted to this role.</span>
+                  ) : (
+                    activeRolePerms.slice(0, 10).map((pId) => {
+                      const def = ALL_PERMISSIONS.find((p) => p.id === pId);
+                      return (
+                        <span
+                          key={pId}
+                          className="text-[10px] font-medium bg-white border border-[#D1D5DB] px-1.5 py-0.5 text-[#374151]"
+                        >
+                          ✓ {def?.label || pId}
+                        </span>
+                      );
+                    })
+                  )}
+                  {activeRolePerms.length > 10 && (
+                    <span className="text-[10px] font-mono text-[#6B7280] self-center">
+                      +{activeRolePerms.length - 10} more
+                    </span>
+                  )}
+                </div>
+              </div>
+
               <div className="flex justify-end space-x-2 pt-3">
                 <Button
                   type="button"
@@ -247,6 +330,7 @@ export function StaffPage() {
           </DialogContent>
         </Dialog>
       </div>
+    </div>
 
       {successMessage && (
         <div className="border border-[#10B981]/30 bg-[#ECFDF5] text-[#065F46] p-3 text-xs rounded-sm">
@@ -321,29 +405,52 @@ export function StaffPage() {
                 </span>
               </TableCell>
               <TableCell>
-                {staff.role !== UserRole.GYM_OWNER && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="text-xs h-7 px-2"
-                    onClick={() =>
-                      toggleStatusMutation.mutate({
-                        id: staff.id,
-                        status:
-                          staff.status === UserStatus.ACTIVE
-                            ? UserStatus.SUSPENDED
-                            : UserStatus.ACTIVE,
-                      })
-                    }
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setIsPermissionsModalOpen(true)}
+                    className="text-[11px] px-2.5 py-1 font-semibold rounded-none border border-blue-300 bg-blue-50 text-blue-800 hover:bg-blue-100 transition-colors whitespace-nowrap"
+                    title={`Inspect and configure permissions matrix`}
                   >
-                    {staff.status === UserStatus.ACTIVE ? 'Suspend' : 'Reactivate'}
-                  </Button>
-                )}
+                    Permissions (✓/✕)
+                  </button>
+                  {staff.role !== UserRole.GYM_OWNER && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-xs h-7 px-2"
+                      onClick={() =>
+                        toggleStatusMutation.mutate({
+                          id: staff.id,
+                          status:
+                            staff.status === UserStatus.ACTIVE
+                              ? UserStatus.SUSPENDED
+                              : UserStatus.ACTIVE,
+                        })
+                      }
+                    >
+                      {staff.status === UserStatus.ACTIVE ? 'Suspend' : 'Reactivate'}
+                    </Button>
+                  )}
+                </div>
               </TableCell>
             </TableRow>
           ))}
         </TableBody>
       </Table>
+
+      {/* Role Permissions Matrix Modal */}
+      <RolePermissionsModal
+        isOpen={isPermissionsModalOpen}
+        onClose={() => setIsPermissionsModalOpen(false)}
+        title={tenant ? `Role Permissions Matrix: ${tenant.name}` : 'Role Permissions Matrix'}
+        subtitle={tenant?.slug ? `Facility: ${tenant.slug}.fitnexa.in` : undefined}
+        initialPermissions={tenant?.rolePermissions}
+        onSave={async (updatedPermissions) => {
+          await savePermissionsMutation.mutateAsync(updatedPermissions);
+        }}
+        isLoading={savePermissionsMutation.isPending}
+      />
     </div>
   );
 }
