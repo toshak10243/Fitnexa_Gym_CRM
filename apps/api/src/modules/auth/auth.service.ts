@@ -53,8 +53,8 @@ export class AuthService {
       branchId: user.branchId,
     };
 
-    const accessTokenExpiresIn = 60 * 15; // 15 minutes
-    const refreshTokenExpiresIn = 60 * 60 * 24 * 7; // 7 days
+    const accessTokenExpiresIn = 60 * 60 * 24 * 30; // 30 days (2,592,000 seconds)
+    const refreshTokenExpiresIn = 60 * 60 * 24 * 30; // 30 days
 
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(payload, {

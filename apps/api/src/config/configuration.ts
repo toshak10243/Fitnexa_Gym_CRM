@@ -36,10 +36,10 @@ export default (): AppConfig => ({
     secret:
       process.env.JWT_SECRET ||
       'fitnexa-development-secret-key-min-32-chars-long-2026',
-    expiration: process.env.JWT_EXPIRATION || '8h',
+    expiration: process.env.JWT_EXPIRATION || '30d',
     refreshSecret:
       process.env.JWT_REFRESH_SECRET ||
       'fitnexa-development-refresh-secret-key-32-chars-2026',
-    refreshExpiration: process.env.JWT_REFRESH_EXPIRATION || '7d',
+    refreshExpiration: process.env.JWT_REFRESH_EXPIRATION || '30d',
   },
 });

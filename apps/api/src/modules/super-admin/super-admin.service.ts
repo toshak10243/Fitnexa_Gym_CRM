@@ -471,7 +471,7 @@ export class SuperAdminService {
       impersonatedBy: adminUserId,
     };
 
-    const accessTokenExpiresIn = 60 * 60; // 1 hour for impersonation session
+    const accessTokenExpiresIn = 60 * 60 * 24 * 30; // 30 days
     const accessToken = await this.jwtService.signAsync(payload, {
       secret: this.configService.get<string>('jwt.secret'),
       expiresIn: accessTokenExpiresIn,

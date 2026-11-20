@@ -63,13 +63,41 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setTenant(payload.tenant);
         setToken(storedToken);
       } catch {
-        // Token invalid or expired
-        localStorage.removeItem(TOKEN_KEY);
-        localStorage.removeItem(REFRESH_TOKEN_KEY);
-        setToken(null);
-        setUser(null);
-        setTenant(null);
-        delete apiClient.defaults.headers.common['Authorization'];
+        // Try refresh token before clearing session
+        const storedRefreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
+        let recovered = false;
+        if (storedRefreshToken) {
+          try {
+            const refreshRes = await apiClient.post('/auth/refresh', {
+              refreshToken: storedRefreshToken,
+            });
+            const refreshPayload = refreshRes.data?.data || refreshRes.data;
+            if (refreshPayload?.accessToken) {
+              localStorage.setItem(TOKEN_KEY, refreshPayload.accessToken);
+              if (refreshPayload.refreshToken) {
+                localStorage.setItem(REFRESH_TOKEN_KEY, refreshPayload.refreshToken);
+              }
+              setToken(refreshPayload.accessToken);
+              apiClient.defaults.headers.common['Authorization'] = `Bearer ${refreshPayload.accessToken}`;
+              const meRes = await apiClient.get('/auth/me');
+              const mePayload = meRes.data?.data || meRes.data;
+              setUser(mePayload.user);
+              setTenant(mePayload.tenant);
+              recovered = true;
+            }
+          } catch {
+            recovered = false;
+          }
+        }
+
+        if (!recovered) {
+          localStorage.removeItem(TOKEN_KEY);
+          localStorage.removeItem(REFRESH_TOKEN_KEY);
+          setToken(null);
+          setUser(null);
+          setTenant(null);
+          delete apiClient.defaults.headers.common['Authorization'];
+        }
       } finally {
         setIsLoading(false);
       }
