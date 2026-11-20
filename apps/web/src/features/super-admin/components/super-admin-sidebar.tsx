@@ -65,7 +65,7 @@ export function SuperAdminSidebar() {
             className={cn(
               'flex items-center space-x-3 px-3 py-2 text-xs font-semibold rounded-none transition-colors group',
               isActive
-                ? 'bg-[#B91C1C] text-[#FBFBF9]'
+                ? 'bg-[#1D4ED8] text-[#FBFBF9]'
                 : 'text-[#E5E7EB] hover:bg-[#162E52] hover:text-[#FBFBF9]',
             )}
           >
@@ -74,7 +74,7 @@ export function SuperAdminSidebar() {
             </span>
             <div className="min-w-0 flex-1">
               <div className="truncate leading-tight">{item.title}</div>
-              <div className={cn('text-[10px] font-normal truncate mt-0.5', isActive ? 'text-red-100' : 'text-[#6B7280]')}>
+              <div className={cn('text-[10px] font-normal truncate mt-0.5', isActive ? 'text-blue-100' : 'text-[#6B7280]')}>
                 {item.description}
               </div>
             </div>
