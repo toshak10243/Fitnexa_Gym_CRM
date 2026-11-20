@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../../context/auth-context';
 import { Button } from '../ui/button';
 
@@ -35,7 +35,7 @@ export function Header({ status = 'ok' }: HeaderProps) {
     if (path === '/' || path === '/dashboard') return 'Executive Dashboard';
     if (path.startsWith('/reports')) return 'Analytics & Reports';
     if (path.startsWith('/telemetry')) return 'System Telemetry';
-    if (path.startsWith('/settings')) return 'Gym & Facilities';
+    if (path.startsWith('/settings')) return 'Gym Settings & Profile';
     if (path.startsWith('/staff')) return 'Staff & Roles';
     if (path.startsWith('/audit-logs')) return 'Audit Trail';
     if (path === '/members/new') return 'New Member Registration';
@@ -114,6 +114,29 @@ export function Header({ status = 'ok' }: HeaderProps) {
                 {user.role.replace('_', ' ')}
               </div>
             </div>
+            {user.role !== 'SUPER_ADMIN' && (
+              <Link
+                to="/settings"
+                title="Gym Profile & Enterprise Settings"
+                className="h-7 w-7 flex items-center justify-center border border-[#E5E7EB] bg-white text-[#4B5563] hover:text-[#0A192F] hover:bg-[#F5F5F0] transition-colors rounded-none"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <circle cx="12" cy="12" r="3" />
+                  <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                </svg>
+              </Link>
+            )}
             <Button
               variant="outline"
               size="sm"
