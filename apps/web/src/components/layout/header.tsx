@@ -114,7 +114,7 @@ export function Header({ status = 'ok' }: HeaderProps) {
                 {user.role.replace('_', ' ')}
               </div>
             </div>
-            {user.role !== 'SUPER_ADMIN' && (
+            {user.role === 'GYM_OWNER' && (
               <Link
                 to="/settings"
                 title="Gym Profile & Enterprise Settings"

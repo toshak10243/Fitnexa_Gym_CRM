@@ -86,7 +86,7 @@ export function Sidebar() {
     {
       label: 'Gym Settings & Profile',
       path: '/settings',
-      roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER'],
+      roles: ['SUPER_ADMIN', 'GYM_OWNER'],
       enabled: true,
       icon: (
         <svg
@@ -163,7 +163,7 @@ export function Sidebar() {
     {
       label: 'Members',
       path: '/members',
-      roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER', 'FRONT_DESK', 'TRAINER', 'STAFF'],
+      roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER', 'FRONT_DESK', 'TRAINER'],
       module: 'MEMBERS',
       enabled: true,
       icon: (
@@ -187,7 +187,7 @@ export function Sidebar() {
     {
       label: 'Membership Plans',
       path: '/plans',
-      roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER', 'FRONT_DESK', 'STAFF'],
+      roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER', 'FRONT_DESK'],
       module: 'MEMBERS',
       enabled: true,
       icon: (
@@ -211,7 +211,7 @@ export function Sidebar() {
     {
       label: 'Data Migration',
       path: '/imports',
-      roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER'],
+      roles: ['SUPER_ADMIN', 'GYM_OWNER'],
       module: 'MEMBERS',
       enabled: true,
       icon: (
@@ -239,7 +239,7 @@ export function Sidebar() {
     {
       label: 'Billing Overview',
       path: '/billing',
-      roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER', 'FRONT_DESK', 'STAFF'],
+      roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER'],
       enabled: true,
       icon: (
         <svg
@@ -263,7 +263,7 @@ export function Sidebar() {
     {
       label: 'Tax Invoices',
       path: '/billing/invoices',
-      roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER', 'FRONT_DESK', 'STAFF'],
+      roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER', 'FRONT_DESK'],
       enabled: true,
       icon: (
         <svg
@@ -288,7 +288,7 @@ export function Sidebar() {
     {
       label: 'Collections & Payments',
       path: '/billing/payments',
-      roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER', 'FRONT_DESK', 'STAFF'],
+      roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER', 'FRONT_DESK'],
       enabled: true,
       icon: (
         <svg
@@ -312,7 +312,7 @@ export function Sidebar() {
     {
       label: 'Dues & Aging Ledger',
       path: '/billing/dues',
-      roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER', 'FRONT_DESK', 'STAFF'],
+      roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER', 'FRONT_DESK'],
       enabled: true,
       icon: (
         <svg
@@ -335,7 +335,7 @@ export function Sidebar() {
     {
       label: 'Cash Register Drawer',
       path: '/billing/cash-register',
-      roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER', 'FRONT_DESK', 'STAFF'],
+      roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER', 'FRONT_DESK'],
       enabled: true,
       icon: (
         <svg
@@ -384,7 +384,7 @@ export function Sidebar() {
     {
       label: 'Attendance Telemetry',
       path: '/attendance',
-      roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER', 'FRONT_DESK', 'STAFF'],
+      roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER'],
       enabled: true,
       icon: (
         <svg
@@ -408,7 +408,7 @@ export function Sidebar() {
     {
       label: 'Front-Desk Check-in',
       path: '/attendance/check-in',
-      roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER', 'FRONT_DESK', 'STAFF'],
+      roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER', 'FRONT_DESK'],
       enabled: true,
       icon: (
         <svg
@@ -481,7 +481,7 @@ export function Sidebar() {
     {
       label: 'Correction Requests',
       path: '/attendance/corrections',
-      roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER', 'FRONT_DESK', 'STAFF'],
+      roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER', 'FRONT_DESK'],
       enabled: true,
       icon: (
         <svg
@@ -629,7 +629,7 @@ export function Sidebar() {
     {
       label: 'Retail Catalog',
       path: '/inventory/products',
-      roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER', 'FRONT_DESK', 'STAFF'],
+      roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER', 'FRONT_DESK'],
       enabled: true,
       icon: (
         <svg
@@ -653,7 +653,7 @@ export function Sidebar() {
     {
       label: 'POS Counter',
       path: '/pos',
-      roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER', 'FRONT_DESK', 'STAFF'],
+      roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER', 'FRONT_DESK'],
       enabled: true,
       icon: (
         <svg
@@ -677,7 +677,7 @@ export function Sidebar() {
     {
       label: 'POS Sales Register',
       path: '/pos/sales',
-      roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER', 'FRONT_DESK', 'STAFF'],
+      roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER', 'FRONT_DESK'],
       enabled: true,
       icon: (
         <svg
@@ -774,7 +774,7 @@ export function Sidebar() {
     {
       label: 'Leads Pipeline',
       path: '/leads',
-      roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER', 'FRONT_DESK', 'STAFF'],
+      roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER', 'FRONT_DESK'],
       enabled: true,
       icon: (
         <svg
@@ -796,7 +796,7 @@ export function Sidebar() {
     {
       label: 'CRM Follow-Ups',
       path: '/leads/follow-ups',
-      roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER', 'FRONT_DESK', 'STAFF'],
+      roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER', 'FRONT_DESK'],
       enabled: true,
       icon: (
         <svg
@@ -819,7 +819,7 @@ export function Sidebar() {
     {
       label: 'Trainer Profiles',
       path: '/trainers',
-      roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER', 'FRONT_DESK', 'TRAINER', 'STAFF'],
+      roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER', 'FRONT_DESK', 'TRAINER'],
       enabled: true,
       icon: (
         <svg
@@ -869,7 +869,7 @@ export function Sidebar() {
     {
       label: 'Expense Ledger',
       path: '/expenses',
-      roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER', 'FRONT_DESK', 'STAFF'],
+      roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER'],
       enabled: true,
       icon: (
         <svg

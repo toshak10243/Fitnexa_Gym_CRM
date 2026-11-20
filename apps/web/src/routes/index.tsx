@@ -191,7 +191,7 @@ export const router = createBrowserRouter([
     errorElement: <RouteErrorBoundary />,
     element: (
       <ProtectedRoute
-        allowedRoles={[UserRole.GYM_OWNER, UserRole.BRANCH_MANAGER, UserRole.SUPER_ADMIN]}
+        allowedRoles={[UserRole.GYM_OWNER, UserRole.SUPER_ADMIN]}
       >
         <AppShell>
           <ImportsPage />
@@ -204,7 +204,7 @@ export const router = createBrowserRouter([
     errorElement: <RouteErrorBoundary />,
     element: (
       <ProtectedRoute
-        allowedRoles={[UserRole.GYM_OWNER, UserRole.BRANCH_MANAGER, UserRole.SUPER_ADMIN]}
+        allowedRoles={[UserRole.GYM_OWNER, UserRole.SUPER_ADMIN]}
       >
         <AppShell>
           <SettingsPage />
@@ -240,7 +240,9 @@ export const router = createBrowserRouter([
     path: '/billing',
     errorElement: <RouteErrorBoundary />,
     element: (
-      <ProtectedRoute>
+      <ProtectedRoute
+        allowedRoles={[UserRole.GYM_OWNER, UserRole.BRANCH_MANAGER, UserRole.SUPER_ADMIN]}
+      >
         <AppShell>
           <BillingDashboardPage />
         </AppShell>
@@ -704,7 +706,9 @@ export const router = createBrowserRouter([
     path: '/expenses',
     errorElement: <RouteErrorBoundary />,
     element: (
-      <ProtectedRoute>
+      <ProtectedRoute
+        allowedRoles={[UserRole.GYM_OWNER, UserRole.BRANCH_MANAGER, UserRole.SUPER_ADMIN]}
+      >
         <AppShell>
           <ExpensesPage />
         </AppShell>
@@ -715,7 +719,9 @@ export const router = createBrowserRouter([
     path: '/expenses/new',
     errorElement: <RouteErrorBoundary />,
     element: (
-      <ProtectedRoute>
+      <ProtectedRoute
+        allowedRoles={[UserRole.GYM_OWNER, UserRole.BRANCH_MANAGER, UserRole.SUPER_ADMIN]}
+      >
         <AppShell>
           <ExpenseCreatePage />
         </AppShell>
@@ -726,7 +732,9 @@ export const router = createBrowserRouter([
     path: '/expenses/categories',
     errorElement: <RouteErrorBoundary />,
     element: (
-      <ProtectedRoute>
+      <ProtectedRoute
+        allowedRoles={[UserRole.GYM_OWNER, UserRole.BRANCH_MANAGER, UserRole.SUPER_ADMIN]}
+      >
         <AppShell>
           <ExpenseCategoriesPage />
         </AppShell>
