@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   HttpStatus,
@@ -86,5 +87,15 @@ export class SuperAdminController {
     @Param('tenantId') tenantId: string,
   ) {
     return this.superAdminService.impersonateTenant(tenantId, adminUserId);
+  }
+
+  @Delete('tenants/:id')
+  @ApiOperation({ summary: 'Permanently delete gym tenant and cascade delete all associated data' })
+  async deleteTenant(
+    @CurrentUser('userId') adminUserId: string,
+    @Param('id') tenantId: string,
+    @Body() body: { confirmSlug: string },
+  ) {
+    return this.superAdminService.deleteTenant(tenantId, body.confirmSlug, adminUserId);
   }
 }

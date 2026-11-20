@@ -498,4 +498,129 @@ export class SuperAdminService {
       },
     };
   }
+
+  async deleteTenant(tenantId: string, confirmSlug: string, adminUserId: string) {
+    const tenant = await this.prisma.tenant.findUnique({
+      where: { id: tenantId },
+    });
+    if (!tenant) throw new NotFoundException('Client tenant not found');
+
+    const cleanInput = (confirmSlug || '').toLowerCase().trim();
+    const expectedSlug = tenant.slug.toLowerCase().trim();
+
+    if (cleanInput !== expectedSlug) {
+      throw new BadRequestException(
+        `Confirmation mismatch: Expected "${expectedSlug}", but received "${cleanInput}". Deletion aborted.`,
+      );
+    }
+
+    await this.prisma.$transaction(async (tx) => {
+      // 1. Point-of-Sale & Inventory Cascades
+      await tx.purchaseOrderItem.deleteMany({ where: { purchaseOrder: { tenantId } } });
+      await tx.goodsReceipt.deleteMany({ where: { tenantId } });
+      await tx.inventoryTransferItem.deleteMany({ where: { transfer: { tenantId } } });
+      await tx.inventoryTransfer.deleteMany({ where: { tenantId } });
+      await tx.stockAdjustment.deleteMany({ where: { tenantId } });
+      await tx.stockMovement.deleteMany({ where: { tenantId } });
+      await tx.purchaseOrder.deleteMany({ where: { tenantId } });
+      await tx.supplier.deleteMany({ where: { tenantId } });
+      await tx.product.deleteMany({ where: { tenantId } });
+      await tx.productCategory.deleteMany({ where: { tenantId } });
+      await tx.stockLocation.deleteMany({ where: { tenantId } });
+
+      // 2. Billing & Finance
+      await tx.invoiceLineItem.deleteMany({ where: { invoice: { tenantId } } });
+      await tx.paymentAllocation.deleteMany({ where: { payment: { tenantId } } });
+      await tx.refund.deleteMany({ where: { tenantId } });
+      await tx.creditNote.deleteMany({ where: { tenantId } });
+      await tx.paymentReceipt.deleteMany({ where: { tenantId } });
+      await tx.payment.deleteMany({ where: { tenantId } });
+      await tx.invoice.deleteMany({ where: { tenantId } });
+      await tx.billingSequence.deleteMany({ where: { tenantId } });
+      await tx.idempotencyRecord.deleteMany({ where: { tenantId } });
+      await tx.cashRegisterSession.deleteMany({ where: { tenantId } });
+
+      // 3. Attendance, Biometric Devices & Access Control
+      await tx.accessDecision.deleteMany({ where: { tenantId } });
+      await tx.attendanceCorrection.deleteMany({ where: { tenantId } });
+      await tx.attendanceSession.deleteMany({ where: { tenantId } });
+      await tx.memberAttendance.deleteMany({ where: { tenantId } });
+      await tx.staffAttendance.deleteMany({ where: { tenantId } });
+      await tx.attendancePolicy.deleteMany({ where: { tenantId } });
+      await tx.deviceMemberMapping.deleteMany({ where: { tenantId } });
+      await tx.deviceEventInbox.deleteMany({ where: { tenantId } });
+      await tx.deviceSyncCursor.deleteMany({ where: { device: { tenantId } } });
+      await tx.deviceSyncJob.deleteMany({ where: { device: { tenantId } } });
+      await tx.device.deleteMany({ where: { tenantId } });
+
+      // 4. Trainers & PT
+      await tx.trainingSession.deleteMany({ where: { tenantId } });
+      await tx.trainingPackage.deleteMany({ where: { tenantId } });
+      await tx.trainerAssignment.deleteMany({ where: { tenantId } });
+      await tx.trainerAvailability.deleteMany({ where: { trainerProfile: { tenantId } } });
+      await tx.trainerProfile.deleteMany({ where: { tenantId } });
+
+      // 5. CRM & Leads
+      await tx.leadActivity.deleteMany({ where: { lead: { tenantId } } });
+      await tx.leadFollowUp.deleteMany({ where: { lead: { tenantId } } });
+      await tx.lead.deleteMany({ where: { tenantId } });
+
+      // 6. Expenses
+      await tx.recurringExpense.deleteMany({ where: { tenantId } });
+      await tx.expense.deleteMany({ where: { tenantId } });
+      await tx.expenseCategory.deleteMany({ where: { tenantId } });
+
+      // 7. Notifications
+      await tx.notification.deleteMany({ where: { tenantId } });
+      await tx.notificationPreference.deleteMany({ where: { tenantId } });
+      await tx.notificationTemplate.deleteMany({ where: { tenantId } });
+
+      // 8. Members & Sub-entities
+      await tx.memberActivity.deleteMany({ where: { tenantId } });
+      await tx.memberAccountLedger.deleteMany({ where: { tenantId } });
+      await tx.memberConsent.deleteMany({ where: { member: { tenantId } } });
+      await tx.memberEmergencyContact.deleteMany({ where: { member: { tenantId } } });
+      await tx.memberAddress.deleteMany({ where: { member: { tenantId } } });
+      await tx.memberHealthDeclaration.deleteMany({ where: { member: { tenantId } } });
+      await tx.memberDocument.deleteMany({ where: { tenantId } });
+      await tx.memberNote.deleteMany({ where: { tenantId } });
+      await tx.membershipStatusHistory.deleteMany({ where: { membership: { tenantId } } });
+      await tx.memberMembership.deleteMany({ where: { tenantId } });
+      await tx.memberImportRow.deleteMany({ where: { batch: { tenantId } } });
+      await tx.memberImportBatch.deleteMany({ where: { tenantId } });
+      await tx.member.deleteMany({ where: { tenantId } });
+
+      // 9. Membership Plans & Audit Logs
+      await tx.membershipPlan.deleteMany({ where: { tenantId } });
+      await tx.auditLog.deleteMany({ where: { tenantId } });
+
+      // 10. Staff Users & Branches
+      await tx.user.deleteMany({ where: { tenantId } });
+      await tx.branch.deleteMany({ where: { tenantId } });
+
+      // 11. Final Tenant Record Deletion
+      await tx.tenant.delete({ where: { id: tenantId } });
+    });
+
+    await this.auditLogService.record({
+      tenantId: 'platform-master',
+      userId: adminUserId,
+      action: 'SAAS_CLIENT_TENANT_DELETED',
+      resource: 'Tenant',
+      resourceId: tenantId,
+      details: {
+        gymName: tenant.name,
+        slug: tenant.slug,
+        subscriptionPlan: tenant.subscriptionPlan,
+        deletedAt: new Date().toISOString(),
+      },
+      ipAddress: '127.0.0.1',
+      userAgent: 'Fitnexa-SaaS-Engine',
+    });
+
+    return {
+      success: true,
+      message: `Tenant "${tenant.name}" (${tenant.slug}) and all related data have been permanently deleted.`,
+    };
+  }
 }

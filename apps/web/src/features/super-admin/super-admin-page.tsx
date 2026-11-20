@@ -87,6 +87,12 @@ export function SuperAdminPage() {
     tempPassword: string;
   } | null>(null);
 
+  // GitHub-style Delete Confirmation Modal State
+  const [tenantToDelete, setTenantToDelete] = useState<TenantClient | null>(null);
+  const [confirmSlugInput, setConfirmSlugInput] = useState<string>('');
+  const [isDeletingTenant, setIsDeletingTenant] = useState<boolean>(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
   // Form State for New Client
   const [formData, setFormData] = useState({
     name: '',
@@ -262,6 +268,35 @@ export function SuperAdminPage() {
     }
   };
 
+  const handleOpenDelete = (tenant: TenantClient) => {
+    setTenantToDelete(tenant);
+    setConfirmSlugInput('');
+    setDeleteError(null);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!tenantToDelete) return;
+    if (confirmSlugInput.trim().toLowerCase() !== tenantToDelete.slug.toLowerCase().trim()) {
+      setDeleteError(`Please type "${tenantToDelete.slug}" exactly to confirm.`);
+      return;
+    }
+
+    setIsDeletingTenant(true);
+    setDeleteError(null);
+    try {
+      await apiClient.delete(`/super-admin/tenants/${tenantToDelete.id}`, {
+        data: { confirmSlug: confirmSlugInput },
+      });
+      alert(`Tenant "${tenantToDelete.name}" (${tenantToDelete.slug}) and all related data have been permanently deleted.`);
+      setTenantToDelete(null);
+      fetchDashboardData();
+    } catch (err: any) {
+      setDeleteError(err?.response?.data?.message || 'Failed to delete client tenant.');
+    } finally {
+      setIsDeletingTenant(false);
+    }
+  };
+
   const toggleModuleSelection = (mod: string) => {
     setFormData((prev) => {
       const exists = prev.enabledModules.includes(mod);
@@ -415,7 +450,7 @@ export function SuperAdminPage() {
                 <th className="py-3 px-4 whitespace-nowrap">Payment Status</th>
                 <th className="py-3 px-4 whitespace-nowrap">Validity / Expiry</th>
                 <th className="py-3 px-4 whitespace-nowrap">Active Modules</th>
-                <th className="py-3 px-4 text-right whitespace-nowrap min-w-[340px]">Actions</th>
+                <th className="py-3 px-4 text-right whitespace-nowrap min-w-[400px]">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#E5E7EB]">
@@ -529,7 +564,7 @@ export function SuperAdminPage() {
                         </div>
                       </td>
 
-                      <td className="py-3 px-4 text-right whitespace-nowrap min-w-[340px]">
+                      <td className="py-3 px-4 text-right whitespace-nowrap min-w-[400px]">
                         <div className="inline-flex items-center justify-end gap-2">
                           <button
                             type="button"
@@ -567,6 +602,15 @@ export function SuperAdminPage() {
                               Send Reminder
                             </button>
                           )}
+
+                          <button
+                            type="button"
+                            onClick={() => handleOpenDelete(client)}
+                            className="whitespace-nowrap px-3 py-1.5 text-xs font-semibold rounded-none border border-red-300 bg-red-100/70 text-[#991B1B] hover:bg-red-200 transition-colors"
+                            title="Delete gym client tenant and purge all records"
+                          >
+                            Delete
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -1074,6 +1118,78 @@ export function SuperAdminPage() {
             >
               Done
             </Button>
+          </div>
+        </div>,
+        document.body,
+      )}
+
+      {/* GITHUB-STYLE DELETE CONFIRMATION MODAL */}
+      {tenantToDelete && createPortal(
+        <div className="fixed inset-0 z-[99999] bg-black/75 flex items-center justify-center p-4">
+          <div className="bg-[#FBFBF9] border-2 border-[#B91C1C] w-full max-w-lg p-6 space-y-4">
+            <div className="border-b border-[#E5E7EB] pb-3 flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <span className="h-3 w-3 bg-[#B91C1C] inline-block" />
+                <h3 className="text-sm font-bold text-[#0A192F] uppercase tracking-wider">
+                  Permanently Delete Gym Client Tenant
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setTenantToDelete(null)}
+                className="text-[#6B7280] hover:text-[#0A192F] text-lg font-bold"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="p-3.5 bg-red-50 border border-red-200 text-xs text-red-900 space-y-2">
+              <div className="font-bold text-xs uppercase tracking-wide text-[#B91C1C]">
+                Critical Warning: This action cannot be undone!
+              </div>
+              <p className="leading-relaxed">
+                This will permanently delete the <strong>{tenantToDelete.name}</strong> tenant, its database schema records, all member registrations, membership subscriptions, financial invoices, staff users, attendance telemetry, and inventory stock.
+              </p>
+            </div>
+
+            <div className="space-y-2 text-xs">
+              <label className="block text-[#111827]">
+                To confirm permanent deletion, please type <strong className="font-mono text-[#B91C1C] bg-red-100/70 px-1 py-0.5 border border-red-200 select-all">{tenantToDelete.slug}</strong> in the field below:
+              </label>
+              <Input
+                autoFocus
+                value={confirmSlugInput}
+                onChange={(e) => {
+                  setConfirmSlugInput(e.target.value);
+                  setDeleteError(null);
+                }}
+                placeholder={tenantToDelete.slug}
+                className="rounded-none border-[#D1D5DB] bg-white h-9 text-xs font-mono"
+              />
+              {deleteError && (
+                <div className="text-xs text-red-700 font-semibold">{deleteError}</div>
+              )}
+            </div>
+
+            <div className="pt-2 flex items-center justify-end space-x-3 border-t border-[#E5E7EB]">
+              <Button
+                variant="outline"
+                type="button"
+                onClick={() => setTenantToDelete(null)}
+                disabled={isDeletingTenant}
+                className="rounded-none text-xs border-[#D1D5DB] text-[#111827] hover:bg-[#F3F4F6]"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                onClick={handleConfirmDelete}
+                disabled={confirmSlugInput.trim().toLowerCase() !== tenantToDelete.slug.toLowerCase().trim() || isDeletingTenant}
+                className="rounded-none text-xs bg-[#B91C1C] text-[#FBFBF9] hover:bg-[#991B1B] disabled:opacity-40 disabled:cursor-not-allowed font-bold uppercase tracking-wider"
+              >
+                {isDeletingTenant ? 'Permanently Deleting...' : 'I understand the consequences, delete this tenant'}
+              </Button>
+            </div>
           </div>
         </div>,
         document.body,
