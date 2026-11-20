@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom';
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../../lib/api-client';
@@ -390,8 +391,8 @@ export function DuesPage() {
       </div>
 
       {/* Collect Payment Modal */}
-      {isCollectModalOpen && selectedInvoice && (
-        <div className="fixed inset-0 z-50 bg-[#0A192F]/60 flex items-center justify-center p-4">
+      {isCollectModalOpen && selectedInvoice && createPortal(
+        <div className="fixed inset-0 z-[9999] bg-black/60 flex items-center justify-center p-4">
           <div className="bg-[#FBFBF9] border border-[#E5E7EB] max-w-md w-full p-6 space-y-4">
             <div className="border-b border-[#E5E7EB] pb-3">
               <h3 className="text-base font-bold text-[#0A192F]">Collect Outstanding Due</h3>
@@ -497,12 +498,13 @@ export function DuesPage() {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Extend Due Date Modal */}
-      {isExtendModalOpen && selectedInvoice && (
-        <div className="fixed inset-0 z-50 bg-[#0A192F]/60 flex items-center justify-center p-4">
+      {isExtendModalOpen && selectedInvoice && createPortal(
+        <div className="fixed inset-0 z-[9999] bg-black/60 flex items-center justify-center p-4">
           <div className="bg-[#FBFBF9] border border-[#E5E7EB] max-w-md w-full p-6 space-y-4">
             <div className="border-b border-[#E5E7EB] pb-3">
               <h3 className="text-base font-bold text-[#0A192F]">Extend Payment Due Date</h3>
@@ -572,7 +574,8 @@ export function DuesPage() {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

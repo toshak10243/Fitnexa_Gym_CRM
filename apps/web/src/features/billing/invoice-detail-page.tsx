@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom';
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { apiClient } from '../../lib/api-client';
@@ -361,8 +362,8 @@ export function InvoiceDetailPage() {
       </div>
 
       {/* COLLECT PAYMENT MODAL */}
-      {isCollectModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+      {isCollectModalOpen && createPortal(
+        <div className="fixed inset-0 z-[9999] bg-black/60 flex items-center justify-center p-4">
           <div className="bg-[#FBFBF9] border border-[#E5E7EB] w-full max-w-md p-6 space-y-4">
             <h3 className="text-sm font-bold uppercase tracking-wider text-[#0A192F] pb-1">
               Collect Payment: {invoice.invoiceNumber}
@@ -424,12 +425,13 @@ export function InvoiceDetailPage() {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* VOID INVOICE MODAL */}
-      {isVoidModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+      {isVoidModalOpen && createPortal(
+        <div className="fixed inset-0 z-[9999] bg-black/60 flex items-center justify-center p-4">
           <div className="bg-[#FBFBF9] border border-[#E5E7EB] w-full max-w-md p-6 space-y-4">
             <h3 className="text-sm font-bold uppercase tracking-wider text-red-700 pb-1">
               Void Invoice: {invoice.invoiceNumber}
@@ -461,7 +463,8 @@ export function InvoiceDetailPage() {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

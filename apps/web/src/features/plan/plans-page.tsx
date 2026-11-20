@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom';
 import React, { useState, useEffect } from 'react';
 import { apiClient } from '../../lib/api-client';
 import { Button } from '../../components/ui/button';
@@ -313,8 +314,8 @@ export function PlansPage() {
       </div>
 
       {/* CREATE / EDIT PLAN MODAL */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+      {isModalOpen && createPortal(
+        <div className="fixed inset-0 z-[9999] bg-black/60 flex items-center justify-center p-4">
           <div className="bg-[#FBFBF9] border border-[#E5E7EB] w-full max-w-lg p-6 space-y-4">
             <h3 className="text-sm font-bold uppercase tracking-wider text-[#0A192F] pb-1">
               {editingPlan ? 'Configure Membership Plan' : 'Create New Membership Plan'}
@@ -483,7 +484,8 @@ export function PlansPage() {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

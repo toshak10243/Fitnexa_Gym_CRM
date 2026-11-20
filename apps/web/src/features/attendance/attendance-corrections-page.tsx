@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../../lib/api-client';
@@ -274,8 +275,8 @@ export function AttendanceCorrectionsPage() {
       </div>
 
       {/* Request Correction Modal */}
-      {showCreateModal && (
-        <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
+      {showCreateModal && createPortal(
+        <div className="fixed inset-0 z-[9999] bg-black/60 flex items-center justify-center p-4">
           <div className="bg-[#FBFBF9] border border-[#E5E7EB] w-full max-w-lg p-6 space-y-4">
             <div className="flex items-center justify-between pb-2">
               <h2 className="text-sm font-bold uppercase tracking-wider text-[#0A192F]">
@@ -366,12 +367,13 @@ export function AttendanceCorrectionsPage() {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Review Modal */}
-      {selectedCorrection && (
-        <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
+      {selectedCorrection && createPortal(
+        <div className="fixed inset-0 z-[9999] bg-black/60 flex items-center justify-center p-4">
           <div className="bg-[#FBFBF9] border border-[#E5E7EB] w-full max-w-md p-6 space-y-4">
             <div className="flex items-center justify-between pb-2">
               <h2 className="text-sm font-bold uppercase tracking-wider text-[#0A192F]">
@@ -442,7 +444,8 @@ export function AttendanceCorrectionsPage() {
               </Button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

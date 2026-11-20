@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom';
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../../lib/api-client';
@@ -309,8 +310,8 @@ export function RefundsPage() {
       </div>
 
       {/* Request Refund Modal */}
-      {isRequestModalOpen && (
-        <div className="fixed inset-0 z-50 bg-[#0A192F]/60 flex items-center justify-center p-4">
+      {isRequestModalOpen && createPortal(
+        <div className="fixed inset-0 z-[9999] bg-black/60 flex items-center justify-center p-4">
           <div className="bg-[#FBFBF9] border border-[#E5E7EB] max-w-md w-full p-6 space-y-4">
             <div className="border-b border-[#E5E7EB] pb-3">
               <h3 className="text-base font-bold text-[#0A192F]">Request Payment Refund</h3>
@@ -388,12 +389,13 @@ export function RefundsPage() {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Process Payout Modal */}
-      {isProcessModalOpen && selectedRefund && (
-        <div className="fixed inset-0 z-50 bg-[#0A192F]/60 flex items-center justify-center p-4">
+      {isProcessModalOpen && selectedRefund && createPortal(
+        <div className="fixed inset-0 z-[9999] bg-black/60 flex items-center justify-center p-4">
           <div className="bg-[#FBFBF9] border border-[#E5E7EB] max-w-md w-full p-6 space-y-4">
             <div className="border-b border-[#E5E7EB] pb-3">
               <h3 className="text-base font-bold text-[#0A192F]">Record Refund Payout</h3>
@@ -442,7 +444,8 @@ export function RefundsPage() {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

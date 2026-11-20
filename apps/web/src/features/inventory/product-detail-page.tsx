@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom';
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { apiClient } from '../../lib/api-client';
@@ -231,8 +232,8 @@ export function ProductDetailPage() {
       </div>
 
       {/* Physical Stock Reconciliation Modal */}
-      {showAdjModal && (
-        <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
+      {showAdjModal && createPortal(
+        <div className="fixed inset-0 z-[9999] bg-black/60 flex items-center justify-center p-4">
           <div className="bg-[#FBFBF9] border border-[#E5E7EB] w-full max-w-md p-6 space-y-4">
             <h3 className="text-sm font-bold uppercase tracking-wider text-[#0A192F] pb-1">
               Reconcile Physical Stock Count
@@ -302,7 +303,8 @@ export function ProductDetailPage() {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

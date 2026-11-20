@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../../lib/api-client';
@@ -527,8 +528,8 @@ export function PosTerminalPage() {
       </div>
 
       {/* Sale Success Receipt Modal */}
-      {lastCompletedSale && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
+      {lastCompletedSale && createPortal(
+        <div className="fixed inset-0 z-[9999] bg-black/60 flex items-center justify-center p-4">
           <div className="bg-[#FBFBF9] border border-[#E5E7EB] w-full max-w-sm p-6 space-y-4">
             <div className="text-center space-y-1">
               <div className="text-emerald-700 text-3xl font-mono">✓</div>
@@ -569,7 +570,8 @@ export function PosTerminalPage() {
               </Button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom';
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../../lib/api-client';
@@ -267,8 +268,8 @@ export function CashRegisterPage() {
       )}
 
       {/* Open Drawer Modal */}
-      {isOpenModalVisible && (
-        <div className="fixed inset-0 z-50 bg-[#0A192F]/60 flex items-center justify-center p-4">
+      {isOpenModalVisible && createPortal(
+        <div className="fixed inset-0 z-[9999] bg-black/60 flex items-center justify-center p-4">
           <div className="bg-[#FBFBF9] border border-[#E5E7EB] max-w-md w-full p-6 space-y-4">
             <div className="border-b border-[#E5E7EB] pb-3">
               <h3 className="text-base font-bold text-[#0A192F]">Open Cash Register Shift</h3>
@@ -351,12 +352,13 @@ export function CashRegisterPage() {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Close Drawer Reconciliation Modal */}
-      {isCloseModalVisible && activeSession && (
-        <div className="fixed inset-0 z-50 bg-[#0A192F]/60 flex items-center justify-center p-4">
+      {isCloseModalVisible && activeSession && createPortal(
+        <div className="fixed inset-0 z-[9999] bg-black/60 flex items-center justify-center p-4">
           <div className="bg-[#FBFBF9] border border-[#E5E7EB] max-w-md w-full p-6 space-y-4">
             <div className="border-b border-[#E5E7EB] pb-3">
               <h3 className="text-base font-bold text-[#0A192F]">Close & Reconcile Cash Shift</h3>
@@ -448,7 +450,8 @@ export function CashRegisterPage() {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
