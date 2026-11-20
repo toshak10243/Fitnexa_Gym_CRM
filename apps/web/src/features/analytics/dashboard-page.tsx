@@ -81,13 +81,13 @@ export function DashboardPage() {
   return (
     <div className="p-8 max-w-7xl mx-auto space-y-6">
       {/* Executive Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#E5E7EB] pb-5">
-        <div>
-          <div className="flex items-center gap-3">
-            <h1 className="text-xl font-bold tracking-tight text-[#0A192F] uppercase">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-[#E5E7EB] pb-5">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2.5">
+            <h1 className="text-lg md:text-xl font-bold tracking-tight text-[#0A192F] uppercase">
               Executive Management Dashboard
             </h1>
-            <span className="bg-[#0A192F] text-white text-[10px] font-mono px-2 py-0.5 font-bold">
+            <span className="bg-[#0A192F] text-[#FBFBF9] text-[10px] font-mono px-2 py-0.5 font-bold uppercase tracking-wider whitespace-nowrap">
               IST (Asia/Kolkata)
             </span>
           </div>
@@ -96,12 +96,12 @@ export function DashboardPage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2.5 flex-shrink-0">
           {branches.length > 1 && (
             <select
               value={selectedBranchId}
               onChange={(e) => setSelectedBranchId(e.target.value)}
-              className="text-xs border border-[#E5E7EB] bg-white px-3 py-1.5 rounded-none font-medium text-[#0A192F] h-9"
+              className="text-xs border border-[#D1D5DB] bg-white px-3 py-1.5 rounded-none font-medium text-[#0A192F] h-9 focus-visible:outline-2 focus-visible:outline-[#0A192F]"
             >
               <option value="">All Branches</option>
               {branches.map((b) => (
@@ -114,16 +114,22 @@ export function DashboardPage() {
 
           <Button
             variant="outline"
-            className="text-xs border-[#E5E7EB] rounded-none hover:bg-[#F5F5F0] h-9"
+            size="sm"
+            className="h-9 px-3.5 text-xs font-semibold border border-[#D1D5DB] text-[#0A192F] bg-white rounded-none hover:bg-[#F5F5F0] whitespace-nowrap inline-flex items-center gap-1.5 flex-shrink-0"
             onClick={fetchDashboardData}
           >
-            ↻ Refresh Metrics
+            <svg className="w-3.5 h-3.5 flex-shrink-0 text-[#0A192F]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            <span>Refresh Metrics</span>
           </Button>
           <Button
-            className="bg-[#0A192F] text-[#FBFBF9] hover:bg-[#162E52] text-xs rounded-none px-4 h-9"
+            size="sm"
+            className="h-9 px-4 text-xs font-semibold bg-[#0A192F] text-[#FBFBF9] hover:bg-[#162E52] rounded-none whitespace-nowrap inline-flex items-center gap-1.5 flex-shrink-0"
             onClick={() => navigate('/reports')}
           >
-            Analytics & Reports Center →
+            <span>Analytics & Reports Center</span>
+            <span aria-hidden="true" className="font-bold">→</span>
           </Button>
         </div>
       </div>
