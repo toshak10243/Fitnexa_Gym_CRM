@@ -24,6 +24,7 @@ import { ExpenseModule } from './modules/expense/expense.module';
 import { NotificationModule } from './modules/notification/notification.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { SuperAdminModule } from './modules/super-admin/super-admin.module';
+import { MailModule } from './modules/mail/mail.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { SuperAdminModule } from './modules/super-admin/super-admin.module';
       load: [configuration],
       envFilePath: ['.env.local', '.env'],
     }),
+    MailModule,
     PrismaModule,
     RedisModule,
     JobQueueModule,

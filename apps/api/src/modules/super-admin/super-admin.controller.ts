@@ -70,6 +70,15 @@ export class SuperAdminController {
     return this.superAdminService.resetClientPassword(tenantId, adminUserId);
   }
 
+  @Post('tenants/:id/send-reminder')
+  @ApiOperation({ summary: 'Send subscription renewal reminder email to client owner' })
+  async sendReminder(
+    @CurrentUser('userId') adminUserId: string,
+    @Param('id') tenantId: string,
+  ) {
+    return this.superAdminService.sendSubscriptionReminder(tenantId, adminUserId);
+  }
+
   @Post('impersonate/:tenantId')
   @ApiOperation({ summary: 'Login as client gym owner without password (troubleshooting)' })
   async impersonate(

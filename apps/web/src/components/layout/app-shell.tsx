@@ -1,8 +1,10 @@
 import React from 'react';
 import { Sidebar } from './sidebar';
+import { SuperAdminSidebar } from '../../features/super-admin/components/super-admin-sidebar';
 import { Header } from './header';
 import { useAuth } from '../../context/auth-context';
 import { MustChangePasswordModal } from '../auth/must-change-password-modal';
+import { UserRole } from '@fitnexa/shared';
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -11,6 +13,7 @@ interface AppShellProps {
 
 export function AppShell({ children, status }: AppShellProps) {
   const { user, isImpersonating, tenant, stopImpersonating, clearMustChangePassword } = useAuth();
+  const isSuperAdminPlatform = user?.role === UserRole.SUPER_ADMIN && !isImpersonating;
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-[#FBFBF9] text-[#111827]">
@@ -41,7 +44,9 @@ export function AppShell({ children, status }: AppShellProps) {
         />
       )}
 
-      <Sidebar />
+      {/* Dedicated Super Admin Sidebar vs Gym CRM Sidebar */}
+      {isSuperAdminPlatform ? <SuperAdminSidebar /> : <Sidebar />}
+      
       <div className={`flex-1 flex flex-col min-w-0 overflow-hidden ${isImpersonating ? 'pt-8' : ''}`}>
         <Header status={status} />
         <main className="flex-1 overflow-y-auto p-8 bg-[#FBFBF9]">

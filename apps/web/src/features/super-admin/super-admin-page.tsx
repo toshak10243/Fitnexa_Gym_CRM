@@ -253,6 +253,15 @@ export function SuperAdminPage() {
     }
   };
 
+  const handleSendReminder = async (tenant: TenantClient) => {
+    try {
+      await apiClient.post(`/super-admin/tenants/${tenant.id}/send-reminder`);
+      alert(`Renewal reminder email successfully dispatched to ${tenant.owner?.email || tenant.email}!`);
+    } catch (err: any) {
+      alert(err?.response?.data?.message || 'Failed to send renewal reminder email.');
+    }
+  };
+
   const toggleModuleSelection = (mod: string) => {
     setFormData((prev) => {
       const exists = prev.enabledModules.includes(mod);
@@ -550,6 +559,18 @@ export function SuperAdminPage() {
                           >
                             Reset Pass
                           </Button>
+
+                          {!client.isLifetime && client.planExpiresAt && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleSendReminder(client)}
+                              className="h-7 text-xs rounded-none border-amber-200 text-amber-800 hover:bg-amber-50"
+                              title="Send subscription renewal reminder email"
+                            >
+                              Send Reminder
+                            </Button>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -998,6 +1019,11 @@ export function SuperAdminPage() {
               </div>
             </div>
 
+            <div className="bg-emerald-50 border border-emerald-200 p-2.5 text-[11px] text-emerald-900 flex items-center space-x-2">
+              <span className="font-bold">Email Service:</span>
+              <span>Welcome notification & temporary login credentials dispatched to <strong>{createdClientInfo.email}</strong>.</span>
+            </div>
+
             <p className="text-[11px] text-[#6B7280]">
               The client will be required to set their permanent password on their first login.
             </p>
@@ -1039,6 +1065,11 @@ export function SuperAdminPage() {
                   {resetPasswordResult.tempPassword}
                 </span>
               </div>
+            </div>
+
+            <div className="bg-emerald-50 border border-emerald-200 p-2.5 text-[11px] text-emerald-900 flex items-center space-x-2">
+              <span className="font-bold">Email Service:</span>
+              <span>New password and login URL dispatched to <strong>{resetPasswordResult.email}</strong>.</span>
             </div>
 
             <Button

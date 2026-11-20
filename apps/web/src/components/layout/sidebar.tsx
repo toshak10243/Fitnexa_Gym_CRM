@@ -6,7 +6,7 @@ import fitnexaLogo from '../../assets/logo.png';
 
 export function Sidebar() {
   const location = useLocation();
-  const { tenant, user, isImpersonating } = useAuth();
+  const { tenant, user } = useAuth();
   const userRole = user?.role;
 
   const coreNavItems = [
@@ -997,84 +997,24 @@ export function Sidebar() {
         </div>
         <div className="flex flex-col min-w-0">
           <span className="font-bold text-sm tracking-wider uppercase text-[#FBFBF9] truncate" title={tenant?.name || 'Fitnexa'}>
-            {userRole === UserRole.SUPER_ADMIN && !isImpersonating ? 'FITNEXA SAAS' : (tenant?.name || 'Fitnexa')}
+            {tenant?.name || 'Fitnexa Gym'}
           </span>
           <span className="text-[10px] text-[#9CA3AF] tracking-tight uppercase">
-            {userRole === UserRole.SUPER_ADMIN && !isImpersonating ? 'Platform Owner Console' : 'Gym Management CRM'}
+            Gym Management CRM
           </span>
         </div>
       </div>
 
       {/* Navigation */}
       <div className="flex-1 py-4 px-3 overflow-y-auto">
-        {userRole === UserRole.SUPER_ADMIN && !isImpersonating ? (
-          <>
-            <div className="space-y-1 mb-4">
-              <div className="px-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-[#B91C1C]">
-                Platform SaaS Owner
-              </div>
-              <Link
-                to="/super-admin"
-                className={cn(
-                  'flex items-center space-x-3 px-3 py-2 text-xs font-semibold rounded-none transition-colors',
-                  location.pathname === '/super-admin'
-                    ? 'bg-[#B91C1C] text-[#FBFBF9]'
-                    : 'text-[#FBFBF9] hover:bg-[#162E52]',
-                )}
-              >
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 3m8.5-3l1 3m0 0l.5 1.5m-.5-1.5h-9.5m0 0l-.5 1.5" />
-                </svg>
-                <span>SaaS Clients & Revenue</span>
-              </Link>
-            </div>
-
-            <div className="space-y-1 mb-4">
-              <div className="px-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-[#9CA3AF]">
-                Platform Diagnostics
-              </div>
-              <Link
-                to="/telemetry"
-                className={cn(
-                  'flex items-center space-x-3 px-3 py-1.5 text-xs font-medium rounded-none transition-colors',
-                  location.pathname === '/telemetry'
-                    ? 'bg-[#B91C1C] text-[#FBFBF9]'
-                    : 'text-[#E5E7EB] hover:bg-[#162E52] hover:text-[#FBFBF9]',
-                )}
-              >
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941" />
-                </svg>
-                <span>System Telemetry</span>
-              </Link>
-              <Link
-                to="/audit-logs"
-                className={cn(
-                  'flex items-center space-x-3 px-3 py-1.5 text-xs font-medium rounded-none transition-colors',
-                  location.pathname === '/audit-logs'
-                    ? 'bg-[#B91C1C] text-[#FBFBF9]'
-                    : 'text-[#E5E7EB] hover:bg-[#162E52] hover:text-[#FBFBF9]',
-                )}
-              >
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
-                </svg>
-                <span>Audit Trail Ledger</span>
-              </Link>
-            </div>
-          </>
-        ) : (
-          <>
-            {renderNavGroup('Administration', coreNavItems)}
-            {renderNavGroup('Member Operations', memberNavItems, 'MEMBERS')}
-            {renderNavGroup('Billing & Finance', billingNavItems, 'BILLING')}
-            {renderNavGroup('Attendance & Check-in', attendanceNavItems, 'ATTENDANCE')}
-            {renderNavGroup('Biometric Terminals', deviceNavItems, 'DEVICES')}
-            {renderNavGroup('Inventory & Retail POS', inventoryNavItems, 'INVENTORY')}
-            {renderNavGroup('Leads CRM & Trainers', crmNavItems, 'CRM')}
-            {renderNavGroup('Expenses & Notifications', operationsNavItems)}
-          </>
-        )}
+        {renderNavGroup('Administration', coreNavItems)}
+        {renderNavGroup('Member Operations', memberNavItems, 'MEMBERS')}
+        {renderNavGroup('Billing & Finance', billingNavItems, 'BILLING')}
+        {renderNavGroup('Attendance & Check-in', attendanceNavItems, 'ATTENDANCE')}
+        {renderNavGroup('Biometric Terminals', deviceNavItems, 'DEVICES')}
+        {renderNavGroup('Inventory & Retail POS', inventoryNavItems, 'INVENTORY')}
+        {renderNavGroup('Leads CRM & Trainers', crmNavItems, 'CRM')}
+        {renderNavGroup('Expenses & Notifications', operationsNavItems)}
       </div>
 
       {/* Footer Info */}

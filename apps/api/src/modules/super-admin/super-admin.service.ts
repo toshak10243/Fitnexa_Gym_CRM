@@ -9,6 +9,7 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../../database/prisma.service';
 import { AuditLogService } from '../audit-log/audit-log.service';
+import { MailService } from '../mail/mail.service';
 import {
   CreateTenantClientDto,
   UpdateTenantSubscriptionDto,
@@ -27,6 +28,7 @@ export class SuperAdminService {
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
     private readonly auditLogService: AuditLogService,
+    private readonly mailService: MailService,
   ) {}
 
   async getDashboardStats() {
@@ -243,6 +245,26 @@ export class SuperAdminService {
       userAgent: 'Fitnexa-SaaS-Engine',
     });
 
+    const appUrl = this.configService.get<string>('APP_URL') || 'http://localhost:5173';
+    let mailSent = false;
+    let mailMode = 'dev_log';
+    try {
+      const mailRes = await this.mailService.sendWelcomeClientEmail({
+        to: cleanEmail,
+        clientName: result.tenant.name,
+        adminName: result.user.fullName,
+        tempPassword,
+        planName: planConfig.name,
+        loginUrl: `${appUrl}/login`,
+        expiresAt: result.tenant.planExpiresAt,
+        isLifetime: result.tenant.isLifetime,
+      });
+      mailSent = mailRes.success;
+      mailMode = mailRes.mode;
+    } catch (err: any) {
+      // Don't fail client creation if mail fails
+    }
+
     return {
       success: true,
       tenant: result.tenant,
@@ -253,6 +275,8 @@ export class SuperAdminService {
       },
       temporaryPassword: tempPassword,
       subdomainUrl: `http://${cleanSlug}.localhost:5173`,
+      mailDispatched: mailSent,
+      mailDeliveryMode: mailMode,
     };
   }
 
@@ -337,10 +361,83 @@ export class SuperAdminService {
       userAgent: 'Fitnexa-SaaS-Engine',
     });
 
+    const appUrl = this.configService.get<string>('APP_URL') || 'http://localhost:5173';
+    let mailSent = false;
+    let mailMode = 'dev_log';
+    try {
+      const mailRes = await this.mailService.sendPasswordResetEmail({
+        to: owner.email,
+        adminName: owner.fullName,
+        newPassword: tempPassword,
+        loginUrl: `${appUrl}/login`,
+      });
+      mailSent = mailRes.success;
+      mailMode = mailRes.mode;
+    } catch (e: any) {
+      // Don't fail reset if mail throws
+    }
+
     return {
       success: true,
       email: owner.email,
       temporaryPassword: tempPassword,
+      mailDispatched: mailSent,
+      mailDeliveryMode: mailMode,
+    };
+  }
+
+  async sendSubscriptionReminder(tenantId: string, adminUserId: string) {
+    const tenant = await this.prisma.tenant.findUnique({
+      where: { id: tenantId },
+      include: {
+        users: {
+          where: { role: UserRole.GYM_OWNER },
+          take: 1,
+        },
+      },
+    });
+
+    if (!tenant) throw new NotFoundException('Client tenant not found');
+    const owner = tenant.users[0];
+    if (!owner) throw new BadRequestException('No gym owner user found for this tenant');
+
+    if (tenant.isLifetime || !tenant.planExpiresAt) {
+      throw new BadRequestException('Cannot send renewal reminder for lifetime subscriptions without expiry');
+    }
+
+    const appUrl = this.configService.get<string>('APP_URL') || 'http://localhost:5173';
+    const planConfig = SAAS_PLANS[tenant.subscriptionPlan as SaaSSubscriptionPlan] || {
+      name: tenant.subscriptionPlan,
+    };
+
+    const mailRes = await this.mailService.sendPlanExpiryReminderEmail({
+      to: owner.email,
+      clientName: tenant.name,
+      adminName: owner.fullName,
+      planName: planConfig.name,
+      expiresAt: tenant.planExpiresAt,
+      renewalUrl: `${appUrl}/settings`,
+    });
+
+    await this.auditLogService.record({
+      tenantId,
+      userId: adminUserId,
+      action: 'SAAS_CLIENT_RENEWAL_REMINDER_SENT',
+      resource: 'Tenant',
+      resourceId: tenantId,
+      details: {
+        ownerEmail: owner.email,
+        expiresAt: tenant.planExpiresAt,
+        deliveryMode: mailRes.mode,
+      },
+      ipAddress: '127.0.0.1',
+      userAgent: 'Fitnexa-SaaS-Engine',
+    });
+
+    return {
+      success: true,
+      message: `Reminder email successfully dispatched to ${owner.email}`,
+      deliveryMode: mailRes.mode,
     };
   }
 
