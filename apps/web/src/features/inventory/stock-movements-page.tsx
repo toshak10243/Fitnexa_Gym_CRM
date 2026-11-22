@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../../lib/api-client';
 import { Button } from '../../components/ui/button';
@@ -15,8 +15,9 @@ export function StockMovementsPage() {
     setIsLoading(true);
     try {
       const res = await apiClient.get(`/inventory/movements?page=${page}&limit=50`);
-      setMovements(res.data.data.items || []);
-      setTotal(res.data.data.total || 0);
+      const payload = res.data?.data ?? res.data;
+      setMovements(payload?.items || []);
+      setTotal(payload?.total || 0);
     } catch {
       // Handled gracefully
     } finally {
@@ -46,7 +47,7 @@ export function StockMovementsPage() {
             className="text-xs border-[#E5E7EB] rounded-none hover:bg-[#F5F5F0]"
             onClick={() => navigate('/inventory')}
           >
-            ← Inventory Overview
+            â† Inventory Overview
           </Button>
           <Button
             variant="outline"
@@ -94,7 +95,7 @@ export function StockMovementsPage() {
                   return (
                     <tr key={m.id} className="hover:bg-[#F5F5F0] transition-colors">
                       <td className="py-3 px-4 font-mono text-[11px] text-[#6B7280]">
-                        {new Date(m.createdAt).toLocaleString('en-IN', {
+                        {new Date(m.timestamp || m.createdAt).toLocaleString('en-IN', {
                           day: '2-digit',
                           month: 'short',
                           year: 'numeric',
@@ -110,7 +111,7 @@ export function StockMovementsPage() {
                       </td>
                       <td className="py-3 px-4">
                         <span className="inline-block px-1.5 py-0.5 text-[9px] font-bold tracking-wider uppercase border border-[#E5E7EB] bg-white text-[#0A192F]">
-                          {m.type.replace(/_/g, ' ')}
+                          {(m.movementType || m.type || 'UNKNOWN').replace(/_/g, ' ')}
                         </span>
                       </td>
                       <td
@@ -121,13 +122,13 @@ export function StockMovementsPage() {
                         {isPositive ? `+${m.quantityDelta}` : m.quantityDelta}
                       </td>
                       <td className="py-3 px-4 text-right font-mono font-medium text-[#0A192F]">
-                        {m.postBalance}
+                        {m.postBalance ?? '-'}
                       </td>
                       <td className="py-3 px-4 font-mono text-[11px] text-[#6B7280]">
                         {m.referenceType ? `${m.referenceType}: ${m.referenceId?.slice(0, 8) || ''}` : 'Direct'}
                       </td>
                       <td className="py-3 px-4 text-[#6B7280] max-w-xs truncate">
-                        {m.reason || 'Standard system movement'}
+                        {m.notes || m.reason || 'Standard system movement'}
                       </td>
                     </tr>
                   );
@@ -167,3 +168,5 @@ export function StockMovementsPage() {
     </div>
   );
 }
+
+

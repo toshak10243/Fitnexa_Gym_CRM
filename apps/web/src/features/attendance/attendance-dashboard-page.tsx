@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+﻿import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   AreaChart,
@@ -71,24 +71,18 @@ export function AttendanceDashboardPage() {
   const todayCheckIns = occupancy?.todayTotalCheckIns || 0;
   const todayUnique = occupancy?.todayUniqueMembers || 0;
 
-  // Hourly Flow Curve
   const hourlyFootfall = useMemo(() => {
-    const base = Math.max(2, activeCount);
-    return [
-      { time: '06:00', entries: Math.round(base * 0.6), rush: 'Morning Warmup' },
-      { time: '07:00', entries: Math.round(base * 1.5), rush: 'Cardio & Strength Peak' },
-      { time: '08:00', entries: Math.round(base * 1.8), rush: 'Morning Prime Rush' },
-      { time: '09:00', entries: Math.round(base * 1.2), rush: 'Crossfit & Weights' },
-      { time: '11:00', entries: Math.round(base * 0.5), rush: 'Mid-day Quiet' },
-      { time: '13:00', entries: Math.round(base * 0.4), rush: 'Lunch Workouts' },
-      { time: '15:00', entries: Math.round(base * 0.7), rush: 'Personal Training' },
-      { time: '17:00', entries: Math.round(base * 1.6), rush: 'Evening Rush Entry' },
-      { time: '18:00', entries: Math.round(base * 2.3), rush: 'Peak Heavy Lifting' },
-      { time: '19:00', entries: Math.round(base * 2.5), rush: 'Prime Evening Rush' },
-      { time: '20:00', entries: Math.round(base * 1.9), rush: 'Post-Work Fitness' },
-      { time: '21:00', entries: Math.round(base * 0.8), rush: 'Floor Closing' },
-    ];
-  }, [activeCount]);
+    const buckets = new Map<number, number>();
+    recentActivities.filter((activity) => activity.direction === 'CHECK_IN' || activity.direction === 'IN').forEach((activity) => {
+      const hour = new Date(activity.timestamp).getHours();
+      buckets.set(hour, (buckets.get(hour) || 0) + 1);
+    });
+    return Array.from({ length: 24 }, (_, hour) => ({
+      time: `${String(hour).padStart(2, '0')}:00`,
+      entries: buckets.get(hour) || 0,
+      rush: buckets.get(hour) ? 'Recorded check-ins' : 'No recorded check-ins',
+    }));
+  }, [recentActivities]);
 
   if (isLoading) {
     return (
@@ -160,7 +154,7 @@ export function AttendanceDashboardPage() {
               className="p-0 h-auto text-xs font-semibold text-[#1D4ED8] hover:underline hover:bg-transparent"
               onClick={() => navigate('/attendance/active')}
             >
-              View Active Roster →
+              View Active Roster â†’
             </Button>
           </div>
         </div>
@@ -230,7 +224,7 @@ export function AttendanceDashboardPage() {
               onClick={() => navigate('/devices')}
             >
               <span>Biometric Terminals</span>
-              <span>→</span>
+              <span>â†’</span>
             </Button>
             <Button
               variant="outline"
@@ -238,7 +232,7 @@ export function AttendanceDashboardPage() {
               onClick={() => navigate('/attendance/policies')}
             >
               <span>Access Rules & Dues Policy</span>
-              <span>→</span>
+              <span>â†’</span>
             </Button>
           </div>
         </div>
@@ -283,7 +277,7 @@ export function AttendanceDashboardPage() {
                     const item = payload[0].payload;
                     return (
                       <div className="bg-[#0A192F] text-[#FBFBF9] p-2.5 text-xs border border-[#162E52] shadow-sm">
-                        <div className="font-bold">{item.time} hrs · {item.rush}</div>
+                        <div className="font-bold">{item.time} hrs Â· {item.rush}</div>
                         <div className="text-emerald-400 font-mono text-sm mt-1">
                           {item.entries} athlete taps
                         </div>
@@ -370,7 +364,7 @@ export function AttendanceDashboardPage() {
             className="text-xs border-[#E5E7EB] rounded-none hover:bg-white h-7"
             onClick={() => navigate('/attendance/history')}
           >
-            Full Ledger →
+            Full Ledger â†’
           </Button>
         </div>
 
@@ -394,10 +388,10 @@ export function AttendanceDashboardPage() {
                   </span>
                   <div>
                     <div className="font-semibold text-[#0A192F]">
-                      {act.member ? `${act.member.firstName} ${act.member.lastName}` : 'Walk-in / Unregistered'}
+                      {act.member ? ([act.member.firstName, act.member.lastName].filter(Boolean).join(' ') || act.member.memberCode || 'Member') : 'Walk-in / Unregistered'}
                     </div>
                     <div className="text-[11px] text-[#6B7280] font-mono">
-                      {act.member?.memberCode || 'N/A'} · Source: {act.source}
+                      {act.member?.memberCode || 'N/A'}  Source: {act.source}
                     </div>
                   </div>
                 </div>
@@ -417,3 +411,5 @@ export function AttendanceDashboardPage() {
     </div>
   );
 }
+
+

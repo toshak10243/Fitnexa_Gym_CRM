@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../../lib/api-client';
 import { Button } from '../../components/ui/button';
@@ -8,14 +8,19 @@ import { formatPaiseToInr } from '../../lib/utils';
 interface MemberSearchResult {
   id: string;
   memberCode: string;
-  firstName: string;
-  lastName: string;
+  branchId?: string;
+  branch?: { id: string };
+  firstName?: string;
+  lastName?: string;
+  fullName?: string;
+  name?: string;
   phone: string;
   email?: string;
   status: string;
   profilePhotoUrl?: string;
   memberships?: Array<{
     id: string;
+    branchId?: string;
     status: string;
     startDate: string;
     endDate: string;
@@ -25,6 +30,11 @@ interface MemberSearchResult {
     };
   }>;
 }
+
+const memberDisplayName = (member: MemberSearchResult) =>
+  member.fullName || member.name || ([member.firstName, member.lastName].filter(Boolean).join(' ') !== member.memberCode
+    ? [member.firstName, member.lastName].filter(Boolean).join(' ')
+    : '') || member.memberCode || 'Unnamed Member';
 
 export function CheckInPage() {
   const navigate = useNavigate();
@@ -41,16 +51,30 @@ export function CheckInPage() {
 
   // Search members
   useEffect(() => {
-    if (!query.trim() || query.length < 2) {
-      setSearchResults([]);
-      return;
-    }
+    const trimmedQuery = query.trim();
+    if (trimmedQuery.length === 1) return;
 
     const timer = setTimeout(async () => {
       setIsSearching(true);
       try {
-        const res = await apiClient.get(`/members?search=${encodeURIComponent(query)}&limit=6`);
-        setSearchResults(res.data.data.items || []);
+        const searchParam = trimmedQuery
+          ? `&search=${encodeURIComponent(trimmedQuery)}`
+          : '';
+        const res = await apiClient.get(`/members?limit=25${searchParam}`);
+        const payload = res.data?.data || res.data;
+        const members = payload?.items || (Array.isArray(payload) ? payload : []);
+        setSearchResults(members.map((member: MemberSearchResult) => {
+          const sourceName = member.fullName || member.name;
+          if ((!member.firstName || !member.lastName || member.firstName === member.memberCode) && sourceName) {
+            const [firstName, ...rest] = sourceName.trim().split(/\s+/);
+            return { ...member, firstName: member.firstName || firstName, lastName: member.lastName || rest.join(' ') };
+          }
+          const activeMembership = member.memberships?.find((membership) => membership.status === 'ACTIVE');
+          return {
+            ...member,
+            branchId: member.branchId || activeMembership?.branchId || member.branch?.id,
+          };
+        }));
       } catch {
         setSearchResults([]);
       } finally {
@@ -69,13 +93,16 @@ export function CheckInPage() {
     setOverrideReason('');
 
     try {
-      // 1. Evaluate access eligibility
-      const evalRes = await apiClient.post('/attendance/evaluate-access', {
-        memberId: member.id,
+      // Access policy is evaluated atomically by the check-in endpoint.
+      // Keep the workspace ready while we load the member's current session.
+      setEvaluation({
+        decision: 'PENDING',
+        reasonCode: 'READY_FOR_CHECK_IN',
+        reasonDetails: 'Final access policy checks run when check-in is confirmed.',
+        outstandingDuesPaise: 0,
       });
-      setEvaluation(evalRes.data.data);
 
-      // 2. Check if member has active session right now
+      // Check if member has active session right now
       const activeRes = await apiClient.get('/attendance/active');
       const rawActive = activeRes.data?.data || activeRes.data;
       const activeList = Array.isArray(rawActive) ? rawActive : (rawActive?.items || []);
@@ -94,8 +121,15 @@ export function CheckInPage() {
     try {
       const payload: any = {
         memberId: selectedMember.id,
+        branchId: selectedMember.branchId,
         source: 'MANUAL_FRONT_DESK',
       };
+
+      if (!selectedMember.branchId) {
+        setFeedback({ type: 'error', message: 'This member is not linked to a gym branch.' });
+        setIsCheckingIn(false);
+        return;
+      }
 
       if (override) {
         if (!overrideReason.trim()) {
@@ -110,14 +144,21 @@ export function CheckInPage() {
       await apiClient.post('/attendance/check-in', payload);
       setFeedback({
         type: 'success',
-        message: `Member ${selectedMember.firstName} ${selectedMember.lastName} successfully CHECKED IN.`,
+        message: `Member ${memberDisplayName(selectedMember)} successfully CHECKED IN.`,
       });
       // Refresh active session status
       await selectMember(selectedMember);
     } catch (err: any) {
+      const message = err?.response?.data?.message || err?.message || 'Check-in failed. Please verify member policy.';
+      setEvaluation((current: any) => ({
+        ...(current || {}),
+        decision: 'DENIED',
+        reasonCode: 'ACCESS_DENIED',
+        reasonDetails: Array.isArray(message) ? message.join(', ') : message,
+      }));
       setFeedback({
         type: 'error',
-        message: err.message || 'Check-in failed. Please verify member policy.',
+        message: Array.isArray(message) ? message.join(', ') : message,
       });
       if (evaluation?.canOverride) {
         setShowOverrideInput(true);
@@ -135,11 +176,12 @@ export function CheckInPage() {
     try {
       await apiClient.post('/attendance/check-out', {
         memberId: selectedMember.id,
+        branchId: selectedMember.branchId,
         source: 'MANUAL_FRONT_DESK',
       });
       setFeedback({
         type: 'success',
-        message: `Member ${selectedMember.firstName} ${selectedMember.lastName} successfully CHECKED OUT.`,
+        message: `Member ${memberDisplayName(selectedMember)} successfully CHECKED OUT.`,
       });
       setActiveSession(null);
       // Refresh status
@@ -172,7 +214,7 @@ export function CheckInPage() {
             className="text-xs border-[#E5E7EB] rounded-none hover:bg-[#F5F5F0]"
             onClick={() => navigate('/attendance')}
           >
-            ← Back to Telemetry
+            â† Back to Telemetry
           </Button>
           <Button
             variant="outline"
@@ -202,9 +244,12 @@ export function CheckInPage() {
           )}
         </div>
 
-        {/* Search Results Dropdown List */}
+        {/* Member List / Search Results */}
         {searchResults.length > 0 && (
           <div className="mt-3 border border-[#E5E7EB] bg-white divide-y divide-[#E5E7EB]">
+            <div className="px-3 py-2 bg-[#F5F5F0] text-[10px] font-bold uppercase tracking-wider text-[#6B7280]">
+              {query.trim() ? 'Search Results' : 'All Members'} ({searchResults.length})
+            </div>
             {searchResults.map((m) => {
               const activePlan = m.memberships?.find((x) => x.status === 'ACTIVE');
               return (
@@ -218,13 +263,16 @@ export function CheckInPage() {
                   className="p-3 flex items-center justify-between hover:bg-[#F5F5F0] cursor-pointer transition-colors"
                 >
                   <div className="flex items-center space-x-3">
-                    <div className="w-9 h-9 bg-[#0A192F] text-white flex items-center justify-center font-bold text-xs">
-                      {m.firstName.charAt(0)}
-                      {m.lastName.charAt(0)}
-                    </div>
+                    {m.profilePhotoUrl ? (
+                      <img src={m.profilePhotoUrl} alt={memberDisplayName(m)} className="w-9 h-9 object-cover" />
+                    ) : (
+                      <div className="w-9 h-9 bg-[#0A192F] text-white flex items-center justify-center font-bold text-xs">
+                        {(m.firstName?.charAt(0) || m.lastName?.charAt(0) || '?').toUpperCase()}
+                      </div>
+                    )}
                     <div>
                       <div className="font-bold text-xs text-[#0A192F]">
-                        {m.firstName} {m.lastName}
+                        {memberDisplayName(m)}
                         <span className="ml-2 font-mono text-[11px] text-[#6B7280]">
                           ({m.memberCode})
                         </span>
@@ -234,7 +282,7 @@ export function CheckInPage() {
                       </div>
                     </div>
                   </div>
-                  <span className="text-xs font-semibold text-[#0A192F]">Select →</span>
+                  <span className="text-xs font-semibold text-[#0A192F]">Select â†’</span>
                 </div>
               );
             })}
@@ -261,13 +309,16 @@ export function CheckInPage() {
           {/* Athlete Profile Card */}
           <div className="bg-[#FBFBF9] border border-[#E5E7EB] p-5 space-y-4">
             <div className="flex items-center space-x-4 border-b border-[#E5E7EB] pb-4">
-              <div className="w-14 h-14 bg-[#0A192F] text-white flex items-center justify-center font-extrabold text-lg">
-                {selectedMember.firstName.charAt(0)}
-                {selectedMember.lastName.charAt(0)}
-              </div>
+              {selectedMember.profilePhotoUrl ? (
+                <img src={selectedMember.profilePhotoUrl} alt={memberDisplayName(selectedMember)} className="w-14 h-14 object-cover" />
+              ) : (
+                <div className="w-14 h-14 bg-[#0A192F] text-white flex items-center justify-center font-extrabold text-lg">
+                  {(selectedMember.firstName?.charAt(0) || selectedMember.lastName?.charAt(0) || '?').toUpperCase()}
+                </div>
+              )}
               <div>
                 <h2 className="font-bold text-base text-[#0A192F]">
-                  {selectedMember.firstName} {selectedMember.lastName}
+                  {memberDisplayName(selectedMember)}
                 </h2>
                 <div className="text-xs font-mono text-[#6B7280]">
                   Code: {selectedMember.memberCode}
@@ -316,7 +367,7 @@ export function CheckInPage() {
                 className="w-full text-xs border-[#E5E7EB] rounded-none hover:bg-[#F5F5F0]"
                 onClick={() => navigate(`/members/${selectedMember.id}`)}
               >
-                View Full Member 360 Profile →
+                View Full Member 360 Profile â†’
               </Button>
             </div>
           </div>
@@ -332,10 +383,16 @@ export function CheckInPage() {
                   className={`inline-flex items-center px-2 py-0.5 text-xs font-bold uppercase tracking-wider border ${
                     evaluation.decision === 'GRANTED'
                       ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                      : 'bg-red-50 text-red-700 border-red-200'
+                      : evaluation.decision === 'DENIED'
+                        ? 'bg-red-50 text-red-700 border-red-200'
+                        : 'bg-amber-50 text-amber-700 border-amber-200'
                   }`}
                 >
-                  {evaluation.decision === 'GRANTED' ? 'ACCESS GRANTED' : 'ACCESS DENIED'}
+                  {evaluation.decision === 'GRANTED'
+                    ? 'ACCESS GRANTED'
+                    : evaluation.decision === 'DENIED'
+                      ? 'ACCESS DENIED'
+                      : 'READY TO VALIDATE'}
                 </span>
               )}
             </div>
@@ -457,3 +514,5 @@ export function CheckInPage() {
     </div>
   );
 }
+
+

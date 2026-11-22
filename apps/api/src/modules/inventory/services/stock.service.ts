@@ -22,10 +22,41 @@ export class StockService {
   async getLocations(tenantId: string, branchId?: string) {
     const where: any = { tenantId, isActive: true };
     if (branchId) where.branchId = branchId;
-    return this.prisma.stockLocation.findMany({
+    const locations = await this.prisma.stockLocation.findMany({
       where,
       orderBy: { name: 'asc' },
     });
+    // Keep stock reconciliation usable for a newly onboarded tenant. If no
+    // shelf has been configured yet, create the tenant's default shelf on its
+    // main branch instead of returning an empty selector.
+    if (locations.length === 0) {
+      let branch = await this.prisma.branch.findFirst({
+        where: { tenantId, ...(branchId ? { id: branchId } : {}) },
+        orderBy: { isMainBranch: 'desc' },
+      });
+      // A user may retain an old branch assignment after a tenant migration.
+      // Fall back to the tenant's main/first branch so inventory remains usable.
+      if (!branch && branchId) {
+        branch = await this.prisma.branch.findFirst({
+          where: { tenantId },
+          orderBy: { isMainBranch: 'desc' },
+        });
+      }
+      if (branch) {
+        const created = await this.prisma.stockLocation.create({
+          data: {
+            tenantId,
+            branchId: branch.id,
+            name: 'Main Storage Shelf',
+            code: 'MAIN-SHELF',
+            isDefault: true,
+            isActive: true,
+          },
+        });
+        return [created];
+      }
+    }
+    return locations;
   }
 
   async createLocation(tenantId: string, dto: CreateStockLocationDto) {
@@ -226,6 +257,12 @@ export class StockService {
 
       return adjustment;
     });
+  }
+
+  async recordManualStockMovement(tenantId: string, userId: string, dto: any) {
+    const product = await this.prisma.product.findFirst({ where: { id: dto.productId, tenantId } });
+    if (!product) throw new NotFoundException('Product not found');
+    return this.recordMovement({ tenantId, branchId: dto.branchId, productId: dto.productId, locationId: dto.locationId, movementType: dto.direction === 'IN' ? StockMovementType.ADJUSTMENT_FOUND : StockMovementType.ADJUSTMENT_WRITE_OFF, quantityDelta: dto.direction === 'IN' ? dto.quantity : -dto.quantity, unitCostInPaise: product.costPriceInPaise, referenceType: 'MANUAL_STOCK_MOVEMENT', notes: dto.reason.trim(), recordedByUserId: userId });
   }
 
   // --------------------------------------------------------------------------

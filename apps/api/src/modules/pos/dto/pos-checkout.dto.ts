@@ -52,6 +52,10 @@ export class PosCheckoutDto {
   @IsOptional()
   walkInCustomerPhone?: string;
 
+  @IsString()
+  @IsOptional()
+  walkInCustomerEmail?: string;
+
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => PosCartItemDto)

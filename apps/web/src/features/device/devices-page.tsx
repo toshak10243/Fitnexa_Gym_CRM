@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../../lib/api-client';
 import { Button } from '../../components/ui/button';
@@ -43,7 +43,8 @@ export function DevicesPage() {
     setIsLoading(true);
     try {
       const res = await apiClient.get('/devices');
-      setDevices(res.data.data.items || []);
+      const raw = res.data?.data || res.data;
+      setDevices(Array.isArray(raw) ? raw : raw?.items || []);
     } catch {
       // Handled gracefully
     } finally {
@@ -227,3 +228,5 @@ export function DevicesPage() {
     </div>
   );
 }
+
+

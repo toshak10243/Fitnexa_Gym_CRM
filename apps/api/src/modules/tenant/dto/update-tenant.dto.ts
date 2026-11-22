@@ -82,4 +82,14 @@ export class UpdateTenantDto {
   @IsOptional()
   @IsString()
   whatsapp?: string;
+
+  @ApiPropertyOptional({ example: 'INR' })
+  @IsOptional()
+  @IsString()
+  currency?: string;
+
+  @ApiPropertyOptional({ example: 'Asia/Kolkata' })
+  @IsOptional()
+  @IsString()
+  timezone?: string;
 }

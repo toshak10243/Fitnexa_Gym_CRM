@@ -1,4 +1,4 @@
-import { useRouteError, useNavigate } from 'react-router-dom';
+﻿import { useRouteError, useNavigate } from 'react-router-dom';
 import { Button } from './button';
 
 export function RouteErrorBoundary() {
@@ -44,3 +44,5 @@ export function RouteErrorBoundary() {
     </div>
   );
 }
+
+

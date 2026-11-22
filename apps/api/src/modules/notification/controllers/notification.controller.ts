@@ -39,7 +39,11 @@ export class NotificationController {
     @CurrentUser() user: any,
     @Body() dto: SendNotificationDto,
   ) {
-    return this.notificationService.dispatchNotification(user.tenantId, dto);
+    return this.notificationService.dispatchNotification(user.tenantId, {
+      ...dto,
+      recipientType: dto.recipientType || 'STAFF',
+      recipientId: dto.recipientId || user.userId,
+    });
   }
 
   @Patch(':id/read')

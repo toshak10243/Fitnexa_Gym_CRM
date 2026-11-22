@@ -1,4 +1,4 @@
-import { createPortal } from 'react-dom';
+﻿  import { createPortal } from 'react-dom';
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { apiClient } from '../../lib/api-client';
@@ -8,6 +8,7 @@ import { Skeleton } from '../../components/ui/skeleton';
 import { PaymentMethodType, UserRole } from '@fitnexa/shared';
 import { useAuth } from '../../context/auth-context';
 import { formatPaiseToInr } from '../../lib/utils';
+import { printHtmlElement } from '../../lib/print-document';
 
 export function InvoiceDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -16,6 +17,16 @@ export function InvoiceDetailPage() {
 
   const [invoice, setInvoice] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isEmailing, setIsEmailing] = useState(false);
+  const emailInvoice = async () => {
+    setIsEmailing(true);
+    try {
+      const response = await apiClient.post(`/billing/invoices/${id}/email`, {}, { timeout: 60000 });
+      const result = response.data.data || response.data;
+      alert(result.success && result.mode === 'smtp' ? 'Invoice email sent with PDF attachment.' : result.reason || 'Email was not delivered. Please check SMTP configuration.');
+    } catch (error) { alert(error instanceof Error ? error.message : 'Invoice email failed'); }
+    finally { setIsEmailing(false); }
+  };
 
   // Modals
   const [isCollectModalOpen, setIsCollectModalOpen] = useState(false);
@@ -144,9 +155,12 @@ export function InvoiceDetailPage() {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => window.print()}
-            className="rounded-none text-xs border-[#E5E7EB]"
+            onClick={() => printHtmlElement('printable-invoice-document', `Invoice_${invoice.invoiceNumber}`)}
+            className="rounded-none text-xs border-[#E5E7EB] bg-white text-[#0A192F] hover:bg-[#F5F5F0] inline-flex items-center gap-1.5"
           >
+            <svg className="w-3.5 h-3.5 text-[#0A192F]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+            </svg>
             Print Tax Invoice (A4)
           </Button>
 
@@ -173,41 +187,75 @@ export function InvoiceDetailPage() {
         </div>
       </div>
 
+      <div className="print:hidden flex justify-end"><Button type="button" variant="outline" disabled={isEmailing || !invoice.member.email} onClick={emailInvoice} className="rounded-none text-xs">{isEmailing ? 'Sending invoice...' : 'Email Invoice PDF'}</Button></div>
       {/* Official Tax Invoice Document Canvas */}
-      <div className="bg-[#FBFBF9] border border-[#E5E7EB] p-8 md:p-12 text-[#111827] space-y-6 print:border-none print:p-0 print:m-0 print:max-w-none">
+      <div id="printable-invoice-document" className="bg-[#FBFBF9] border border-[#E5E7EB] p-8 md:p-12 text-[#111827] space-y-6 printable-document print:border-none print:p-0 print:m-0 print:max-w-none">
         {/* Header Section */}
-        <div className="border-b-2 border-[#0A192F] pb-4 flex justify-between items-start">
-          <div>
-            <span className="font-extrabold text-xl tracking-wider text-[#0A192F] uppercase">
-              {invoice.tenant.name}
-            </span>
-            <p className="text-xs text-[#4B5563] mt-1">
-              {invoice.branch.name} | {invoice.branch.address}, {invoice.branch.city}
-            </p>
-            {invoice.tenant.gstin && (
-              <p className="text-[11px] font-mono text-[#6B7280]">
-                GSTIN: <strong>{invoice.tenant.gstin}</strong> | PAN: {invoice.tenant.pan || 'N/A'}
-              </p>
+        <div className="border-b-2 border-[#0A192F] pb-4 flex flex-col md:flex-row print:flex-row justify-between items-start gap-4 print-avoid-break">
+          <div className="flex items-start gap-3.5 min-w-0 flex-1">
+            {invoice.tenant.logoUrl ? (
+              <img
+                src={invoice.tenant.logoUrl}
+                alt="Brand Logo"
+                className="h-16 w-16 object-contain rounded-none border border-[#E5E7EB] bg-white p-1 flex-shrink-0"
+              />
+            ) : (
+              <div className="h-14 w-14 bg-[#0A192F] text-white flex items-center justify-center font-bold text-lg rounded-none flex-shrink-0">
+                {invoice.tenant.name?.charAt(0) || 'F'}
+              </div>
             )}
+            <div className="min-w-0 break-words">
+              <h1 className="font-extrabold text-xl tracking-wider text-[#0A192F] uppercase">
+                {invoice.tenant.name}
+              </h1>
+              <p className="text-xs text-[#374151] mt-0.5">
+                {invoice.tenant.address}, {invoice.tenant.city}, {invoice.tenant.state} - {invoice.tenant.pincode}
+              </p>
+              <p className="text-[11px] text-[#4B5563] mt-0.5">
+                Facility Branch: {invoice.branch.name} | {invoice.branch.address}, {invoice.branch.city}
+              </p>
+              <div className="text-[11px] font-mono text-[#6B7280] mt-1 flex flex-wrap gap-x-3 gap-y-0.5">
+                <span>Phone: <strong className="text-[#111827]">{invoice.tenant.phone || '-'}</strong></span>
+                <span>Email: <strong className="text-[#111827]">{invoice.tenant.email || '-'}</strong></span>
+                {invoice.tenant.website && <span>Web: <strong className="text-[#111827]">{invoice.tenant.website}</strong></span>}
+              </div>
+              <div className="text-[11px] font-mono text-[#6B7280] mt-0.5 flex flex-wrap gap-x-3">
+                <span>GSTIN: <strong className="text-[#0A192F]">{invoice.tenant.gstin || 'N/A'}</strong></span>
+                <span>PAN: <strong className="text-[#0A192F]">{invoice.tenant.pan || 'N/A'}</strong></span>
+              </div>
+            </div>
           </div>
-          <div className="text-right">
-            <div className="text-lg font-mono font-bold text-[#0A192F]">
+
+          <div className="text-right flex-shrink-0">
+            <div className="inline-block bg-[#0A192F] text-white text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 mb-1">
+              TAX INVOICE (ORIGINAL)
+            </div>
+            <div className="text-lg font-mono font-extrabold text-[#0A192F]">
               {invoice.invoiceNumber}
             </div>
-            <span
-              className={`inline-block mt-1 px-2 py-0.5 text-[10px] font-bold rounded-none uppercase ${
-                invoice.status === 'PAID'
-                  ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
-                  : invoice.status === 'PARTIALLY_PAID'
-                  ? 'bg-amber-100 text-amber-800 border border-amber-300'
-                  : 'bg-red-100 text-red-800 border border-red-300'
-              }`}
-            >
-              {invoice.status}
-            </span>
+            <div className="text-[11px] text-[#6B7280] font-mono mt-0.5">
+              Invoice Date: <strong className="text-[#111827]">{invoice.invoiceDate.split('T')[0]}</strong>
+            </div>
+            <div className="text-[11px] text-[#6B7280] font-mono">
+              Due Date: <strong className="text-[#B91C1C]">{invoice.dueDate.split('T')[0]}</strong>
+            </div>
+            <div className="mt-1">
+              <span
+                className={`inline-block px-2 py-0.5 text-[10px] font-bold rounded-none uppercase ${
+                  invoice.status === 'PAID'
+                    ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                    : invoice.status === 'PARTIALLY_PAID'
+                    ? 'bg-amber-100 text-amber-800 border border-amber-300'
+                    : 'bg-red-100 text-red-800 border border-red-300'
+                }`}
+              >
+                {invoice.status}
+              </span>
+            </div>
           </div>
         </div>
 
+        {invoice.membership && <section className="border border-[#E5E7EB] bg-[#F5F5F0] p-4 text-xs space-y-2 print-avoid-break"><h2 className="font-bold text-[#0A192F]">Membership details</h2><p>Plan: <strong>{invoice.membership.plan?.name}</strong></p><p>Valid from: <strong>{invoice.membership.startDate.split('T')[0]}</strong> | Valid until: <strong>{invoice.membership.endDate.split('T')[0]}</strong></p><p>Membership status: <strong>{invoice.membership.status}</strong></p><p>Payment arrangement: <strong>{invoice.balanceDueInPaise <= 0 ? 'Full Settlement' : invoice.paidAmountInPaise > 0 ? 'Installment / Partial Payment' : 'Pay Later'}</strong></p></section>}
         {/* Bill To & Invoice Dates */}
         <div className="grid grid-cols-2 gap-6 text-xs">
           <div className="space-y-1">
@@ -344,18 +392,50 @@ export function InvoiceDetailPage() {
           </div>
         )}
 
-        {/* Terms & Signature Blocks */}
-        <div className="pt-6 border-t border-[#E5E7EB] text-[11px] text-[#6B7280] space-y-4">
-          <p>
-            <strong>Terms & Notes: </strong>
-            {invoice.notes || invoice.termsAndConditions || 'Payment due on or before specified due date.'}
-          </p>
-          <div className="grid grid-cols-2 gap-12 pt-8 text-xs text-[#111827]">
+        {/* Terms & Official Footer */}
+        <div className="pt-6 border-t border-[#E5E7EB] text-[11px] text-[#6B7280] space-y-4 print-avoid-break">
+          {invoice.notes && (
+            <p className="bg-[#F5F5F0] p-2.5 border border-[#E5E7EB] text-[#374151]">
+              <strong>Special Instructions & Billing Notes: </strong>
+              {invoice.notes}
+            </p>
+          )}
+
+          {/* Social and Communication Contact Row */}
+          <div className="bg-[#FBFBF9] border border-[#E5E7EB] p-3 flex flex-wrap items-center justify-between gap-3 text-xs">
+            <div className="flex flex-wrap items-center gap-4 text-[#374151]">
+              {invoice.tenant.whatsapp && (
+                <span className="inline-flex items-center gap-1 font-medium">
+                  <span className="font-bold text-[#0A192F]">WhatsApp:</span> {invoice.tenant.whatsapp}
+                </span>
+              )}
+              {invoice.tenant.instagram && (
+                <span className="inline-flex items-center gap-1 font-medium">
+                  <span className="font-bold text-[#0A192F]">Instagram:</span> {invoice.tenant.instagram}
+                </span>
+              )}
+              {invoice.tenant.website && (
+                <span className="inline-flex items-center gap-1 font-medium">
+                  <span className="font-bold text-[#0A192F]">Web:</span> {invoice.tenant.website}
+                </span>
+              )}
+              <span className="inline-flex items-center gap-1 font-medium">
+                <span className="font-bold text-[#0A192F]">Helpdesk:</span> {invoice.tenant.email || invoice.tenant.phone}
+              </span>
+            </div>
+            <div className="text-[10px] font-mono text-[#6B7280]">
+              Currency: {invoice.tenant.currency || 'INR'} | Timezone: {invoice.tenant.timezone || 'Asia/Kolkata'}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-12 pt-6 text-xs text-[#111827]">
             <div className="border-t border-[#111827] pt-2">
-              <p className="font-bold">Member Signature</p>
+              <p className="font-bold">Member / Subscriber Signature</p>
+              <p className="text-[10px] text-[#6B7280] mt-0.5">I agree to gym facility regulations and payment terms.</p>
             </div>
             <div className="border-t border-[#111827] pt-2 text-right">
               <p className="font-bold">Authorized Signatory - {invoice.tenant.name}</p>
+              <p className="text-[10px] text-[#6B7280] mt-0.5">Computer-generated official tax invoice under GST laws.</p>
             </div>
           </div>
         </div>
@@ -370,7 +450,7 @@ export function InvoiceDetailPage() {
             </h3>
             <form onSubmit={handleCollectSubmit} className="space-y-4 text-xs">
               <div>
-                <label className="block font-semibold mb-1">Collection Amount in ₹ *</label>
+                <label className="block font-semibold mb-1">Collection Amount in â‚¹ *</label>
                 <Input
                   type="number"
                   step="0.01"
@@ -469,3 +549,5 @@ export function InvoiceDetailPage() {
     </div>
   );
 }
+
+

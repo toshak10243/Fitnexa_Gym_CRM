@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../../lib/api-client';
 import { Button } from '../../components/ui/button';
@@ -135,7 +135,9 @@ export function InvoiceCreatePage() {
         })),
       };
 
-      const res = await apiClient.post('/billing/invoices', payload);
+      const res = await apiClient.post('/billing/invoices', payload, { timeout: 60000 });
+      const delivery = res.data.data.emailDelivery;
+      if (!delivery?.success || delivery?.mode !== 'smtp') alert('Invoice saved. Email was not delivered; use Email Invoice PDF on the invoice page to retry.');
       navigate(`/billing/invoices/${res.data.data.id}`);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to issue invoice';
@@ -281,7 +283,7 @@ export function InvoiceCreatePage() {
                 </div>
 
                 <div className="col-span-5 md:col-span-2">
-                  <label className="block font-semibold mb-1 text-[11px]">Rate (₹) *</label>
+                  <label className="block font-semibold mb-1 text-[11px]">Rate (â‚¹) *</label>
                   <Input
                     type="number"
                     step="0.01"
@@ -294,7 +296,7 @@ export function InvoiceCreatePage() {
                 </div>
 
                 <div className="col-span-4 md:col-span-2">
-                  <label className="block font-semibold mb-1 text-[11px]">Discount (₹)</label>
+                  <label className="block font-semibold mb-1 text-[11px]">Discount (â‚¹)</label>
                   <Input
                     type="number"
                     step="0.01"
@@ -417,3 +419,5 @@ export function InvoiceCreatePage() {
     </div>
   );
 }
+
+

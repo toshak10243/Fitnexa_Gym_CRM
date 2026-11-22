@@ -73,6 +73,14 @@ export interface AuthTenantResponse {
   currency: string;
   timezone: string;
   gstin?: string | null;
+  pan?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  address?: string | null;
+  pincode?: string | null;
+  website?: string | null;
+  instagram?: string | null;
+  whatsapp?: string | null;
   city?: string | null;
   state?: string | null;
   subscriptionPlan?: string;

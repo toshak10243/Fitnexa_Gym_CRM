@@ -56,43 +56,60 @@ export function DashboardPage() {
 
   // Chart 1: Hourly Gym Rush & Occupancy Curve
   const occupancyCurveData = useMemo(() => {
-    const cur = data?.attendance?.currentOccupancy || 8;
+    const cur = data?.attendance?.currentOccupancy ?? 0;
+    const checkIns = data?.attendance?.todayCheckIns ?? 0;
+    if (cur === 0 && checkIns === 0) {
+      return [
+        { time: '06:00', members: 0, label: 'Morning Cardio' },
+        { time: '07:00', members: 0, label: 'Prime Rush' },
+        { time: '08:00', members: 0, label: 'Peak Weights' },
+        { time: '09:00', members: 0, label: 'Morning Flow' },
+        { time: '11:00', members: 0, label: 'Mid-Day Lull' },
+        { time: '13:00', members: 0, label: 'Lunch Workout' },
+        { time: '15:00', members: 0, label: 'Afternoon PT' },
+        { time: '17:00', members: 0, label: 'Evening Entry' },
+        { time: '18:00', members: 0, label: 'Peak Strength' },
+        { time: '19:00', members: 0, label: 'Prime Rush' },
+        { time: '20:00', members: 0, label: 'Late Cardio' },
+        { time: '21:00', members: 0, label: 'Floor Wind-down' },
+      ];
+    }
     return [
-      { time: '06:00', members: Math.max(4, Math.round(cur * 0.5)), label: 'Morning Cardio' },
-      { time: '07:00', members: Math.max(12, Math.round(cur * 1.6)), label: 'Prime Rush' },
-      { time: '08:00', members: Math.max(16, Math.round(cur * 1.9)), label: 'Peak Weights' },
-      { time: '09:00', members: Math.max(11, Math.round(cur * 1.4)), label: 'Morning Flow' },
-      { time: '11:00', members: Math.max(5, Math.round(cur * 0.6)), label: 'Mid-Day Lull' },
-      { time: '13:00', members: Math.max(4, Math.round(cur * 0.4)), label: 'Lunch Workout' },
-      { time: '15:00', members: Math.max(6, Math.round(cur * 0.7)), label: 'Afternoon PT' },
-      { time: '17:00', members: Math.max(14, Math.round(cur * 1.7)), label: 'Evening Entry' },
-      { time: '18:00', members: Math.max(22, Math.round(cur * 2.4)), label: 'Peak Strength' },
-      { time: '19:00', members: Math.max(24, Math.round(cur * 2.5)), label: 'Prime Rush' },
-      { time: '20:00', members: Math.max(18, Math.round(cur * 2.0)), label: 'Late Cardio' },
-      { time: '21:00', members: Math.max(8, Math.round(cur * 0.9)), label: 'Floor Wind-down' },
+      { time: '06:00', members: Math.round(cur * 0.5), label: 'Morning Cardio' },
+      { time: '07:00', members: Math.round(cur * 1.6), label: 'Prime Rush' },
+      { time: '08:00', members: Math.round(cur * 1.9), label: 'Peak Weights' },
+      { time: '09:00', members: Math.round(cur * 1.4), label: 'Morning Flow' },
+      { time: '11:00', members: Math.round(cur * 0.6), label: 'Mid-Day Lull' },
+      { time: '13:00', members: Math.round(cur * 0.4), label: 'Lunch Workout' },
+      { time: '15:00', members: Math.round(cur * 0.7), label: 'Afternoon PT' },
+      { time: '17:00', members: Math.round(cur * 1.7), label: 'Evening Entry' },
+      { time: '18:00', members: Math.round(cur * 2.4), label: 'Peak Strength' },
+      { time: '19:00', members: Math.round(cur * 2.5), label: 'Prime Rush' },
+      { time: '20:00', members: Math.round(cur * 2.0), label: 'Late Cardio' },
+      { time: '21:00', members: Math.round(cur * 0.9), label: 'Floor Wind-down' },
     ];
-  }, [data?.attendance?.currentOccupancy]);
+  }, [data?.attendance?.currentOccupancy, data?.attendance?.todayCheckIns]);
 
   // Chart 2: 7-Day Revenue Velocity (Collections vs Outflows)
   const financialFlowData = useMemo(() => {
-    const totalColl = (data?.financials?.grossCollectionsPaise || 5000000) / 100;
-    const totalExp = (data?.financials?.operatingExpensesPaise || 1200000) / 100;
+    const totalColl = (data?.financials?.grossCollectionsPaise ?? 0) / 100;
+    const totalExp = (data?.financials?.operatingExpensesPaise ?? 0) / 100;
     const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Today'];
     const multipliers = [0.12, 0.14, 0.11, 0.16, 0.15, 0.18, 0.14];
 
     return days.map((day, idx) => ({
       day,
-      collections: Math.round(totalColl * multipliers[idx]),
-      expenses: Math.round(totalExp * (multipliers[idx] * 0.9)),
+      collections: totalColl > 0 ? Math.round(totalColl * multipliers[idx]) : 0,
+      expenses: totalExp > 0 ? Math.round(totalExp * (multipliers[idx] * 0.9)) : 0,
     }));
   }, [data?.financials?.grossCollectionsPaise, data?.financials?.operatingExpensesPaise]);
 
   // Chart 3: Revenue Stream Distribution
   const revenueStreamData = useMemo(() => {
-    const grossInvoiced = (data?.financials?.grossInvoicedRevenuePaise || 5000000) / 100;
-    const posRetail = (data?.financials?.posRetailSalesPaise || 450000) / 100;
-    const ptSales = Math.round(grossInvoiced * 0.25);
-    const membershipSales = Math.max(1000, grossInvoiced - posRetail - ptSales);
+    const grossInvoiced = (data?.financials?.grossInvoicedRevenuePaise ?? 0) / 100;
+    const posRetail = (data?.financials?.posRetailSalesPaise ?? 0) / 100;
+    const ptSales = grossInvoiced > 0 ? Math.round(grossInvoiced * 0.25) : 0;
+    const membershipSales = grossInvoiced > 0 ? Math.max(0, grossInvoiced - posRetail - ptSales) : 0;
 
     return [
       { name: 'Memberships', value: membershipSales, color: '#1D4ED8' },
@@ -100,6 +117,10 @@ export function DashboardPage() {
       { name: 'POS Supplements & Retail', value: posRetail, color: '#059669' },
     ];
   }, [data?.financials?.grossInvoicedRevenuePaise, data?.financials?.posRetailSalesPaise]);
+
+  const totalStreamRevenue = useMemo(() => {
+    return revenueStreamData.reduce((acc, curr) => acc + curr.value, 0);
+  }, [revenueStreamData]);
 
   if (isLoading) {
     return (
@@ -181,7 +202,7 @@ export function DashboardPage() {
             onClick={() => navigate('/reports')}
           >
             <span>Analytics & Reports Center</span>
-            <span aria-hidden="true" className="font-bold">→</span>
+            <span aria-hidden="true" className="font-bold"></span>
           </Button>
         </div>
       </div>
@@ -207,7 +228,7 @@ export function DashboardPage() {
             <span className="font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.2 font-mono">
               +{memberships.newRegistrationsToday} today
             </span>
-            <span className="text-[#6B7280]">·</span>
+            <span className="text-[#6B7280]"></span>
             <span className="text-[#4B5563]">+{memberships.newRegistrationsThisMonth} this month</span>
           </div>
         </div>
@@ -233,9 +254,9 @@ export function DashboardPage() {
           </div>
           <div className="mt-2 text-[11px] text-[#4B5563] flex items-center gap-1.5">
             <span className="font-mono font-semibold text-[#0A192F]">{attendance.todayCheckIns}</span> check-ins today
-            <span className="text-[#6B7280]">·</span>
+            <span className="text-[#6B7280]"></span>
             <span className="text-amber-800 bg-amber-50 border border-amber-200 px-1 py-0.2 text-[10px] font-semibold">
-              Peak: {attendance.peakHour || '07:00-09:00'}
+              Peak: {attendance.todayCheckIns > 0 ? (attendance.peakHour || '07:00-09:00') : 'None'}
             </span>
           </div>
         </div>
@@ -282,7 +303,7 @@ export function DashboardPage() {
               className="text-[#0A192F] font-bold hover:underline inline-flex items-center gap-1"
             >
               <span>Inspect Dues Aging</span>
-              <span aria-hidden="true">→</span>
+              <span aria-hidden="true"></span>
             </button>
           </div>
         </div>
@@ -313,43 +334,57 @@ export function DashboardPage() {
           </div>
 
           <div className="h-64 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={occupancyCurveData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="gymOccupancyGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#1D4ED8" stopOpacity={0.4} />
-                    <stop offset="95%" stopColor="#1D4ED8" stopOpacity={0.0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" vertical={false} />
-                <XAxis dataKey="time" stroke="#6B7280" fontSize={11} tickLine={false} />
-                <YAxis stroke="#6B7280" fontSize={11} tickLine={false} />
-                <Tooltip
-                  content={({ active, payload }) => {
-                    if (active && payload && payload.length) {
-                      const item = payload[0].payload;
-                      return (
-                        <div className="bg-[#0A192F] text-[#FBFBF9] p-2.5 text-xs border border-[#162E52] shadow-sm">
-                          <div className="font-bold">{item.time} hrs · {item.label}</div>
-                          <div className="text-emerald-400 font-mono text-sm mt-1">
-                            {item.members} members working out
+            {occupancyCurveData.every((d) => d.members === 0) ? (
+              <div className="h-full w-full flex flex-col items-center justify-center border border-dashed border-[#E5E7EB] bg-white text-center p-6">
+                <div className="h-10 w-10 bg-[#F5F5F0] text-[#6B7280] flex items-center justify-center mb-2 border border-[#E5E7EB]">
+                  <svg className="w-5 h-5 text-[#6B7280]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <p className="text-xs font-bold uppercase tracking-wide text-[#0A192F]">No Check-in Footfall Recorded Today</p>
+                <p className="text-[11px] text-[#6B7280] mt-1 max-w-sm">
+                  Floor occupancy and peak rush dynamics will automatically plot as members check in at the front desk or biometric scanners.
+                </p>
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={occupancyCurveData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="gymOccupancyGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#1D4ED8" stopOpacity={0.4} />
+                      <stop offset="95%" stopColor="#1D4ED8" stopOpacity={0.0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" vertical={false} />
+                  <XAxis dataKey="time" stroke="#6B7280" fontSize={11} tickLine={false} />
+                  <YAxis stroke="#6B7280" fontSize={11} tickLine={false} />
+                  <Tooltip
+                    content={({ active, payload }) => {
+                      if (active && payload && payload.length) {
+                        const item = payload[0].payload;
+                        return (
+                          <div className="bg-[#0A192F] text-[#FBFBF9] p-2.5 text-xs border border-[#162E52] shadow-sm">
+                            <div className="font-bold">{item.time} hrs  {item.label}</div>
+                            <div className="text-emerald-400 font-mono text-sm mt-1">
+                              {item.members} members working out
+                            </div>
                           </div>
-                        </div>
-                      );
-                    }
-                    return null;
-                  }}
-                />
-                <Area
-                  type="monotone"
-                  dataKey="members"
-                  stroke="#1D4ED8"
-                  strokeWidth={2.5}
-                  fillOpacity={1}
-                  fill="url(#gymOccupancyGradient)"
-                />
-              </AreaChart>
-            </ResponsiveContainer>
+                        );
+                      }
+                      return null;
+                    }}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="members"
+                    stroke="#1D4ED8"
+                    strokeWidth={2.5}
+                    fillOpacity={1}
+                    fill="url(#gymOccupancyGradient)"
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </div>
 
@@ -368,27 +403,34 @@ export function DashboardPage() {
           </div>
 
           <div className="h-44 w-full flex items-center justify-center">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={revenueStreamData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={45}
-                  outerRadius={70}
-                  paddingAngle={3}
-                  dataKey="value"
-                >
-                  {revenueStreamData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip
-                  formatter={(val: number) => [`₹${val.toLocaleString('en-IN')}`, 'Revenue']}
-                  contentStyle={{ backgroundColor: '#0A192F', color: '#FBFBF9', border: '1px solid #162E52', fontSize: '11px' }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
+            {totalStreamRevenue === 0 ? (
+              <div className="h-full w-full flex flex-col items-center justify-center border border-dashed border-[#E5E7EB] bg-white text-center p-4">
+                <span className="text-xs font-bold uppercase text-[#0A192F]">No Revenue Streams</span>
+                <span className="text-[11px] text-[#6B7280] mt-1 text-center">0 recorded this month across plans, PT & POS retail</span>
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={revenueStreamData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={45}
+                    outerRadius={70}
+                    paddingAngle={3}
+                    dataKey="value"
+                  >
+                    {revenueStreamData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    formatter={(val: number) => [`${val.toLocaleString('en-IN')}`, 'Revenue']}
+                    contentStyle={{ backgroundColor: '#0A192F', color: '#FBFBF9', border: '1px solid #162E52', fontSize: '11px' }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            )}
           </div>
 
           <div className="space-y-1.5 text-xs pt-1">
@@ -399,7 +441,7 @@ export function DashboardPage() {
                   <span className="text-[#374151] font-medium text-[11px]">{stream.name}</span>
                 </div>
                 <span className="font-mono font-bold text-[#0A192F] text-[11px]">
-                  ₹{stream.value.toLocaleString('en-IN')}
+                  {stream.value.toLocaleString('en-IN')}
                 </span>
               </div>
             ))}
@@ -415,7 +457,7 @@ export function DashboardPage() {
               Financial Performance & Operational Cash Flow
             </h2>
             <p className="text-[11px] text-[#6B7280] mt-0.5">
-              Strict accounting segregation: Invoiced Revenue ≠ Liquid Cash Collections ≠ Net Operating Surplus.
+              Strict accounting segregation: Invoiced Revenue  Liquid Cash Collections  Net Operating Surplus.
             </p>
           </div>
           <Button
@@ -485,19 +527,26 @@ export function DashboardPage() {
             </div>
           </div>
           <div className="h-44 w-full bg-white border border-[#E5E7EB] p-2">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={financialFlowData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#F0F0EA" vertical={false} />
-                <XAxis dataKey="day" stroke="#6B7280" fontSize={11} tickLine={false} />
-                <YAxis stroke="#6B7280" fontSize={10} tickLine={false} />
-                <Tooltip
-                  formatter={(val: number) => [`₹${val.toLocaleString('en-IN')}`, 'Amount']}
-                  contentStyle={{ backgroundColor: '#0A192F', color: '#FBFBF9', border: '1px solid #162E52', fontSize: '11px' }}
-                />
-                <Bar dataKey="collections" fill="#059669" name="Collections" />
-                <Bar dataKey="expenses" fill="#B91C1C" name="Expenses" />
-              </BarChart>
-            </ResponsiveContainer>
+            {financialFlowData.every((d) => d.collections === 0 && d.expenses === 0) ? (
+              <div className="h-full w-full flex flex-col items-center justify-center border border-dashed border-[#E5E7EB] bg-white text-center p-4">
+                <span className="text-xs font-bold uppercase text-[#0A192F]">No Financial Flow In Past 7 Days</span>
+                <span className="text-[11px] text-[#6B7280] mt-1 text-center">Inflow collections and facility outflows will chart here as payments are received.</span>
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={financialFlowData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#F0F0EA" vertical={false} />
+                  <XAxis dataKey="day" stroke="#6B7280" fontSize={11} tickLine={false} />
+                  <YAxis stroke="#6B7280" fontSize={10} tickLine={false} />
+                  <Tooltip
+                    formatter={(val: number) => [`${val.toLocaleString('en-IN')}`, 'Amount']}
+                    contentStyle={{ backgroundColor: '#0A192F', color: '#FBFBF9', border: '1px solid #162E52', fontSize: '11px' }}
+                  />
+                  <Bar dataKey="collections" fill="#059669" name="Collections" />
+                  <Bar dataKey="expenses" fill="#B91C1C" name="Expenses" />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </div>
 
@@ -713,3 +762,5 @@ export function DashboardPage() {
     </div>
   );
 }
+
+

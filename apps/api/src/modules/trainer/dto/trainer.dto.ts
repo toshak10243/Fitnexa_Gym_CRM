@@ -11,6 +11,115 @@ import {
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
+export class CreateTrainerDto {
+  @IsString()
+  @IsNotEmpty()
+  fullName: string;
+
+  @IsString()
+  @IsNotEmpty()
+  email: string;
+
+  @IsString()
+  @IsNotEmpty()
+  phone: string;
+
+  @IsString()
+  @IsOptional()
+  password?: string;
+
+  @IsString()
+  @IsOptional()
+  branchId?: string;
+
+  @IsString()
+  @IsOptional()
+  photoUrl?: string;
+
+  @IsString()
+  @IsOptional()
+  gender?: string;
+
+  @IsString()
+  @IsOptional()
+  dob?: string;
+
+  @IsString()
+  @IsOptional()
+  bloodGroup?: string;
+
+  @IsString()
+  @IsOptional()
+  emergencyContactName?: string;
+
+  @IsString()
+  @IsOptional()
+  emergencyContactPhone?: string;
+
+  @IsString()
+  @IsOptional()
+  address?: string;
+
+  @IsString()
+  @IsOptional()
+  city?: string;
+
+  @IsString()
+  @IsOptional()
+  state?: string;
+
+  @IsString()
+  @IsOptional()
+  pincode?: string;
+
+  @IsString()
+  @IsOptional()
+  dateOfJoining?: string;
+
+  @IsInt()
+  @IsOptional()
+  baseSalaryInPaise?: number;
+
+  @IsInt()
+  @IsOptional()
+  commissionPercentage?: number;
+
+  @IsString()
+  @IsOptional()
+  employmentType?: string;
+
+  @IsString()
+  @IsOptional()
+  shift?: string;
+
+  @IsArray()
+  @IsOptional()
+  specializations?: string[];
+
+  @IsString()
+  @IsOptional()
+  certifications?: string;
+
+  @IsInt()
+  @IsOptional()
+  experienceYears?: number;
+
+  @IsString()
+  @IsOptional()
+  idProofType?: string;
+
+  @IsString()
+  @IsOptional()
+  idProofNumber?: string;
+
+  @IsString()
+  @IsOptional()
+  bio?: string;
+
+  @IsOptional()
+  documents?: any;
+}
+
 export class UpsertTrainerProfileDto {
   @IsString()
   @IsNotEmpty()
@@ -37,6 +146,74 @@ export class UpsertTrainerProfileDto {
   @Max(10000)
   @IsOptional()
   commissionPercentage?: number;
+
+  @IsString()
+  @IsOptional()
+  photoUrl?: string;
+
+  @IsString()
+  @IsOptional()
+  gender?: string;
+
+  @IsString()
+  @IsOptional()
+  dob?: string;
+
+  @IsString()
+  @IsOptional()
+  bloodGroup?: string;
+
+  @IsString()
+  @IsOptional()
+  emergencyContactName?: string;
+
+  @IsString()
+  @IsOptional()
+  emergencyContactPhone?: string;
+
+  @IsString()
+  @IsOptional()
+  address?: string;
+
+  @IsString()
+  @IsOptional()
+  city?: string;
+
+  @IsString()
+  @IsOptional()
+  state?: string;
+
+  @IsString()
+  @IsOptional()
+  pincode?: string;
+
+  @IsString()
+  @IsOptional()
+  dateOfJoining?: string;
+
+  @IsInt()
+  @IsOptional()
+  baseSalaryInPaise?: number;
+
+  @IsString()
+  @IsOptional()
+  employmentType?: string;
+
+  @IsString()
+  @IsOptional()
+  shift?: string;
+
+  @IsInt()
+  @IsOptional()
+  experienceYears?: number;
+
+  @IsString()
+  @IsOptional()
+  idProofType?: string;
+
+  @IsString()
+  @IsOptional()
+  idProofNumber?: string;
 
   @IsBoolean()
   @IsOptional()

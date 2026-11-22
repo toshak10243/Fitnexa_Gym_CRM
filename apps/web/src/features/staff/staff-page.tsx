@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -79,7 +79,7 @@ export function StaffPage() {
       email: '',
       phone: '',
       password: '',
-      role: UserRole.TRAINER,
+      role: UserRole.FRONT_DESK,
       branchId: '',
     },
   });
@@ -88,10 +88,13 @@ export function StaffPage() {
   const selectedFormRole = watch('role') || UserRole.TRAINER;
 
   // Active permissions for the selected role in the form
-  const activeRolePerms =
-    tenant?.rolePermissions?.[selectedFormRole] ??
-    DEFAULT_ROLE_PERMISSIONS[selectedFormRole] ??
-    [];
+  const configuredRolePerms = tenant?.rolePermissions?.[selectedFormRole];
+  const defaultRolePerms = DEFAULT_ROLE_PERMISSIONS[selectedFormRole];
+  const activeRolePerms: string[] = Array.isArray(configuredRolePerms)
+    ? configuredRolePerms
+    : Array.isArray(defaultRolePerms)
+      ? defaultRolePerms
+      : [];
 
   const savePermissionsMutation = useMutation({
     mutationFn: async (updatedPermissions: Record<string, string[]>) => {
@@ -177,8 +180,8 @@ export function StaffPage() {
             onClick={() => setIsPermissionsModalOpen(true)}
             className="border-[#0A192F] text-[#0A192F] hover:bg-[#0A192F] hover:text-[#FBFBF9] font-semibold gap-1.5 inline-flex items-center h-8"
           >
-            <span className="text-emerald-700 font-bold">✓</span>
-            <span className="text-red-700 font-bold">✕</span>
+            <span className="text-emerald-700 font-bold">Allowed</span>
+            <span className="text-red-700 font-bold">Blocked</span>
             <span>Role Permissions Matrix</span>
           </Button>
 
@@ -240,10 +243,9 @@ export function StaffPage() {
                     className="flex h-10 w-full rounded-sm border border-[#D1D5DB] bg-[#FBFBF9] px-3 py-2 text-sm text-[#111827] focus:border-[#0A192F] focus:outline-none"
                     {...register('role')}
                   >
-                    <option value={UserRole.BRANCH_MANAGER}>Branch Manager</option>
                     <option value={UserRole.FRONT_DESK}>Front Desk</option>
-                    <option value={UserRole.TRAINER}>Fitness Trainer</option>
-                    <option value={UserRole.STAFF}>Support Staff</option>
+                    <option value={UserRole.TRAINER}>Trainer</option>
+                    <option value={UserRole.STAFF}>Staff</option>
                   </select>
                 </div>
 
@@ -276,13 +278,6 @@ export function StaffPage() {
                       {activeRolePerms.length} of {ALL_PERMISSIONS.length} allowed
                     </span>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => setIsPermissionsModalOpen(true)}
-                    className="text-[11px] font-semibold text-[#1D4ED8] hover:underline"
-                  >
-                    Edit Matrix (✓/✕) →
-                  </button>
                 </div>
                 <div className="flex flex-wrap gap-1 max-h-20 overflow-y-auto sidebar-scroll">
                   {activeRolePerms.length === 0 ? (
@@ -295,7 +290,7 @@ export function StaffPage() {
                           key={pId}
                           className="text-[10px] font-medium bg-white border border-[#D1D5DB] px-1.5 py-0.5 text-[#374151]"
                         >
-                          ✓ {def?.label || pId}
+                           {def?.label || pId}
                         </span>
                       );
                     })
@@ -354,11 +349,9 @@ export function StaffPage() {
             onChange={(e) => setSelectedRole(e.target.value)}
           >
             <option value="">All Roles</option>
-            <option value={UserRole.GYM_OWNER}>Gym Owner</option>
-            <option value={UserRole.BRANCH_MANAGER}>Branch Manager</option>
             <option value={UserRole.FRONT_DESK}>Front Desk</option>
-            <option value={UserRole.TRAINER}>Fitness Trainer</option>
-            <option value={UserRole.STAFF}>Support Staff</option>
+            <option value={UserRole.TRAINER}>Trainer</option>
+            <option value={UserRole.STAFF}>Staff</option>
           </select>
         </div>
       </div>
@@ -412,7 +405,7 @@ export function StaffPage() {
                     className="text-[11px] px-2.5 py-1 font-semibold rounded-none border border-blue-300 bg-blue-50 text-blue-800 hover:bg-blue-100 transition-colors whitespace-nowrap"
                     title={`Inspect and configure permissions matrix`}
                   >
-                    Permissions (✓/✕)
+                    Permissions
                   </button>
                   {staff.role !== UserRole.GYM_OWNER && (
                     <Button
@@ -444,7 +437,7 @@ export function StaffPage() {
         isOpen={isPermissionsModalOpen}
         onClose={() => setIsPermissionsModalOpen(false)}
         title={tenant ? `Role Permissions Matrix: ${tenant.name}` : 'Role Permissions Matrix'}
-        subtitle={tenant?.slug ? `Facility: ${tenant.slug}.fitnexa.in` : undefined}
+        subtitle={tenant?.slug ? `Facility: ${tenant.slug}.trifit.in` : undefined}
         initialPermissions={tenant?.rolePermissions}
         onSave={async (updatedPermissions) => {
           await savePermissionsMutation.mutateAsync(updatedPermissions);
@@ -454,3 +447,5 @@ export function StaffPage() {
     </div>
   );
 }
+
+

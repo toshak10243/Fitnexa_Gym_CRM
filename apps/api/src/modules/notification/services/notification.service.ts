@@ -25,9 +25,11 @@ export class NotificationService {
   // --------------------------------------------------------------------------
 
   async dispatchNotification(tenantId: string, dto: SendNotificationDto) {
+    const recipientType = dto.recipientType || 'STAFF';
+    const recipientId = dto.recipientId || 'TENANT_BROADCAST';
     const idempotencyKey =
       dto.idempotencyKey ||
-      `${tenantId}:${dto.recipientId}:${dto.type}:${new Date().toISOString().slice(0, 10)}`;
+      `${tenantId}:${recipientId}:${dto.type}:${new Date().toISOString().slice(0, 10)}`;
 
     // 1. Check if identical notification was already queued/sent today
     const existing = await this.prisma.notification.findFirst({
@@ -41,8 +43,8 @@ export class NotificationService {
     const notification = await this.prisma.notification.create({
       data: {
         tenantId,
-        recipientType: dto.recipientType,
-        recipientId: dto.recipientId,
+        recipientType,
+        recipientId,
         type: dto.type,
         channel: dto.channel || 'IN_APP',
         title: dto.title.trim(),

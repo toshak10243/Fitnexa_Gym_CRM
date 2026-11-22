@@ -1,4 +1,4 @@
-import { createPortal } from 'react-dom';
+﻿import { createPortal } from 'react-dom';
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { apiClient } from '../../lib/api-client';
@@ -41,15 +41,25 @@ export function LeadDetailPage() {
   const fetchLeadData = async () => {
     setIsLoading(true);
     try {
-      const [leadRes, planRes] = await Promise.all([
-        apiClient.get(`/leads/${id}`),
-        apiClient.get('/membership-plans'),
-      ]);
-      setLead(leadRes.data.data);
-      setSelectedStage(leadRes.data.data.stage);
-      setPlans(planRes.data.data || []);
+      const leadRes = await apiClient.get(`/leads/${id}`);
+      const leadPayload = leadRes.data?.data && leadRes.data.data !== leadRes.data
+        ? leadRes.data.data
+        : leadRes.data;
+      if (!leadPayload?.id) throw new Error('Lead inquiry was not returned by the server.');
+      setLead(leadPayload);
+      setSelectedStage(leadPayload.stage);
+
+      try {
+        const planRes = await apiClient.get('/membership-plans');
+        const planPayload = planRes.data?.data && planRes.data.data !== planRes.data
+          ? planRes.data.data
+          : planRes.data;
+        setPlans(Array.isArray(planPayload) ? planPayload : planPayload?.items || []);
+      } catch {
+        setPlans([]);
+      }
     } catch {
-      // Handled gracefully
+      setLead(null);
     } finally {
       setIsLoading(false);
     }
@@ -140,10 +150,12 @@ export function LeadDetailPage() {
         pincode: pincode.trim() || undefined,
       });
 
-      const newMember = res.data.data;
-      navigate(`/members/${newMember.id}`);
+      const payload = res.data?.data && res.data.data !== res.data ? res.data.data : res.data;
+      const memberId = payload?.memberId || payload?.id;
+      if (!memberId) throw new Error('Member was created but the server returned no member ID.');
+      navigate(`/members/${memberId}`);
     } catch (err: any) {
-      setConvertError(err?.response?.data?.message || 'Lead conversion failed');
+      setConvertError(err?.response?.data?.message || err?.message || 'Lead conversion failed');
     } finally {
       setIsConverting(false);
     }
@@ -167,7 +179,7 @@ export function LeadDetailPage() {
           className="text-xs border-[#E5E7EB] rounded-none"
           onClick={() => navigate('/leads')}
         >
-          ← Back to Leads
+          Back to Leads
         </Button>
       </div>
     );
@@ -208,14 +220,14 @@ export function LeadDetailPage() {
             className="text-xs border-[#E5E7EB] rounded-none hover:bg-[#F5F5F0]"
             onClick={() => navigate('/leads')}
           >
-            ← Leads List
+            Leads List
           </Button>
           {!isConverted && (
             <Button
               className="bg-[#0A192F] text-[#FBFBF9] hover:bg-[#162E52] text-xs rounded-none px-4 font-bold"
               onClick={() => setIsConvertModalOpen(true)}
             >
-              ✓ One-Click Convert to Member
+              Convert to Member
             </Button>
           )}
         </div>
@@ -405,7 +417,7 @@ export function LeadDetailPage() {
                 className="text-[#6B7280] hover:text-[#0A192F] text-sm font-mono"
                 onClick={() => setIsFollowUpModalOpen(false)}
               >
-                ✕
+                Close
               </button>
             </div>
 
@@ -487,7 +499,7 @@ export function LeadDetailPage() {
                 className="text-[#6B7280] hover:text-[#0A192F] text-sm font-mono"
                 onClick={() => setIsConvertModalOpen(false)}
               >
-                ✕
+                Close
               </button>
             </div>
 
@@ -590,3 +602,5 @@ export function LeadDetailPage() {
     </div>
   );
 }
+
+

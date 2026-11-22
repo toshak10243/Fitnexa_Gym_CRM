@@ -1,7 +1,6 @@
-import { createBrowserRouter } from 'react-router-dom';
+﻿import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { AppShell } from '../components/layout/app-shell';
 import { ProtectedRoute } from '../components/layout/protected-route';
-import { VerificationPage } from '../features/verification/verification-page';
 import { LoginPage } from '../features/auth/login-page';
 import { RegisterPage } from '../features/auth/register-page';
 import { SettingsPage } from '../features/tenant/settings-page';
@@ -35,8 +34,10 @@ import { DeviceDetailPage } from '../features/device/device-detail-page';
 import { DeviceMappingsPage } from '../features/device/device-mappings-page';
 import { InventoryDashboardPage } from '../features/inventory/inventory-dashboard-page';
 import { ProductsPage } from '../features/inventory/products-page';
+import { CategoriesPage } from '../features/inventory/categories-page';
 import { ProductCreatePage } from '../features/inventory/product-create-page';
 import { ProductDetailPage } from '../features/inventory/product-detail-page';
+import { PublicProductPage } from '../features/inventory/public-product-page';
 import { StockMovementsPage } from '../features/inventory/stock-movements-page';
 import { PurchasesPage } from '../features/inventory/purchases-page';
 import { SuppliersPage } from '../features/inventory/suppliers-page';
@@ -57,12 +58,14 @@ import { ExpenseCategoriesPage } from '../features/expense/expense-categories-pa
 import { NotificationsPage } from '../features/notification/notifications-page';
 import { NotificationSettingsPage } from '../features/notification/notification-settings-page';
 import { DashboardPage } from '../features/analytics/dashboard-page';
+import { MasterDashboardPage } from '../features/analytics/master-dashboard-page';
 import { ReportsPage } from '../features/analytics/reports-page';
 import { SuperAdminPage } from '../features/super-admin/super-admin-page';
 import { UserRole } from '@fitnexa/shared';
 import { RouteErrorBoundary } from '../components/ui/route-error-boundary';
 
 export const router = createBrowserRouter([
+  { path: '/public/products/:id', element: <PublicProductPage /> },
   {
     path: '/login',
     element: <LoginPage />,
@@ -96,10 +99,15 @@ export const router = createBrowserRouter([
   {
     path: '/dashboard',
     errorElement: <RouteErrorBoundary />,
+    element: (<ProtectedRoute><AppShell><DashboardPage /></AppShell></ProtectedRoute>),
+  },
+  {
+    path: '/master-dashboard',
+    errorElement: <RouteErrorBoundary />,
     element: (
-      <ProtectedRoute>
+      <ProtectedRoute allowedRoles={[UserRole.GYM_OWNER, UserRole.SUPER_ADMIN, UserRole.BRANCH_MANAGER]}>
         <AppShell>
-          <DashboardPage />
+          <MasterDashboardPage />
         </AppShell>
       </ProtectedRoute>
     ),
@@ -117,14 +125,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '/telemetry',
-    errorElement: <RouteErrorBoundary />,
-    element: (
-      <ProtectedRoute allowedRoles={[UserRole.GYM_OWNER, UserRole.SUPER_ADMIN]}>
-        <AppShell>
-          <VerificationPage />
-        </AppShell>
-      </ProtectedRoute>
-    ),
+    element: <Navigate to="/" replace />,
   },
   {
     path: '/members',
@@ -514,6 +515,7 @@ export const router = createBrowserRouter([
       </ProtectedRoute>
     ),
   },
+  { path: '/inventory/categories', element: <ProtectedRoute allowedRoles={[UserRole.GYM_OWNER, UserRole.BRANCH_MANAGER, UserRole.SUPER_ADMIN]}><AppShell><CategoriesPage /></AppShell></ProtectedRoute> },
   {
     path: '/inventory/products/new',
     errorElement: <RouteErrorBoundary />,
@@ -781,3 +783,5 @@ export const router = createBrowserRouter([
     ),
   },
 ]);
+
+

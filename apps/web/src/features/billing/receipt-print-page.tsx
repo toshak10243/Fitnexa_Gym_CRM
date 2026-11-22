@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { apiClient } from '../../lib/api-client';
 import { Button } from '../../components/ui/button';
 import { Skeleton } from '../../components/ui/skeleton';
 import { formatPaiseToInr } from '../../lib/utils';
 import { useAuth } from '../../context/auth-context';
+import { printHtmlElement } from '../../lib/print-document';
 
 export function ReceiptPrintPage() {
   const { id } = useParams<{ id: string }>();
@@ -34,7 +35,7 @@ export function ReceiptPrintPage() {
   }, [id]);
 
   const handlePrint = () => {
-    window.print();
+    printHtmlElement('printable-receipt-document', `Receipt_${receipt.receiptNumber}`);
   };
 
   if (isLoading) {
@@ -76,7 +77,7 @@ export function ReceiptPrintPage() {
             onClick={() => navigate(-1)}
             className="rounded-none border-[#E5E7EB] text-xs"
           >
-            ← Back
+            â† Back
           </Button>
           <span className="text-xs font-semibold text-[#0A192F]">Print Format:</span>
           <div className="inline-flex border border-[#E5E7EB]">
@@ -129,21 +130,43 @@ export function ReceiptPrintPage() {
 
       {/* A4 Format */}
       {printMode === 'A4' && (
-        <div className="bg-[#FBFBF9] border border-[#E5E7EB] p-8 md:p-12 text-[#111827] print:border-none print:p-0">
+        <div id="printable-receipt-document" className="bg-[#FBFBF9] border border-[#E5E7EB] p-8 md:p-12 text-[#111827] printable-document print:border-none print:p-0">
           {/* Header */}
-          <div className="flex justify-between items-start border-b-2 border-[#0A192F] pb-6">
-            <div>
-              <div className="text-2xl font-bold tracking-tight text-[#0A192F]">
-                {tenant?.name || 'FITNEXA FITNESS CLUB'}
-              </div>
-              <div className="text-xs text-[#4B5563] mt-1 space-y-0.5">
-                <p>Commercial Fitness Center & Health Club</p>
-                <p>GSTIN: <span className="font-mono font-medium">07AAACF1234F1Z5</span></p>
-                <p>Email: billing@fitnexa.in • Phone: +91 98765 43210</p>
+          <div className="flex flex-col md:flex-row justify-between items-start border-b-2 border-[#0A192F] pb-6 gap-4">
+            <div className="flex items-start gap-3.5">
+              {(payment.tenant?.logoUrl || tenant?.logoUrl) ? (
+                <img
+                  src={payment.tenant?.logoUrl || tenant?.logoUrl}
+                  alt="Organization logo"
+                  className="h-16 w-16 object-contain rounded-none border border-[#E5E7EB] bg-white p-1 flex-shrink-0"
+                />
+              ) : (
+                <div className="h-14 w-14 bg-[#0A192F] text-white flex items-center justify-center font-bold text-lg rounded-none flex-shrink-0">
+                  {(payment.tenant?.name || tenant?.name || 'F').charAt(0)}
+                </div>
+              )}
+              <div>
+                <h1 className="text-xl font-extrabold uppercase tracking-wider text-[#0A192F]">
+                  {payment.tenant?.name || tenant?.name || 'Trifit Elite Fitness & Sports Club'}
+                </h1>
+                <p className="text-xs text-[#374151] mt-0.5">
+                  {payment.tenant?.address || tenant?.address}, {payment.tenant?.city || tenant?.city}, {payment.tenant?.state || tenant?.state} - {payment.tenant?.pincode || tenant?.pincode}
+                </p>
+                <div className="text-[11px] font-mono text-[#6B7280] mt-1 flex flex-wrap gap-x-3 gap-y-0.5">
+                  <span>Mobile: <strong className="text-[#111827]">{payment.tenant?.phone || tenant?.phone || '-'}</strong></span>
+                  <span>Email: <strong className="text-[#111827]">{payment.tenant?.email || tenant?.email || '-'}</strong></span>
+                  {(payment.tenant?.website || tenant?.website) && (
+                    <span>Web: <strong className="text-[#111827]">{payment.tenant?.website || tenant?.website}</strong></span>
+                  )}
+                </div>
+                <div className="text-[11px] font-mono text-[#6B7280] mt-0.5 flex flex-wrap gap-x-3">
+                  <span>GSTIN: <strong className="text-[#0A192F]">{payment.tenant?.gstin || tenant?.gstin || 'N/A'}</strong></span>
+                  <span>PAN: <strong className="text-[#0A192F]">{payment.tenant?.pan || tenant?.pan || 'N/A'}</strong></span>
+                </div>
               </div>
             </div>
 
-            <div className="text-right">
+            <div className="text-right flex-shrink-0">
               <div className="inline-block px-3 py-1 bg-[#0A192F] text-[#FBFBF9] text-xs font-bold uppercase tracking-wider">
                 Official Payment Receipt
               </div>
@@ -157,6 +180,9 @@ export function ReceiptPrintPage() {
                   month: 'short',
                   year: 'numeric',
                 })}
+              </div>
+              <div className="text-[10px] font-mono text-[#6B7280] mt-0.5">
+                Currency: {payment.tenant?.currency || tenant?.currency || 'INR'} ()
               </div>
             </div>
           </div>
@@ -266,18 +292,45 @@ export function ReceiptPrintPage() {
             </div>
           </div>
 
+          {/* Social and Communication Contact Row */}
+          <div className="bg-[#FBFBF9] border border-[#E5E7EB] p-3 flex flex-wrap items-center justify-between gap-3 text-xs mt-6 print-avoid-break">
+            <div className="flex flex-wrap items-center gap-4 text-[#374151]">
+              {(payment.tenant?.whatsapp || tenant?.whatsapp) && (
+                <span className="inline-flex items-center gap-1 font-medium">
+                  <span className="font-bold text-[#0A192F]">WhatsApp:</span> {payment.tenant?.whatsapp || tenant?.whatsapp}
+                </span>
+              )}
+              {(payment.tenant?.instagram || tenant?.instagram) && (
+                <span className="inline-flex items-center gap-1 font-medium">
+                  <span className="font-bold text-[#0A192F]">Instagram:</span> {payment.tenant?.instagram || tenant?.instagram}
+                </span>
+              )}
+              {(payment.tenant?.website || tenant?.website) && (
+                <span className="inline-flex items-center gap-1 font-medium">
+                  <span className="font-bold text-[#0A192F]">Web:</span> {payment.tenant?.website || tenant?.website}
+                </span>
+              )}
+              <span className="inline-flex items-center gap-1 font-medium">
+                <span className="font-bold text-[#0A192F]">Helpdesk:</span> {payment.tenant?.email || tenant?.email || payment.tenant?.phone || tenant?.phone}
+              </span>
+            </div>
+            <div className="text-[10px] font-mono text-[#6B7280]">
+              Currency: {payment.tenant?.currency || tenant?.currency || 'INR'}  Timezone: {payment.tenant?.timezone || tenant?.timezone || 'Asia/Kolkata'}
+            </div>
+          </div>
+
           {/* Footer Signature */}
-          <div className="mt-12 pt-8 border-t border-[#E5E7EB] flex justify-between items-end text-xs text-[#6B7280]">
+          <div className="mt-8 pt-6 border-t border-[#E5E7EB] flex justify-between items-end text-xs text-[#6B7280] print-avoid-break">
             <div>
-              <p className="font-mono text-[10px]">
-                Electronic System Generated Document • Fitnexa ERP
+              <p className="font-mono text-[10px] text-[#374151] font-semibold">
+                Electronic System Generated Payment Receipt â€¢ Trifit ERP
               </p>
-              <p className="text-[10px]">Verify at: app.fitnexa.in/billing/verify</p>
+              <p className="text-[10px] text-[#6B7280]">Official record under Section 31(3)(e) of the CGST Act.</p>
             </div>
 
             <div className="text-right border-t border-[#4B5563] pt-1 px-8">
-              <p className="font-semibold text-[#0A192F]">Authorized Signatory</p>
-              <p className="text-[10px]">{tenant?.name || 'Fitnexa Fitness Club'}</p>
+              <p className="font-bold text-[#0A192F]">Authorized Signatory</p>
+              <p className="text-[10px]">{payment.tenant?.name || tenant?.name || 'Trifit Elite Fitness & Sports Club'}</p>
             </div>
           </div>
         </div>
@@ -287,7 +340,7 @@ export function ReceiptPrintPage() {
       {printMode === 'THERMAL' && (
         <div className="mx-auto w-[320px] bg-[#FBFBF9] border border-[#E5E7EB] p-4 text-[#111827] font-mono text-xs print:border-none print:w-full print:p-0">
           <div className="text-center border-b border-dashed border-[#111827] pb-3 mb-3">
-            <div className="font-bold text-sm uppercase">{tenant?.name || 'FITNEXA GYM'}</div>
+            <div className="font-bold text-sm uppercase">{tenant?.name || 'TRIFIT GYM'}</div>
             <div className="text-[10px] text-[#4B5563]">GSTIN: 07AAACF1234F1Z5</div>
             <div className="text-[10px] text-[#4B5563]">Ph: +91 98765 43210</div>
             <div className="font-bold mt-2 text-xs">*** RECEIPT ***</div>
@@ -351,7 +404,7 @@ export function ReceiptPrintPage() {
           </div>
 
           <div className="text-center text-[10px] border-t border-dashed border-[#111827] pt-3 text-[#4B5563]">
-            <p>Thank you for choosing Fitnexa!</p>
+            <p>Thank you for choosing Trifit!</p>
             <p>Keep this receipt for records.</p>
           </div>
         </div>
@@ -359,3 +412,5 @@ export function ReceiptPrintPage() {
     </div>
   );
 }
+
+

@@ -7,8 +7,9 @@ import {
   Min,
   IsNumber,
   IsBoolean,
+  IsDateString,
 } from 'class-validator';
-import { Type } from 'class-transformer';
+import { Type, Transform } from 'class-transformer';
 import { ProductUnit } from '@fitnexa/shared';
 
 export class CreateProductCategoryDto {
@@ -23,6 +24,10 @@ export class CreateProductCategoryDto {
   @IsString()
   @IsOptional()
   description?: string;
+
+  @IsString()
+  @IsOptional()
+  imageUrl?: string;
 }
 
 export class CreateProductDto {
@@ -37,6 +42,10 @@ export class CreateProductDto {
   @IsString()
   @IsOptional()
   barcode?: string;
+
+  @IsString()
+  @IsOptional()
+  photoUrl?: string;
 
   @IsString()
   @IsNotEmpty()
@@ -59,6 +68,12 @@ export class CreateProductDto {
   sellingPriceInPaise: number;
 
   @IsNumber()
+  @Min(0)
+  @IsOptional()
+  @Type(() => Number)
+  discountPercentage?: number;
+
+  @IsNumber()
   @IsOptional()
   @Type(() => Number)
   taxRatePercentage?: number;
@@ -71,9 +86,27 @@ export class CreateProductDto {
   @Min(0)
   @IsOptional()
   reorderThreshold?: number;
+
+  @IsDateString()
+  manufacturingDate: string;
+
+  @IsDateString()
+  expiryDate: string;
 }
 
 export class UpdateProductDto {
+  @IsString()
+  @IsOptional()
+  sku?: string;
+
+  @IsString()
+  @IsOptional()
+  barcode?: string;
+
+  @IsString()
+  @IsOptional()
+  photoUrl?: string;
+
   @IsString()
   @IsOptional()
   categoryId?: string;
@@ -101,6 +134,12 @@ export class UpdateProductDto {
   sellingPriceInPaise?: number;
 
   @IsNumber()
+  @Min(0)
+  @IsOptional()
+  @Type(() => Number)
+  discountPercentage?: number;
+
+  @IsNumber()
   @IsOptional()
   @Type(() => Number)
   taxRatePercentage?: number;
@@ -108,6 +147,14 @@ export class UpdateProductDto {
   @IsString()
   @IsOptional()
   hsnCode?: string;
+
+  @IsDateString()
+  @IsOptional()
+  manufacturingDate?: string;
+
+  @IsDateString()
+  @IsOptional()
+  expiryDate?: string;
 
   @IsInt()
   @Min(0)
@@ -129,6 +176,7 @@ export class ProductQueryDto {
   search?: string;
 
   @IsOptional()
+  @Transform(({ value }) => value === true || value === 'true')
   isLowStock?: boolean;
 
   @IsOptional()

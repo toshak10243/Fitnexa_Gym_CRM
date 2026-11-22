@@ -6,11 +6,15 @@ import {
   Min,
   IsEnum,
   IsBoolean,
+  IsIn,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { PaymentMethodType } from '@fitnexa/shared';
 
 export class CreateRenewalDto {
+  @IsOptional()
+  @IsIn(['FULL', 'INSTALLMENT', 'PAY_LATER'])
+  settlementMode?: 'FULL' | 'INSTALLMENT' | 'PAY_LATER';
   @ApiProperty({ example: 'member-uuid-123' })
   @IsString()
   @IsNotEmpty()

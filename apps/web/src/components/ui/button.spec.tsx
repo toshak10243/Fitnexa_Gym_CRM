@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+﻿import { render, screen } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
 import { Button } from './button';
 
@@ -17,3 +17,5 @@ describe('Button Component', () => {
     expect(button.querySelector('svg')).toBeInTheDocument();
   });
 });
+
+

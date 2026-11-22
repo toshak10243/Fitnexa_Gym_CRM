@@ -1,4 +1,4 @@
-import { Component, ErrorInfo, ReactNode } from 'react';
+﻿import { Component, ErrorInfo, ReactNode } from 'react';
 import { Button } from './button';
 
 interface Props {
@@ -21,7 +21,7 @@ export class GlobalErrorBoundary extends Component<Props, State> {
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('Fitnexa Global Error Boundary caught exception:', error, errorInfo);
+    console.error('Trifit Global Error Boundary caught exception:', error, errorInfo);
   }
 
   private handleReset = () => {
@@ -41,7 +41,7 @@ export class GlobalErrorBoundary extends Component<Props, State> {
               </h1>
             </div>
             <p className="text-xs text-[#4B5563] leading-relaxed mb-4">
-              An unexpected client error occurred in the Fitnexa management console.
+              An unexpected client error occurred in the Trifit management console.
               The error state has been isolated to prevent corruption of unsaved data.
             </p>
             {this.state.error && (
@@ -62,3 +62,5 @@ export class GlobalErrorBoundary extends Component<Props, State> {
     return this.props.children;
   }
 }
+
+

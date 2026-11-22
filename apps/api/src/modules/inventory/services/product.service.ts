@@ -20,10 +20,14 @@ export class ProductService {
   // --------------------------------------------------------------------------
 
   async getCategories(tenantId: string) {
-    return this.prisma.productCategory.findMany({
+    const categories = await this.prisma.productCategory.findMany({
       where: { tenantId, isActive: true },
       orderBy: { name: 'asc' },
     });
+    return Promise.all(categories.map(async (category) => ({
+      ...category,
+      _count: { products: await this.prisma.product.count({ where: { tenantId, categoryId: category.id, isActive: true } }) },
+    })));
   }
 
   async createCategory(tenantId: string, dto: CreateProductCategoryDto) {
@@ -40,8 +44,23 @@ export class ProductService {
         name: dto.name.trim(),
         code: dto.code.trim().toUpperCase(),
         description: dto.description?.trim(),
+        imageUrl: dto.imageUrl?.trim() || null,
       },
     });
+  }
+
+  async updateCategory(tenantId: string, id: string, dto: CreateProductCategoryDto) {
+    const category = await this.prisma.productCategory.findFirst({ where: { id, tenantId, isActive: true } });
+    if (!category) throw new NotFoundException('Category not found.');
+    return this.prisma.productCategory.update({ where: { id }, data: { name: dto.name.trim(), code: dto.code.trim().toUpperCase(), description: dto.description?.trim(), imageUrl: dto.imageUrl?.trim() || null } });
+  }
+
+  async deleteCategory(tenantId: string, id: string) {
+    const category = await this.prisma.productCategory.findFirst({ where: { id, tenantId, isActive: true } });
+    if (!category) throw new NotFoundException('Category not found.');
+    const products = await this.prisma.product.count({ where: { tenantId, categoryId: id, isActive: true } });
+    if (products) throw new ConflictException('Category cannot be deleted while products are assigned to it.');
+    return this.prisma.productCategory.update({ where: { id }, data: { isActive: false } });
   }
 
   // --------------------------------------------------------------------------
@@ -73,16 +92,20 @@ export class ProductService {
         categoryId: dto.categoryId,
         sku,
         barcode: dto.barcode?.trim() || null,
+        photoUrl: dto.photoUrl?.trim() || null,
         name: dto.name.trim(),
         description: dto.description?.trim() || null,
         unit: dto.unit || 'PIECES',
         costPriceInPaise: dto.costPriceInPaise,
         sellingPriceInPaise: dto.sellingPriceInPaise,
+        discountPercentage: dto.discountPercentage ?? 0,
         taxRatePercentage: dto.taxRatePercentage !== undefined ? dto.taxRatePercentage : 18.0,
         hsnCode: dto.hsnCode?.trim() || null,
         reorderThreshold: dto.reorderThreshold !== undefined ? dto.reorderThreshold : 5,
+        manufacturingDate: new Date(dto.manufacturingDate),
+        expiryDate: new Date(dto.expiryDate),
         isActive: true,
-      },
+      } as any,
       include: {
         category: true,
       },
@@ -101,16 +124,22 @@ export class ProductService {
       where: { id: productId },
       data: {
         categoryId: dto.categoryId,
+        sku: dto.sku?.trim().toUpperCase(),
+        barcode: dto.barcode?.trim() || null,
+        photoUrl: dto.photoUrl?.trim(),
         name: dto.name?.trim(),
         description: dto.description?.trim(),
         unit: dto.unit,
         costPriceInPaise: dto.costPriceInPaise,
         sellingPriceInPaise: dto.sellingPriceInPaise,
+        discountPercentage: dto.discountPercentage,
         taxRatePercentage: dto.taxRatePercentage,
         hsnCode: dto.hsnCode?.trim(),
         reorderThreshold: dto.reorderThreshold,
+        manufacturingDate: dto.manufacturingDate ? new Date(dto.manufacturingDate) : undefined,
+        expiryDate: dto.expiryDate ? new Date(dto.expiryDate) : undefined,
         isActive: dto.isActive,
-      },
+      } as any,
       include: {
         category: true,
       },
@@ -140,6 +169,22 @@ export class ProductService {
       currentStock,
       isLowStock: currentStock <= product.reorderThreshold,
     };
+  }
+
+  async getPublicProductById(productId: string) {
+    const product = await this.prisma.product.findFirst({
+      where: { id: productId, isActive: true },
+      select: { id: true, name: true, description: true, sku: true, barcode: true, photoUrl: true, unit: true, costPriceInPaise: true, sellingPriceInPaise: true, taxRatePercentage: true, hsnCode: true, category: { select: { name: true } } },
+    });
+    if (!product) throw new NotFoundException('Product not found.');
+    const stockAgg = await this.prisma.stockMovement.aggregate({ where: { productId }, _sum: { quantityDelta: true } });
+    return { ...product, currentStock: stockAgg._sum.quantityDelta || 0 };
+  }
+
+  async deleteProduct(tenantId: string, productId: string) {
+    const product = await this.prisma.product.findFirst({ where: { id: productId, tenantId } });
+    if (!product) throw new NotFoundException('Product not found');
+    return this.prisma.product.update({ where: { id: productId }, data: { isActive: false } });
   }
 
   async getProducts(tenantId: string, query: ProductQueryDto) {
@@ -207,3 +252,5 @@ export class ProductService {
     };
   }
 }
+
+

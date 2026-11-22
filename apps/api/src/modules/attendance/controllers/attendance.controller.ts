@@ -3,6 +3,7 @@ import {
   Get,
   Post,
   Put,
+  Delete,
   Body,
   Param,
   Query,
@@ -138,6 +139,17 @@ export class AttendanceController {
     return this.attendanceService.approveCorrection(tenantId, userId, id);
   }
 
+  @Post('corrections/:id/reject')
+  @Roles(UserRole.GYM_OWNER, UserRole.BRANCH_MANAGER, UserRole.SUPER_ADMIN)
+  @ApiOperation({ summary: 'Reject attendance correction' })
+  async rejectCorrection(
+    @CurrentUser('tenantId') tenantId: string,
+    @CurrentUser('userId') userId: string,
+    @Param('id') id: string,
+  ) {
+    return this.attendanceService.rejectCorrection(tenantId, userId, id);
+  }
+
   @Get('corrections')
   @Roles(
     UserRole.GYM_OWNER,
@@ -148,6 +160,12 @@ export class AttendanceController {
   @ApiOperation({ summary: 'List attendance correction requests' })
   async listCorrections(@CurrentUser('tenantId') tenantId: string) {
     return this.attendanceService.listCorrections(tenantId);
+  }
+
+  @Delete('corrections/:id')
+  @Roles(UserRole.GYM_OWNER, UserRole.BRANCH_MANAGER, UserRole.SUPER_ADMIN)
+  async deleteCorrection(@CurrentUser('tenantId') tenantId: string, @Param('id') id: string) {
+    return this.attendanceService.deleteCorrection(tenantId, id);
   }
 
   @Get('policy')

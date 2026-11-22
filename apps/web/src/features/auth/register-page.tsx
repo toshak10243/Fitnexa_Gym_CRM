@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Link, useNavigate } from 'react-router-dom';
@@ -50,11 +50,11 @@ export function RegisterPage() {
         {/* Brand Header */}
         <div className="flex items-center space-x-3 border-b border-[#E5E7EB] pb-4 mb-6">
           <div className="h-10 w-10 flex-shrink-0 flex items-center justify-center overflow-hidden rounded-sm bg-white p-1 border border-[#E5E7EB]">
-            <img src={fitnexaLogo} alt="Fitnexa Logo" className="h-full w-full object-contain" />
+            <img src={fitnexaLogo} alt="Trifit Logo" className="h-full w-full object-contain" />
           </div>
           <div>
             <h1 className="text-base font-bold text-[#0A192F] tracking-wide uppercase">
-              Fitnexa Gym Onboarding
+              Trifit Gym Onboarding
             </h1>
             <p className="text-[11px] text-[#6B7280]">
               Register Your Commercial Fitness Enterprise & Primary Owner Account
@@ -174,3 +174,5 @@ export function RegisterPage() {
     </div>
   );
 }
+
+

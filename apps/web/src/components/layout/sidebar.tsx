@@ -1,4 +1,4 @@
-import { UserRole, DEFAULT_ROLE_PERMISSIONS } from '@fitnexa/shared';
+﻿import { UserRole, DEFAULT_ROLE_PERMISSIONS } from '@fitnexa/shared';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '../../lib/utils';
 import { useAuth } from '../../context/auth-context';
@@ -6,7 +6,7 @@ import fitnexaLogo from '../../assets/logo.png';
 
 export function Sidebar() {
   const location = useLocation();
-  const { tenant, user } = useAuth();
+  const { tenant, user, logout } = useAuth();
   const userRole = user?.role;
 
   const coreNavItems = [
@@ -58,30 +58,6 @@ export function Sidebar() {
           <line x1="18" y1="20" x2="18" y2="10" />
           <line x1="12" y1="20" x2="12" y2="4" />
           <line x1="6" y1="20" x2="6" y2="14" />
-        </svg>
-      ),
-    },
-    {
-      label: 'System Telemetry',
-      path: '/telemetry',
-      roles: ['SUPER_ADMIN', 'GYM_OWNER'],
-      module: 'ANALYTICS',
-      permission: 'TELEMETRY',
-      enabled: true,
-      icon: (
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          aria-hidden="true"
-        >
-          <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
         </svg>
       ),
     },
@@ -693,6 +669,17 @@ export function Sidebar() {
       ),
     },
     {
+      label: 'Product Categories',
+      path: '/inventory/categories',
+      roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER'],
+      module: 'INVENTORY',
+      permission: 'RETAIL_CATALOG',
+      enabled: true,
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="M4 5h16v14H4z"/><path d="M8 9h8M8 13h5"/></svg>
+      ),
+    },
+    {
       label: 'POS Counter',
       path: '/pos',
       roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER', 'FRONT_DESK'],
@@ -768,6 +755,32 @@ export function Sidebar() {
       ),
     },
     {
+      label: 'Suppliers Directory',
+      path: '/inventory/suppliers',
+      roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER'],
+      module: 'INVENTORY',
+      permission: 'SUPPLIERS',
+      enabled: true,
+      icon: (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+          <circle cx="8.5" cy="7" r="4" />
+          <polyline points="17 11 19 13 23 9" />
+        </svg>
+      ),
+    },
+    {
       label: 'Purchase Orders',
       path: '/inventory/purchases',
       roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER'],
@@ -791,32 +804,6 @@ export function Sidebar() {
           <polyline points="14 2 14 8 20 8" />
           <line x1="12" y1="18" x2="12" y2="12" />
           <line x1="9" y1="15" x2="15" y2="15" />
-        </svg>
-      ),
-    },
-    {
-      label: 'Suppliers Directory',
-      path: '/inventory/suppliers',
-      roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER'],
-      module: 'INVENTORY',
-      permission: 'SUPPLIERS',
-      enabled: true,
-      icon: (
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          aria-hidden="true"
-        >
-          <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-          <circle cx="8.5" cy="7" r="4" />
-          <polyline points="17 11 19 13 23 9" />
         </svg>
       ),
     },
@@ -872,8 +859,11 @@ export function Sidebar() {
         </svg>
       ),
     },
+  ];
+
+  const trainerNavItems = [
     {
-      label: 'Trainer Profiles',
+      label: 'Trainers',
       path: '/trainers',
       roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER', 'FRONT_DESK', 'TRAINER'],
       module: 'TRAINERS',
@@ -892,7 +882,10 @@ export function Sidebar() {
           strokeLinejoin="round"
           aria-hidden="true"
         >
-          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+          <circle cx="9" cy="7" r="4" />
+          <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+          <path d="M16 3.13a4 4 0 0 1 0 7.75" />
         </svg>
       ),
     },
@@ -1054,7 +1047,7 @@ export function Sidebar() {
   };
 
   return (
-    <aside className="w-64 flex-shrink-0 bg-[#0A192F] text-[#FBFBF9] flex flex-col border-r border-[#162E52] select-none">
+    <aside className="w-64 h-screen min-h-0 flex-shrink-0 bg-[#0A192F] text-[#FBFBF9] flex flex-col border-r border-[#162E52] select-none overflow-hidden">
       {/* Brand Header */}
       <div className="h-16 flex items-center px-4 border-b border-[#162E52] space-x-3">
         <div className="h-9 w-9 flex-shrink-0 flex items-center justify-center overflow-hidden rounded-sm bg-white/10 p-0.5 border border-[#162E52]">
@@ -1067,14 +1060,14 @@ export function Sidebar() {
           ) : (
             <img
               src={fitnexaLogo}
-              alt="Fitnexa Logo"
+              alt="Trifit Logo"
               className="h-full w-full object-contain"
             />
           )}
         </div>
         <div className="flex flex-col min-w-0">
-          <span className="font-bold text-sm tracking-wider uppercase text-[#FBFBF9] truncate" title={tenant?.name || 'Fitnexa'}>
-            {tenant?.name || 'Fitnexa Gym'}
+          <span className="font-bold text-sm tracking-wider uppercase text-[#FBFBF9] truncate" title={tenant?.name || 'Trifit'}>
+            {tenant?.name || 'Trifit Gym'}
           </span>
           <span className="text-[10px] text-[#9CA3AF] tracking-tight uppercase">
             Gym Management CRM
@@ -1083,28 +1076,31 @@ export function Sidebar() {
       </div>
 
       {/* Navigation */}
-      <div className="flex-1 py-4 px-3 overflow-y-auto sidebar-scroll">
-        {renderNavGroup('Administration', coreNavItems)}
+      <div className="flex-1 min-h-0 py-4 px-3 overflow-y-auto sidebar-scroll">
+        {renderNavGroup('Overview', [{ ...coreNavItems[0], label: 'Master Dashboard', path: '/master-dashboard', roles: ['SUPER_ADMIN', 'GYM_OWNER', 'BRANCH_MANAGER'] }])}
         {renderNavGroup('Member Operations', memberNavItems, 'MEMBERS')}
         {renderNavGroup('Billing & Finance', billingNavItems, 'BILLING')}
+        {renderNavGroup('Trainers & Coaching', trainerNavItems, 'TRAINERS')}
+        {renderNavGroup('Inventory & Retail POS', inventoryNavItems, 'INVENTORY')}
+        {renderNavGroup('Lead Management & CRM', crmNavItems, 'CRM')}
         {renderNavGroup('Attendance & Check-in', attendanceNavItems, 'ATTENDANCE')}
         {renderNavGroup('Biometric Terminals', deviceNavItems, 'DEVICES')}
-        {renderNavGroup('Inventory & Retail POS', inventoryNavItems, 'INVENTORY')}
-        {renderNavGroup('Leads CRM & Trainers', crmNavItems, 'CRM')}
+        {renderNavGroup('Administration', coreNavItems)}
         {renderNavGroup('Expenses & Notifications', operationsNavItems)}
       </div>
 
-      {/* Footer Info */}
-      <div className="p-4 border-t border-[#162E52] text-[11px] text-[#9CA3AF]">
-        <div className="flex justify-between items-center">
-          <span>Release</span>
-          <span className="font-mono text-[10px] text-[#E5E7EB]">Phase 6 Enterprise</span>
-        </div>
-        <div className="flex justify-between items-center mt-1">
-          <span>Analytics Engine</span>
-          <span className="font-mono text-[10px] text-[#34D399]">Telemetry Active</span>
-        </div>
+      <div className="border-t border-[#162E52] p-3">
+        <button
+          type="button"
+          onClick={logout}
+          className="w-full h-9 border border-[#B91C1C] text-[#FCA5A5] text-xs font-semibold rounded-none hover:bg-[#B91C1C] hover:text-[#FBFBF9] focus-visible:outline-2 focus-visible:outline-[#FBFBF9]"
+        >
+          Sign Out
+        </button>
       </div>
+
     </aside>
   );
 }
+
+

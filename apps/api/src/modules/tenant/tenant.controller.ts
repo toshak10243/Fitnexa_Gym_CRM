@@ -76,9 +76,12 @@ export class TenantController {
           cb(null, cleanName);
         },
       }),
-      limits: { fileSize: 3 * 1024 * 1024 },
+      limits: { fileSize: 5 * 1024 * 1024 },
       fileFilter: (_req, file, cb) => {
-        if (!file.mimetype.match(/\/(jpg|jpeg|png|webp|svg\+xml)$/i)) {
+        const ext = path.extname(file.originalname).toLowerCase();
+        const validExt = ['.jpg', '.jpeg', '.png', '.webp', '.svg'].includes(ext);
+        const validMime = /image\/(jpeg|jpg|png|webp|svg\+xml|svg|x-png)/i.test(file.mimetype);
+        if (!validExt && !validMime) {
           return cb(
             new BadRequestException('Only JPG, PNG, WebP, or SVG logo files are permitted.'),
             false,

@@ -1,4 +1,4 @@
-import { createPortal } from 'react-dom';
+﻿import { createPortal } from 'react-dom';
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../../lib/api-client';
@@ -40,13 +40,12 @@ export function DuesPage() {
     setIsLoading(true);
     try {
       const params = new URLSearchParams();
-      if (selectedAging) params.append('aging', selectedAging);
+      if (selectedAging) params.append('agingBucket', selectedAging);
 
       const res = await apiClient.get(`/billing/dues?${params.toString()}`);
-      if (res.data.success) {
-        setDuesData(res.data.data.items || []);
-        setSummary(res.data.data.summary);
-      }
+      const payload = res.data?.data || res.data;
+      setDuesData(payload?.items || []);
+      setSummary(payload?.summary || null);
     } catch {
       // Handled gracefully
     } finally {
@@ -335,7 +334,7 @@ export function DuesPage() {
                           {inv.member?.firstName} {inv.member?.lastName}
                         </div>
                         <div className="text-[10px] font-mono text-[#6B7280]">
-                          {inv.member?.memberCode} • {inv.member?.mobile}
+                          {inv.member?.memberCode}  {inv.member?.mobile}
                         </div>
                       </td>
                       <td className="py-3 px-4 text-[#4B5563]">
@@ -397,7 +396,7 @@ export function DuesPage() {
             <div className="border-b border-[#E5E7EB] pb-3">
               <h3 className="text-base font-bold text-[#0A192F]">Collect Outstanding Due</h3>
               <p className="text-xs text-[#6B7280] mt-0.5">
-                Invoice {selectedInvoice.invoiceNumber} • {selectedInvoice.member?.firstName}{' '}
+                Invoice {selectedInvoice.invoiceNumber}  {selectedInvoice.member?.firstName}{' '}
                 {selectedInvoice.member?.lastName}
               </p>
             </div>
@@ -422,7 +421,7 @@ export function DuesPage() {
 
               <div>
                 <label className="block text-xs font-semibold text-[#0A192F] uppercase tracking-wider mb-1">
-                  Collection Amount (₹) *
+                  Collection Amount (â‚¹) *
                 </label>
                 <Input
                   type="number"
@@ -509,7 +508,7 @@ export function DuesPage() {
             <div className="border-b border-[#E5E7EB] pb-3">
               <h3 className="text-base font-bold text-[#0A192F]">Extend Payment Due Date</h3>
               <p className="text-xs text-[#6B7280] mt-0.5">
-                Invoice {selectedInvoice.invoiceNumber} • {selectedInvoice.member?.firstName}{' '}
+                Invoice {selectedInvoice.invoiceNumber}  {selectedInvoice.member?.firstName}{' '}
                 {selectedInvoice.member?.lastName}
               </p>
             </div>
@@ -580,3 +579,5 @@ export function DuesPage() {
     </div>
   );
 }
+
+

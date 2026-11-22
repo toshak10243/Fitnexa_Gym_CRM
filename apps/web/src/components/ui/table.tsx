@@ -1,4 +1,4 @@
-import * as React from 'react';
+﻿import * as React from 'react';
 import { cn } from '../../lib/utils';
 
 export const Table = React.forwardRef<
@@ -83,3 +83,5 @@ export const TableCell = React.forwardRef<
   />
 ));
 TableCell.displayName = 'TableCell';
+
+

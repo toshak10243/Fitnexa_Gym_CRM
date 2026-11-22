@@ -13,6 +13,8 @@ import {
   ConvertLeadDto,
 } from '../dto/lead.dto';
 import { LeadStage, MemberStatus } from '@fitnexa/shared';
+import { MembershipStatus } from '@prisma/client';
+import { calculateMembershipEndDate } from '../../../common/utils/date.util';
 
 @Injectable()
 export class CrmService {
@@ -89,6 +91,14 @@ export class CrmService {
 
   async createLead(tenantId: string, userId: string, dto: CreateLeadDto) {
     const phone = dto.phone.trim();
+
+    const branch = await this.prisma.branch.findFirst({
+      where: { id: dto.branchId, tenantId },
+      select: { id: true },
+    });
+    if (!branch) {
+      throw new BadRequestException('Select a valid gym branch for this inquiry.');
+    }
 
     // 1. Check if phone is already a registered active member
     const existingMember = await this.prisma.member.findFirst({
@@ -326,6 +336,52 @@ export class CrmService {
           createdBy: userId,
         },
       });
+
+      if (dto.planId) {
+        const plan = await tx.membershipPlan.findFirst({
+          where: { id: dto.planId, tenantId, isActive: true },
+        });
+        if (!plan) throw new BadRequestException('Selected membership plan not found or inactive.');
+
+        const startDate = dto.joiningDate ? new Date(dto.joiningDate) : new Date();
+        const endDate = calculateMembershipEndDate(startDate, plan.durationType, plan.durationValue);
+        const taxPaidInPaise = plan.isTaxInclusive
+          ? Math.round((plan.priceInPaise * plan.taxRateBps) / (10000 + plan.taxRateBps))
+          : Math.round((plan.priceInPaise * plan.taxRateBps) / 10000);
+
+        const membership = await tx.memberMembership.create({
+          data: {
+            tenantId,
+            memberId: member.id,
+            planId: plan.id,
+            branchId: lead.branchId,
+            startDate,
+            endDate,
+            pricePaidInPaise: plan.priceInPaise,
+            taxPaidInPaise,
+            status: MembershipStatus.ACTIVE,
+            assignedBy: userId,
+          },
+        });
+        await tx.membershipStatusHistory.create({
+          data: {
+            memberMembershipId: membership.id,
+            fromStatus: MembershipStatus.PENDING,
+            toStatus: MembershipStatus.ACTIVE,
+            reason: 'Initial Plan Enrollment from CRM Lead',
+            changedBy: userId,
+          },
+        });
+        await tx.memberActivity.create({
+          data: {
+            tenantId,
+            memberId: member.id,
+            performedBy: userId,
+            action: 'MEMBERSHIP_ENROLLED',
+            details: { planName: plan.name, pricePaidInPaise: plan.priceInPaise },
+          },
+        });
+      }
 
       // 2. Add residential address if provided
       if (dto.addressLine1) {

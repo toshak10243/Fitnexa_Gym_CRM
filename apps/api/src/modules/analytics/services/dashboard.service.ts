@@ -1,10 +1,42 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../../database/prisma.service';
 import { RedisService } from '../../redis/redis.service';
 import { DashboardMetricsDto } from '@fitnexa/shared';
 
 @Injectable()
 export class DashboardService {
+  async getMasterDashboard(tenantId: string, branchId: string | undefined, from: string, to: string) {
+    const start = new Date(`${from}T00:00:00+05:30`);
+    const end = new Date(`${to}T23:59:59.999+05:30`);
+    if (!Number.isFinite(start.getTime()) || !Number.isFinite(end.getTime()) || end < start || end.getTime() - start.getTime() > 93 * 86400000) {
+      throw new BadRequestException('Choose a valid date range of up to 93 days.');
+    }
+    if (branchId && !await this.prisma.branch.findFirst({ where: { id: branchId, tenantId }, select: { id: true } })) throw new BadRequestException('Invalid branch');
+    const scope = { tenantId, ...(branchId ? { branchId } : {}) };
+    const range = { gte: start, lte: end };
+    const [members, payments, expenses, leads, visits, sessions, products, purchases, devices, staff, invoices] = await Promise.all([
+      this.prisma.member.count({ where: { ...scope, NOT: { memberCode: 'MEM-WALKIN-RETAIL' } } }),
+      this.prisma.payment.findMany({ where: { ...scope, paymentDate: range, status: 'VERIFIED' }, select: { paymentDate: true, amountInPaise: true, method: true } }),
+      this.prisma.expense.findMany({ where: { ...scope, expenseDate: range }, select: { expenseDate: true, amountInPaise: true, status: true, category: { select: { name: true } } } }),
+      this.prisma.lead.groupBy({ by: ['stage'], where: { ...scope, createdAt: range }, _count: true }),
+      this.prisma.memberAttendance.findMany({ where: { ...scope, timestamp: range, direction: 'CHECK_IN' }, select: { timestamp: true } }),
+      this.prisma.trainingSession.groupBy({ by: ['status'], where: { ...scope, scheduledAt: range }, _count: true }),
+      this.prisma.product.count({ where: { tenantId, isActive: true } }),
+      this.prisma.purchaseOrder.count({ where: { ...scope, createdAt: range } }),
+      this.prisma.device.count({ where: scope }),
+      this.prisma.user.count({ where: scope }),
+      this.prisma.invoice.findMany({ where: { ...scope, invoiceDate: range, status: { not: 'VOID' } }, select: { invoiceNumber: true, grandTotalInPaise: true, balanceDueInPaise: true } }),
+    ]);
+    const daily = new Map<string, { date: string; collections: number; expenses: number; visits: number }>();
+    const key = (date: Date) => new Date(date.getTime() + 19800000).toISOString().slice(0, 10);
+    for (let date = new Date(start); date <= end; date = new Date(date.getTime() + 86400000)) { const day = key(date); daily.set(day, { date: day, collections: 0, expenses: 0, visits: 0 }); }
+    const categories: Record<string, number> = {};
+    const methods: Record<string, number> = {};
+    payments.forEach(p => { const row = daily.get(key(p.paymentDate)); if (row) row.collections += p.amountInPaise; methods[p.method] = (methods[p.method] || 0) + p.amountInPaise; });
+    expenses.filter(e => e.status === 'APPROVED').forEach(e => { const row = daily.get(key(e.expenseDate)); if (row) row.expenses += e.amountInPaise; categories[e.category.name] = (categories[e.category.name] || 0) + e.amountInPaise; });
+    visits.forEach(v => { const row = daily.get(key(v.timestamp)); if (row) row.visits++; });
+    return { updatedAt: new Date().toISOString(), members, products, purchases, devices, staff, collections: payments.reduce((s, p) => s + p.amountInPaise, 0), approvedExpenses: expenses.filter(e => e.status === 'APPROVED').reduce((s, e) => s + e.amountInPaise, 0), pendingExpenses: expenses.filter(e => e.status === 'PENDING_APPROVAL').reduce((s, e) => s + e.amountInPaise, 0), posSales: invoices.filter(i => i.invoiceNumber.startsWith('INV-POS')).reduce((s, i) => s + i.grandTotalInPaise, 0), dues: invoices.reduce((s, i) => s + i.balanceDueInPaise, 0), daily: [...daily.values()], categories: Object.entries(categories).map(([name, amount]) => ({ name, amount })), methods: Object.entries(methods).map(([name, amount]) => ({ name, amount })), leads: leads.map(l => ({ name: l.stage, count: l._count })), sessions: sessions.map(s => ({ name: s.status, count: s._count })) };
+  }
   private readonly logger = new Logger(DashboardService.name);
   private readonly CACHE_TTL_SECONDS = 60;
 
@@ -325,7 +357,7 @@ export class DashboardService {
       attendance: {
         todayCheckIns,
         currentOccupancy,
-        peakHour: '06:00 - 09:00',
+        peakHour: todayCheckIns > 0 ? '06:00 - 09:00' : 'None',
         staffOnDuty,
       },
       financials: {

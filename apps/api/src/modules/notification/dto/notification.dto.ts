@@ -9,12 +9,12 @@ import { NotificationChannel, NotificationType } from '@fitnexa/shared';
 
 export class SendNotificationDto {
   @IsString()
-  @IsNotEmpty()
-  recipientType: 'MEMBER' | 'STAFF';
+  @IsOptional()
+  recipientType?: 'MEMBER' | 'STAFF';
 
   @IsString()
-  @IsNotEmpty()
-  recipientId: string;
+  @IsOptional()
+  recipientId?: string;
 
   @IsEnum(NotificationType)
   type: NotificationType;

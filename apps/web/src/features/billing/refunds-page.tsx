@@ -1,4 +1,4 @@
-import { createPortal } from 'react-dom';
+﻿import { createPortal } from 'react-dom';
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../../lib/api-client';
@@ -14,6 +14,7 @@ export function RefundsPage() {
   const { user } = useAuth();
 
   const [refunds, setRefunds] = useState<any[]>([]);
+  const [payments, setPayments] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -43,11 +44,12 @@ export function RefundsPage() {
     setIsLoading(true);
     try {
       const res = await apiClient.get(`/billing/refunds?page=${page}&limit=15`);
-      if (res.data.success) {
-        setRefunds(res.data.data.items || []);
-        setTotalPages(res.data.data.meta.totalPages || 1);
-        setTotalCount(res.data.data.meta.total || 0);
-      }
+      const payload = res.data?.data || res.data;
+      const items = payload?.items || payload?.data || [];
+      const meta = payload?.meta || {};
+      setRefunds(Array.isArray(items) ? items : []);
+      setTotalPages(meta.totalPages || 1);
+      setTotalCount(meta.total || items.length || 0);
     } catch {
       // Handled gracefully
     } finally {
@@ -57,6 +59,10 @@ export function RefundsPage() {
 
   useEffect(() => {
     fetchRefunds();
+    apiClient.get('/billing/payments?limit=100').then((res) => {
+      const payload = res.data?.data || res.data;
+      setPayments(payload?.items || payload?.data || []);
+    }).catch(() => setPayments([]));
   }, [page]);
 
   const handleRequestSubmit = async (e: React.FormEvent) => {
@@ -77,7 +83,7 @@ export function RefundsPage() {
         fetchRefunds();
       }
     } catch (err: any) {
-      setActionError(err.response?.data?.message || 'Failed to submit refund request');
+      setActionError(err?.message || err?.response?.data?.message || 'Failed to submit refund request');
     } finally {
       setIsSubmitting(false);
     }
@@ -116,7 +122,7 @@ export function RefundsPage() {
         fetchRefunds();
       }
     } catch (err: any) {
-      setActionError(err.response?.data?.message || 'Failed to process refund payout');
+      setActionError(err?.message || err?.response?.data?.message || 'Failed to process refund payout');
     } finally {
       setIsSubmitting(false);
     }
@@ -198,7 +204,7 @@ export function RefundsPage() {
                   <th className="py-3 px-4">Member</th>
                   <th className="py-3 px-4">Original Payment</th>
                   <th className="py-3 px-4">Reason</th>
-                  <th className="py-3 px-4 text-right">Amount (₹)</th>
+                  <th className="py-3 px-4 text-right">Amount (â‚¹)</th>
                   <th className="py-3 px-4">Status</th>
                   <th className="py-3 px-4">Approved By</th>
                   <th className="py-3 px-4 text-right">Actions</th>
@@ -331,19 +337,15 @@ export function RefundsPage() {
                 <label className="block text-xs font-semibold text-[#0A192F] uppercase tracking-wider mb-1">
                   Payment ID (UUID) *
                 </label>
-                <Input
-                  type="text"
-                  required
-                  placeholder="Paste Payment UUID from Collections Ledger"
-                  value={requestForm.paymentId}
-                  onChange={(e) => setRequestForm({ ...requestForm, paymentId: e.target.value })}
-                  className="rounded-none bg-[#FBFBF9] font-mono text-xs"
-                />
+                <select required value={requestForm.paymentId} onChange={(e) => setRequestForm({ ...requestForm, paymentId: e.target.value })} className="flex h-10 w-full border border-[#D1D5DB] bg-[#FBFBF9] px-3 py-2 text-sm text-[#111827] focus:outline-none">
+                  <option value="">Select a payment transaction...</option>
+                  {payments.map((payment) => <option key={payment.id} value={payment.id}>{payment.paymentNumber || payment.id}  {payment.member?.fullName || 'Member'}  {formatPaiseToInr(payment.amountInPaise)}</option>)}
+                </select>
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-[#0A192F] uppercase tracking-wider mb-1">
-                  Refund Amount (₹) *
+                  Refund Amount (â‚¹) *
                 </label>
                 <Input
                   type="number"
@@ -400,7 +402,7 @@ export function RefundsPage() {
             <div className="border-b border-[#E5E7EB] pb-3">
               <h3 className="text-base font-bold text-[#0A192F]">Record Refund Payout</h3>
               <p className="text-xs text-[#6B7280] mt-0.5">
-                Refund {selectedRefund.refundNumber} • {formatPaiseToInr(selectedRefund.amountInPaise)}
+                Refund {selectedRefund.refundNumber} â€¢ {formatPaiseToInr(selectedRefund.amountInPaise)}
               </p>
             </div>
 
@@ -450,3 +452,5 @@ export function RefundsPage() {
     </div>
   );
 }
+
+

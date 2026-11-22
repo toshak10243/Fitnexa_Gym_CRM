@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../../context/auth-context';
 import { cn } from '../../../lib/utils';
@@ -89,11 +89,11 @@ export function SuperAdminSidebar() {
       {/* SaaS Platform Brand Header */}
       <div className="h-16 flex items-center px-4 border-b border-[#162E52] space-x-3 bg-[#071324]">
         <div className="h-9 w-9 rounded-none bg-[#0A192F] border border-[#162E52] p-1 flex items-center justify-center shrink-0">
-          <img src={fitnexaLogo} alt="Fitnexa Logo" className="h-full w-full object-contain" />
+          <img src={fitnexaLogo} alt="Trifit Logo" className="h-full w-full object-contain" />
         </div>
         <div className="flex flex-col min-w-0">
           <span className="font-bold text-sm tracking-wider uppercase text-[#FBFBF9] truncate">
-            FITNEXA SAAS
+            TRIFIT SAAS
           </span>
           <span className="text-[9px] font-mono font-bold text-[#B91C1C] tracking-widest uppercase">
             Platform Master Console
@@ -130,3 +130,5 @@ export function SuperAdminSidebar() {
     </aside>
   );
 }
+
+

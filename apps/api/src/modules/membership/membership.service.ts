@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 import { AuditLogService } from '../audit-log/audit-log.service';
+import { MailService } from '../mail/mail.service';
 import { AssignMembershipDto } from './dto/assign-membership.dto';
 import { FreezeMembershipDto } from './dto/freeze-membership.dto';
 import { UnfreezeMembershipDto } from './dto/unfreeze-membership.dto';
@@ -21,6 +22,7 @@ export class MembershipService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly auditLogService: AuditLogService,
+    private readonly mailService: MailService,
   ) {}
 
   /**
@@ -113,6 +115,13 @@ export class MembershipService {
       ipAddress: 'internal',
       userAgent: 'Fitnexa-API',
     });
+
+    if (member.email) {
+      try {
+        const tenant = await this.prisma.tenant.findUnique({ where: { id: tenantId }, select: { name: true, address: true, phone: true, logoUrl: true, website: true } });
+        await this.mailService.sendMembershipAssignedEmail({ to: member.email, memberName: member.fullName, memberCode: member.memberCode, gymName: tenant?.name || branch.name, planName: plan.name, startDate, endDate, amountInPaise: pricePaidInPaise, taxInPaise: taxPaidInPaise, address: tenant?.address, phone: tenant?.phone, logoUrl: tenant?.logoUrl, website: tenant?.website });
+      } catch (error) { console.error('Membership confirmation email delivery failed', error instanceof Error ? error.message : error); }
+    }
 
     return membership;
   }

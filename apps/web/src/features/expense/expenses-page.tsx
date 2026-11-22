@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../../lib/api-client';
 import { Button } from '../../components/ui/button';
@@ -56,6 +56,20 @@ export function ExpensesPage() {
     }
   };
 
+  const totalAmount = expenses.reduce((sum, expense) => sum + Number(expense.amountInPaise || 0), 0);
+  const approvedAmount = expenses
+    .filter((expense) => expense.status === 'APPROVED')
+    .reduce((sum, expense) => sum + Number(expense.amountInPaise || 0), 0);
+  const pendingAmount = expenses
+    .filter((expense) => expense.status === 'PENDING' || expense.status === 'PENDING_APPROVAL')
+    .reduce((sum, expense) => sum + Number(expense.amountInPaise || 0), 0);
+  const categoryTotals = expenses.reduce<Record<string, number>>((totals, expense) => {
+    const name = expense.category?.name || 'General';
+    totals[name] = (totals[name] || 0) + Number(expense.amountInPaise || 0);
+    return totals;
+  }, {});
+  const topCategory = Object.entries(categoryTotals).sort(([, a], [, b]) => b - a)[0];
+
   return (
     <div className="p-8 max-w-7xl mx-auto space-y-6">
       {/* Header */}
@@ -82,6 +96,26 @@ export function ExpensesPage() {
           >
             + Record Expense
           </Button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+        {[
+          ['Total Expense', totalAmount],
+          ['Approved Expense', approvedAmount],
+          ['Pending Approval', pendingAmount],
+        ].map(([label, amount]) => (
+          <div key={label as string} className="bg-[#FBFBF9] border border-[#E5E7EB] p-4">
+            <p className="text-[10px] uppercase tracking-wider text-[#6B7280] font-bold">{label}</p>
+            <p className="mt-2 text-xl font-bold text-[#0A192F] font-mono">
+              {formatPaiseToInr(Number(amount))}
+            </p>
+          </div>
+        ))}
+        <div className="bg-[#FBFBF9] border border-[#E5E7EB] p-4">
+          <p className="text-[10px] uppercase tracking-wider text-[#6B7280] font-bold">Highest Category</p>
+          <p className="mt-2 text-sm font-bold text-[#0A192F] truncate">{topCategory?.[0] || 'No expenses yet'}</p>
+          <p className="mt-1 text-xs text-[#6B7280] font-mono">{topCategory ? formatPaiseToInr(topCategory[1]) : '₹0.00'}</p>
         </div>
       </div>
 
@@ -151,7 +185,7 @@ export function ExpensesPage() {
                 </tr>
               ) : (
                 expenses.map((exp) => {
-                  const isPending = exp.status === 'PENDING';
+                  const isPending = exp.status === 'PENDING' || exp.status === 'PENDING_APPROVAL';
                   const isApproved = exp.status === 'APPROVED';
                   const isRejected = exp.status === 'REJECTED';
 
@@ -165,7 +199,7 @@ export function ExpensesPage() {
                         })}
                       </td>
                       <td className="py-3 px-4 font-bold text-[#0A192F]">
-                        <div>{exp.title}</div>
+                        <div>{exp.title || exp.description || 'Operational Expense'}</div>
                         {exp.description && (
                           <div className="text-[10px] font-normal text-[#6B7280] truncate max-w-xs">
                             {exp.description}
@@ -255,3 +289,5 @@ export function ExpensesPage() {
     </div>
   );
 }
+
+

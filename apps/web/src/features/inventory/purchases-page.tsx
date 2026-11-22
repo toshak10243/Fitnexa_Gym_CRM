@@ -1,4 +1,4 @@
-import { createPortal } from 'react-dom';
+﻿import { createPortal } from 'react-dom';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../../lib/api-client';
@@ -13,6 +13,7 @@ export function PurchasesPage() {
   const [purchases, setPurchases] = useState<any[]>([]);
   const [suppliers, setSuppliers] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
+  const [branchId, setBranchId] = useState('');
   const [total, setTotal] = useState(0);
 
   // Create PO Modal
@@ -31,19 +32,23 @@ export function PurchasesPage() {
   >([]);
   const [isReceiving, setIsReceiving] = useState(false);
   const [receiveError, setReceiveError] = useState<string | null>(null);
+  const [detailPurchase, setDetailPurchase] = useState<any | null>(null);
 
   const fetchPurchases = async () => {
     setIsLoading(true);
     try {
-      const [poRes, supRes, prodRes] = await Promise.all([
+      const [poRes, supRes, prodRes, locRes] = await Promise.all([
         apiClient.get('/inventory/purchases?limit=50'),
         apiClient.get('/inventory/suppliers'),
         apiClient.get('/inventory/products?limit=100'),
+        apiClient.get('/inventory/locations'),
       ]);
       setPurchases(poRes.data.data.items || []);
       setTotal(poRes.data.data.total || 0);
       setSuppliers(supRes.data.data || []);
       setProducts(prodRes.data.data.items || []);
+      const locations = locRes.data?.data || [];
+      setBranchId(locations[0]?.branchId || '');
     } catch {
       // Handled gracefully
     } finally {
@@ -71,9 +76,10 @@ export function PurchasesPage() {
       setPoError('Please select a supplier');
       return;
     }
-    const validItems = poItems.filter((item) => item.productId && item.quantity > 0);
+    if (!branchId) { setPoError('No branch/location is configured for inventory.'); return; }
+    const validItems = poItems.filter((item) => item.productId && item.quantity > 0 && item.unitCostPaise > 0);
     if (validItems.length === 0) {
-      setPoError('Please add at least one valid product and quantity');
+      setPoError('Please add a product, quantity, and purchase cost greater than â‚¹0');
       return;
     }
 
@@ -81,8 +87,9 @@ export function PurchasesPage() {
     setIsSubmittingPo(true);
     try {
       await apiClient.post('/inventory/purchases', {
+        branchId,
         supplierId: selectedSupplierId,
-        items: validItems,
+        items: validItems.map((item) => ({ productId: item.productId, quantityOrdered: item.quantity, unitCostInPaise: item.unitCostPaise })),
       });
       setIsPoModalOpen(false);
       setSelectedSupplierId('');
@@ -100,7 +107,7 @@ export function PurchasesPage() {
     setReceivedItems(
       (po.items || []).map((item: any) => ({
         poItemId: item.id,
-        quantity: Math.max(0, item.quantity - (item.receivedQuantity || 0)),
+        quantity: Math.max(0, (item.quantityOrdered || item.quantity || 0) - (item.quantityReceived || item.receivedQuantity || 0)),
       })),
     );
     setReceiveError(null);
@@ -109,11 +116,13 @@ export function PurchasesPage() {
   const handleReceiveGoods = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!receiveTargetPo) return;
+    if (!branchId) { setReceiveError('No branch/location is configured for inventory.'); return; }
     setIsReceiving(true);
     setReceiveError(null);
     try {
       await apiClient.post(`/inventory/purchases/${receiveTargetPo.id}/receive`, {
-        items: receivedItems,
+        branchId,
+        receivedItems: receivedItems.map((item) => ({ poItemId: item.poItemId, quantityReceived: item.quantity })).filter((item) => item.quantityReceived > 0),
       });
       setReceiveTargetPo(null);
       fetchPurchases();
@@ -122,6 +131,12 @@ export function PurchasesPage() {
     } finally {
       setIsReceiving(false);
     }
+  };
+
+  const handleDeletePurchase = async (po: any) => {
+    if (!window.confirm(`Delete purchase order ${po.poNumber}?`)) return;
+    try { await apiClient.delete(`/inventory/purchases/${po.id}`); fetchPurchases(); }
+    catch (err: any) { window.alert(err?.response?.data?.message || 'Purchase order could not be deleted.'); }
   };
 
   return (
@@ -185,7 +200,7 @@ export function PurchasesPage() {
                 </tr>
               ) : (
                 purchases.map((po) => {
-                  const isReceived = po.status === 'RECEIVED';
+                  const isReceived = po.status === 'RECEIVED' || po.status === 'COMPLETED';
                   return (
                     <tr key={po.id} className="hover:bg-[#F5F5F0] transition-colors">
                       <td className="py-3 px-4 font-mono font-bold text-[#0A192F]">
@@ -205,7 +220,7 @@ export function PurchasesPage() {
                         {po.items?.length || 0}
                       </td>
                       <td className="py-3 px-4 text-right font-mono font-bold text-[#0A192F]">
-                        {formatPaiseToInr(po.totalAmountInPaise || 0)}
+                        {formatPaiseToInr(po.totalInPaise ?? po.totalAmountInPaise ?? 0)}
                       </td>
                       <td className="py-3 px-4">
                         <span
@@ -219,6 +234,8 @@ export function PurchasesPage() {
                         </span>
                       </td>
                       <td className="py-3 px-4 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                        <Button size="sm" variant="outline" className="text-[#0A192F] border-[#0A192F] text-[11px] h-7 px-3 rounded-none" onClick={() => setDetailPurchase(po)}>View Details</Button>
                         {!isReceived && (
                           <Button
                             size="sm"
@@ -228,6 +245,8 @@ export function PurchasesPage() {
                             Receive Goods
                           </Button>
                         )}
+                        {!po.goodsReceipts?.length && <Button size="sm" variant="outline" className="text-[#B91C1C] border-red-200 text-[11px] h-7 px-3 rounded-none" onClick={() => handleDeletePurchase(po)}>Delete</Button>}
+                        </div>
                       </td>
                     </tr>
                   );
@@ -242,6 +261,21 @@ export function PurchasesPage() {
         </div>
       </div>
 
+      {detailPurchase && createPortal(
+        <div className="fixed inset-0 z-[9999] bg-black/60 flex items-center justify-center p-4">
+          <div className="bg-[#FBFBF9] border border-[#E5E7EB] w-full max-w-2xl p-6 space-y-4">
+            <div className="flex items-center justify-between border-b border-[#E5E7EB] pb-3">
+              <div><h2 className="text-base font-bold text-[#0A192F]">Purchase Order {detailPurchase.poNumber}</h2><p className="text-xs text-[#6B7280]">{detailPurchase.supplier?.name || 'Direct Procurement'}  {detailPurchase.status}</p></div>
+              <button type="button" onClick={() => setDetailPurchase(null)} className="text-[#6B7280] text-lg">Ã—</button>
+            </div>
+            <div className="border border-[#E5E7EB] divide-y divide-[#E5E7EB]">
+              {(detailPurchase.items || []).map((item: any) => <div key={item.id} className="flex items-center justify-between p-3 text-xs"><div><div className="font-bold text-[#0A192F]">{item.product?.name || 'Product'}</div><div className="text-[#6B7280]">SKU: {item.product?.sku || ''}  Ordered: {item.quantityOrdered}  Received: {item.quantityReceived || 0}</div></div><div className="font-mono font-bold">{formatPaiseToInr(item.totalCostInPaise || 0)}</div></div>)}
+            </div>
+            <div className="flex justify-between border-t border-[#0A192F] pt-3 text-sm font-bold"><span>Total</span><span>{formatPaiseToInr(detailPurchase.totalInPaise ?? 0)}</span></div>
+          </div>
+        </div>, document.body,
+      )}
+
       {/* Create PO Modal */}
       {isPoModalOpen && createPortal(
         <div className="fixed inset-0 z-[9999] bg-black/60 flex items-center justify-center p-4">
@@ -255,7 +289,7 @@ export function PurchasesPage() {
                 className="text-[#6B7280] hover:text-[#0A192F] text-sm font-mono"
                 onClick={() => setIsPoModalOpen(false)}
               >
-                ✕
+                âœ•
               </button>
             </div>
 
@@ -310,7 +344,12 @@ export function PurchasesPage() {
                           updated[idx].productId = e.target.value;
                           const foundProd = products.find((p) => p.id === e.target.value);
                           if (foundProd) {
-                            updated[idx].unitCostPaise = foundProd.costPriceInPaise;
+                            updated[idx].unitCostPaise = Number(
+                              foundProd.costPriceInPaise ??
+                              foundProd.purchasePriceInPaise ??
+                              foundProd.sellingPriceInPaise ??
+                              0,
+                            );
                           }
                           setPoItems(updated);
                         }}
@@ -347,7 +386,7 @@ export function PurchasesPage() {
                           updated[idx].unitCostPaise = Math.round(parseFloat(e.target.value || '0') * 100);
                           setPoItems(updated);
                         }}
-                        placeholder="Cost (₹)"
+                        placeholder="Cost (â‚¹)"
                         className="w-24 text-xs border-[#E5E7EB] bg-[#FBFBF9] h-8 rounded-none font-mono"
                       />
 
@@ -357,7 +396,7 @@ export function PurchasesPage() {
                           onClick={() => handleRemoveItemRow(idx)}
                           className="text-[#B91C1C] hover:text-red-700 font-mono text-sm px-1"
                         >
-                          ✕
+                          âœ•
                         </button>
                       )}
                     </div>
@@ -406,7 +445,7 @@ export function PurchasesPage() {
                 className="text-[#6B7280] hover:text-[#0A192F] text-sm font-mono"
                 onClick={() => setReceiveTargetPo(null)}
               >
-                ✕
+                âœ•
               </button>
             </div>
 
@@ -428,14 +467,14 @@ export function PurchasesPage() {
                     <div className="col-span-8">
                       <div className="font-bold text-[#0A192F]">{item.product?.name}</div>
                       <div className="text-[10px] text-[#6B7280] font-mono">
-                        Ordered: {item.quantity} | Prev Received: {item.receivedQuantity || 0}
+                        Ordered: {item.quantityOrdered || item.quantity} | Prev Received: {item.quantityReceived || item.receivedQuantity || 0}
                       </div>
                     </div>
                     <div className="col-span-4">
                       <Input
                         type="number"
                         min="0"
-                        max={item.quantity - (item.receivedQuantity || 0)}
+                        max={(item.quantityOrdered || item.quantity) - (item.quantityReceived || item.receivedQuantity || 0)}
                         value={receivedItems[idx]?.quantity || 0}
                         onChange={(e) => {
                           const val = parseInt(e.target.value, 10) || 0;
@@ -475,3 +514,5 @@ export function PurchasesPage() {
     </div>
   );
 }
+
+

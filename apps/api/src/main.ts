@@ -46,11 +46,21 @@ async function bootstrap() {
   app.setGlobalPrefix('api/v1');
 
   // Static File Serving for Member Photos & Uploads
-  const uploadDir = path.join(process.cwd(), 'uploads');
-  if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir, { recursive: true });
+  // Uploads may be created while the API is started from either the
+  // repository root or apps/api. Serve both locations so existing media
+  // remains available after a restart from a different working directory.
+  const uploadDirs = Array.from(
+    new Set([
+      path.join(process.cwd(), 'uploads'),
+      path.resolve(__dirname, '..', 'uploads'),
+    ]),
+  );
+  for (const uploadDir of uploadDirs) {
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    app.use('/uploads', express.static(uploadDir, { fallthrough: true }));
   }
-  app.use('/uploads', express.static(uploadDir));
 
   // Restrictive CORS
   const corsOrigin = process.env.CORS_ORIGIN || 'http://localhost:5173';

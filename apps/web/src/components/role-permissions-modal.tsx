@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+﻿import { useState, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { ALL_PERMISSIONS, DEFAULT_ROLE_PERMISSIONS, UserRole } from '@fitnexa/shared';
 import { Button } from './ui/button';
@@ -13,12 +13,22 @@ export interface RolePermissionsModalProps {
   isLoading?: boolean;
 }
 
+function resolveRolePermissions(
+  permissions: Record<string, string[]> | null | undefined,
+  role: UserRole,
+): string[] {
+  const configured = permissions?.[role];
+  if (Array.isArray(configured)) return configured;
+
+  const defaults = DEFAULT_ROLE_PERMISSIONS[role];
+  return Array.isArray(defaults) ? defaults : [];
+}
+
 const ROLES_TO_DISPLAY = [
-  { role: UserRole.GYM_OWNER, label: 'Gym Owner', icon: '👑', color: 'text-amber-700 bg-amber-50 border-amber-200' },
-  { role: UserRole.BRANCH_MANAGER, label: 'Branch Manager', icon: '🏢', color: 'text-purple-700 bg-purple-50 border-purple-200' },
-  { role: UserRole.FRONT_DESK, label: 'Front Desk', icon: '🛎️', color: 'text-blue-700 bg-blue-50 border-blue-200' },
-  { role: UserRole.TRAINER, label: 'Trainer', icon: '🏋️', color: 'text-emerald-700 bg-emerald-50 border-emerald-200' },
-  { role: UserRole.STAFF, label: 'Staff (Support)', icon: '🧹', color: 'text-zinc-700 bg-zinc-50 border-zinc-200' },
+  { role: UserRole.GYM_OWNER, label: 'Admin', color: 'text-[#0A192F] bg-[#F5F5F0] border-[#E5E7EB]' },
+  { role: UserRole.FRONT_DESK, label: 'Front Desk', color: 'text-blue-700 bg-blue-50 border-blue-200' },
+  { role: UserRole.TRAINER, label: 'Trainer', color: 'text-emerald-700 bg-emerald-50 border-emerald-200' },
+  { role: UserRole.STAFF, label: 'Staff', color: 'text-zinc-700 bg-zinc-50 border-zinc-200' },
 ];
 
 export function RolePermissionsModal({
@@ -33,9 +43,9 @@ export function RolePermissionsModal({
   const [currentPermissions, setCurrentPermissions] = useState<Record<string, string[]>>(() => {
     const perms: Record<string, string[]> = {};
     for (const r of ROLES_TO_DISPLAY) {
-      perms[r.role] = initialPermissions?.[r.role]
-        ? [...initialPermissions[r.role]]
-        : [...(DEFAULT_ROLE_PERMISSIONS[r.role] || [])];
+      perms[r.role] = r.role === UserRole.GYM_OWNER
+        ? ALL_PERMISSIONS.map((p) => p.id)
+        : [...resolveRolePermissions(initialPermissions, r.role)];
     }
     return perms;
   });
@@ -65,6 +75,8 @@ export function RolePermissionsModal({
   }, [categoryFilter, searchQuery]);
 
   const handleToggle = (role: string, permId: string) => {
+    // The gym admin is the owner of the tenant and always retains full access.
+    if (role === UserRole.GYM_OWNER) return;
     setCurrentPermissions((prev) => {
       const existing = prev[role] || DEFAULT_ROLE_PERMISSIONS[role] || [];
       const hasPerm = existing.includes(permId);
@@ -77,6 +89,7 @@ export function RolePermissionsModal({
   };
 
   const handleGrantAllForRole = (role: string) => {
+    if (role === UserRole.GYM_OWNER) return;
     setCurrentPermissions((prev) => ({
       ...prev,
       [role]: ALL_PERMISSIONS.map((p) => p.id),
@@ -84,6 +97,7 @@ export function RolePermissionsModal({
   };
 
   const handleRevokeAllForRole = (role: string) => {
+    if (role === UserRole.GYM_OWNER) return;
     setCurrentPermissions((prev) => ({
       ...prev,
       [role]: [],
@@ -94,7 +108,9 @@ export function RolePermissionsModal({
     if (confirm('Reset role permissions to system standard defaults?')) {
       const resetMap: Record<string, string[]> = {};
       for (const r of ROLES_TO_DISPLAY) {
-        resetMap[r.role] = [...(DEFAULT_ROLE_PERMISSIONS[r.role] || [])];
+        resetMap[r.role] = r.role === UserRole.GYM_OWNER
+          ? ALL_PERMISSIONS.map((p) => p.id)
+          : [...(DEFAULT_ROLE_PERMISSIONS[r.role] || [])];
       }
       setCurrentPermissions(resetMap);
     }
@@ -115,10 +131,10 @@ export function RolePermissionsModal({
   if (!isOpen) return null;
 
   return createPortal(
-    <div className="fixed inset-0 z-[9999] bg-black/60 flex items-center justify-center p-4 overflow-y-auto">
-      <div className="bg-[#FBFBF9] border border-[#E5E7EB] w-full max-w-6xl max-h-[92vh] flex flex-col p-6 space-y-4 rounded-none shadow-none">
+    <div className="fixed inset-0 z-[9999] bg-black/75 flex items-center justify-center p-3 sm:p-6">
+      <div className="bg-[#FBFBF9] border border-[#E5E7EB] w-full max-w-6xl h-[88vh] max-h-[840px] flex flex-col overflow-hidden shadow-2xl">
         {/* Header */}
-        <div className="border-b border-[#E5E7EB] pb-3 flex items-center justify-between shrink-0">
+        <div className="p-5 pb-3.5 border-b border-[#E5E7EB] flex items-center justify-between shrink-0 bg-[#FBFBF9]">
           <div>
             <div className="flex items-center gap-2">
               <span className="bg-[#0A192F] text-[#FBFBF9] text-[10px] font-mono px-2 py-0.5 font-bold uppercase tracking-wider">
@@ -130,7 +146,7 @@ export function RolePermissionsModal({
               {title}
             </h3>
             <p className="text-xs text-[#6B7280]">
-              Configure exact module access per role with interactive ticks (✓ Allowed) and crosses (✕ Blocked). Blocked features are completely hidden from the staff sidebar and URL routes.
+              Configure exact module access per role. Blocked features are hidden from the staff sidebar and protected routes.
             </p>
           </div>
           <button
@@ -139,12 +155,12 @@ export function RolePermissionsModal({
             className="text-[#6B7280] hover:text-[#0A192F] text-xl font-bold p-1 leading-none"
             title="Close"
           >
-            ✕
+            Close
           </button>
         </div>
 
         {/* Filter Toolbar */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-[#F5F5F0] border border-[#E5E7EB] shrink-0 text-xs">
+        <div className="px-5 py-2.5 bg-[#F5F5F0] border-b border-[#E5E7EB] shrink-0 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
           <div className="flex flex-wrap items-center gap-1.5">
             <span className="text-[10px] font-bold uppercase tracking-wider text-[#6B7280] mr-1">
               Category:
@@ -184,7 +200,7 @@ export function RolePermissionsModal({
         </div>
 
         {/* Matrix Table */}
-        <div className="flex-1 overflow-y-auto border border-[#E5E7EB] bg-white min-h-[300px]">
+        <div className="flex-1 min-h-0 overflow-y-auto bg-white">
           <table className="w-full text-left text-xs border-collapse">
             <thead className="sticky top-0 bg-[#0A192F] text-[#FBFBF9] uppercase text-[11px] tracking-wider z-10">
               <tr>
@@ -192,15 +208,15 @@ export function RolePermissionsModal({
                   Feature / Capability
                 </th>
                 {ROLES_TO_DISPLAY.map((r) => {
-                  const rolePerms = currentPermissions[r.role] || [];
+                  const configured = currentPermissions[r.role];
+                  const rolePerms = Array.isArray(configured) ? configured : [];
                   const count = rolePerms.length;
                   return (
                     <th
                       key={r.role}
                       className="p-2.5 text-center font-bold border-b border-[#162E52] bg-[#0A192F]"
                     >
-                      <div className="flex items-center justify-center gap-1">
-                        <span>{r.icon}</span>
+                      <div className="flex items-center justify-center">
                         <span>{r.label}</span>
                       </div>
                       <div className="text-[10px] font-mono text-[#9CA3AF] mt-0.5">
@@ -213,7 +229,7 @@ export function RolePermissionsModal({
                           className="text-[9px] font-mono px-1 py-0.2 bg-emerald-700 hover:bg-emerald-600 text-white"
                           title={`Grant all permissions to ${r.label}`}
                         >
-                          all ✓
+                          Allow all
                         </button>
                         <button
                           type="button"
@@ -221,7 +237,7 @@ export function RolePermissionsModal({
                           className="text-[9px] font-mono px-1 py-0.2 bg-red-800 hover:bg-red-700 text-white"
                           title={`Revoke all permissions from ${r.label}`}
                         >
-                          none ✕
+                          Remove all
                         </button>
                       </div>
                     </th>
@@ -232,7 +248,7 @@ export function RolePermissionsModal({
             <tbody className="divide-y divide-[#E5E7EB]">
               {filteredPermissions.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="p-8 text-center text-xs text-[#6B7280]">
+                  <td colSpan={7} className="p-8 text-center text-xs text-[#6B7280]">
                     No permissions match your category or search query.
                   </td>
                 </tr>
@@ -250,7 +266,8 @@ export function RolePermissionsModal({
                     </td>
 
                     {ROLES_TO_DISPLAY.map((r) => {
-                      const rolePerms = currentPermissions[r.role] || [];
+                      const configured = currentPermissions[r.role];
+                      const rolePerms = Array.isArray(configured) ? configured : [];
                       const isAllowed = rolePerms.includes(perm.id);
 
                       return (
@@ -261,14 +278,15 @@ export function RolePermissionsModal({
                           <button
                             type="button"
                             onClick={() => handleToggle(r.role, perm.id)}
+                            disabled={r.role === UserRole.GYM_OWNER}
                             className={`w-full py-1.5 px-2 text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
                               isAllowed
                                 ? 'bg-[#ECFDF5] text-[#065F46] border border-[#A7F3D0] hover:bg-[#D1FAE5]'
                                 : 'bg-[#FEF2F2] text-[#991B1B] border border-[#FECACA] hover:bg-[#FEE2E2]'
-                            }`}
-                            title={`Click to ${isAllowed ? 'BLOCK' : 'ALLOW'} for ${r.label}`}
+                            } ${r.role === UserRole.GYM_OWNER ? 'cursor-not-allowed opacity-90' : ''}`}
+                            title={r.role === UserRole.GYM_OWNER ? 'Admin always has full access' : `Click to ${isAllowed ? 'BLOCK' : 'ALLOW'} for ${r.label}`}
                           >
-                            <span className="text-sm leading-none">{isAllowed ? '✓' : '✕'}</span>
+                            <span className="text-sm leading-none">{isAllowed ? '' : ''}</span>
                             <span className="text-[10px] uppercase tracking-wider">
                               {isAllowed ? 'Allowed' : 'Blocked'}
                             </span>
@@ -284,7 +302,7 @@ export function RolePermissionsModal({
         </div>
 
         {/* Footer Actions */}
-        <div className="flex items-center justify-between pt-2 border-t border-[#E5E7EB] shrink-0">
+        <div className="p-3.5 px-5 bg-[#FBFBF9] border-t border-[#E5E7EB] shrink-0 flex items-center justify-between">
           <div className="text-xs text-[#6B7280]">
             Modifications apply immediately across client user sessions and sidebars.
           </div>
@@ -308,3 +326,5 @@ export function RolePermissionsModal({
     document.body,
   );
 }
+
+

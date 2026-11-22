@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+﻿import { useState, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -56,7 +56,6 @@ export function SettingsPage() {
     register: registerProfile,
     handleSubmit: handleProfileSubmit,
     setValue,
-    getValues,
     formState: { isSubmitting: isProfileSubmitting },
   } = useForm<UpdateTenantProfileInput>({
     resolver: zodResolver(UpdateTenantProfileSchema),
@@ -102,14 +101,14 @@ export function SettingsPage() {
       const newLogoUrl = res.data?.data?.logoUrl;
       if (newLogoUrl) {
         setValue('logoUrl', newLogoUrl);
-        await updateProfileMutation.mutateAsync({
-          ...getValues(),
-          logoUrl: newLogoUrl,
-        });
+        await apiClient.patch('/tenant/profile', { logoUrl: newLogoUrl });
+        await queryClient.invalidateQueries({ queryKey: ['tenant-profile'] });
         reloadProfile();
+        setSuccessMessage('Brand logo updated successfully.');
+        setTimeout(() => setSuccessMessage(null), 4000);
       }
-    } catch {
-      alert('Failed to upload logo.');
+    } catch (err: any) {
+      alert(err?.response?.data?.message || 'Failed to upload logo.');
     } finally {
       setLogoUploading(false);
       if (logoInputRef.current) logoInputRef.current.value = '';
@@ -137,11 +136,18 @@ export function SettingsPage() {
 
   const updateProfileMutation = useMutation({
     mutationFn: async (input: UpdateTenantProfileInput) => {
-      const { data } = await apiClient.patch('/tenant/profile', input);
+      const cleanInput: Record<string, any> = { ...input };
+      Object.keys(cleanInput).forEach((key) => {
+        if (cleanInput[key] === '') {
+          cleanInput[key] = null;
+        }
+      });
+      const { data } = await apiClient.patch('/tenant/profile', cleanInput);
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tenant-profile'] });
+      reloadProfile();
       setSuccessMessage('Gym profile updated successfully.');
       setTimeout(() => setSuccessMessage(null), 4000);
     },
@@ -210,7 +216,7 @@ export function SettingsPage() {
               : 'Standard Enterprise License'}
           </h3>
           <p className="text-xs text-[#9CA3AF] mt-0.5">
-            Company Subdomain: <span className="font-mono text-[#FBFBF9]">{tenant.slug}.fitnexa.in</span>
+            Company Subdomain: <span className="font-mono text-[#FBFBF9]">{tenant.slug}.trifit.in</span>
           </p>
         </div>
 
@@ -346,7 +352,7 @@ export function SettingsPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input
               label="Operating Currency"
-              value="INR (Indian Rupee ₹)"
+              value="INR (Indian Rupee â‚¹)"
               disabled
             />
             <Input
@@ -515,3 +521,5 @@ export function SettingsPage() {
     </div>
   );
 }
+
+

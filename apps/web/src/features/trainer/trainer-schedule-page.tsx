@@ -1,4 +1,4 @@
-import { createPortal } from 'react-dom';
+﻿import { createPortal } from 'react-dom';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../../lib/api-client';
@@ -31,16 +31,21 @@ export function TrainerSchedulePage() {
       if (selectedTrainerFilter) {
         url += `?trainerProfileId=${selectedTrainerFilter}`;
       }
-      const [schedRes, trainRes, memRes] = await Promise.all([
+      const results = await Promise.allSettled([
         apiClient.get(url),
         apiClient.get('/trainers'),
         apiClient.get('/members?limit=50'),
       ]);
-      const rawSched = schedRes.data?.data || schedRes.data;
+      const [schedResult, trainResult, memberResult] = results;
+      if (trainResult.status !== 'fulfilled') throw trainResult.reason;
+      const trainRes = trainResult.value;
+      const schedRes = schedResult.status === 'fulfilled' ? schedResult.value : null;
+      const memRes = memberResult.status === 'fulfilled' ? memberResult.value : null;
+      const rawSched = schedRes?.data?.data || schedRes?.data || [];
       setSessions(Array.isArray(rawSched) ? rawSched : (rawSched?.items || []));
       const rawTrain = trainRes.data?.data || trainRes.data;
-      setTrainers(Array.isArray(rawTrain) ? rawTrain : (rawTrain?.items || []));
-      const rawMem = memRes.data?.data || memRes.data;
+      setTrainers(Array.isArray(rawTrain) ? rawTrain : (rawTrain?.items || rawTrain?.data || []));
+      const rawMem = memRes?.data?.data || memRes?.data || [];
       setMembers(Array.isArray(rawMem) ? rawMem : (rawMem?.items || []));
     } catch {
       // Handled gracefully
@@ -64,6 +69,7 @@ export function TrainerSchedulePage() {
     setIsBooking(true);
     try {
       await apiClient.post('/trainers/sessions', {
+        branchId: trainers.find((trainer) => trainer.id === bookTrainerId)?.branchId || members.find((member) => member.id === bookMemberId)?.branchId,
         trainerProfileId: bookTrainerId,
         memberId: bookMemberId,
         scheduledAt: new Date(scheduledAt).toISOString(),
@@ -126,7 +132,7 @@ export function TrainerSchedulePage() {
             className="text-xs border-[#E5E7EB] rounded-none hover:bg-[#F5F5F0]"
             onClick={() => navigate('/trainers')}
           >
-            ← Trainers Roster
+            â† Trainers Roster
           </Button>
           <Button
             className="bg-[#0A192F] text-[#FBFBF9] hover:bg-[#162E52] text-xs rounded-none px-4"
@@ -149,7 +155,7 @@ export function TrainerSchedulePage() {
             <option value="">All Coaches</option>
             {trainers.map((t) => (
               <option key={t.id} value={t.id}>
-                {t.user?.name || 'Trainer'}
+                {t.user?.fullName || t.user?.name || 'Trainer'}
               </option>
             ))}
           </select>
@@ -277,7 +283,7 @@ export function TrainerSchedulePage() {
                 className="text-[#6B7280] hover:text-[#0A192F] text-sm font-mono"
                 onClick={() => setIsBookModalOpen(false)}
               >
-                ✕
+                âœ•
               </button>
             </div>
 
@@ -301,7 +307,7 @@ export function TrainerSchedulePage() {
                   <option value="">Select Coach...</option>
                   {trainers.map((t) => (
                     <option key={t.id} value={t.id}>
-                      {t.user?.name}
+                      {t.user?.fullName || t.user?.name || 'Trainer'}
                     </option>
                   ))}
                 </select>
@@ -392,3 +398,5 @@ export function TrainerSchedulePage() {
     </div>
   );
 }
+
+

@@ -1,4 +1,4 @@
-import axios from 'axios';
+﻿import axios from 'axios';
 
 const baseURL = import.meta.env.VITE_API_BASE_URL || '/api/v1';
 
@@ -41,3 +41,5 @@ apiClient.interceptors.response.use(
     return Promise.reject(new Error(Array.isArray(message) ? message.join(', ') : message));
   },
 );
+
+

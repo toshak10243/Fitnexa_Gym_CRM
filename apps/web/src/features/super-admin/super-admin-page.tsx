@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../../lib/api-client';
@@ -70,6 +70,10 @@ export function SuperAdminPage() {
   const [tenants, setTenants] = useState<TenantClient[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [statusFilter, setStatusFilter] = useState('ALL');
+  const [planFilter, setPlanFilter] = useState('ALL');
+  const [pageError, setPageError] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   // Modals
   const [isCreateModalOpen, setIsCreateModalOpen] = useState<boolean>(false);
@@ -138,14 +142,15 @@ export function SuperAdminPage() {
   const fetchDashboardData = async () => {
     setIsLoading(true);
     try {
+      setPageError(null);
       const [statsRes, tenantsRes] = await Promise.all([
         apiClient.get('/super-admin/stats'),
         apiClient.get('/super-admin/tenants'),
       ]);
       setStats(statsRes.data?.data || statsRes.data);
       setTenants(tenantsRes.data?.data || tenantsRes.data || []);
-    } catch {
-      // Handled
+    } catch (err: any) {
+      setPageError(err?.response?.data?.message || err?.message || 'Unable to load SaaS platform data.');
     } finally {
       setIsLoading(false);
     }
@@ -183,6 +188,7 @@ export function SuperAdminPage() {
         tempPassword: data.temporaryPassword,
         slug: formData.slug,
       });
+      setFeedback({ type: 'success', message: `Tenant ${formData.name} onboarded successfully.` });
 
       setIsCreateModalOpen(false);
       // Reset form
@@ -205,7 +211,7 @@ export function SuperAdminPage() {
 
       fetchDashboardData();
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Failed to onboard client';
+      const msg = (err as any)?.response?.data?.message || (err instanceof Error ? err.message : 'Failed to onboard client');
       setFormError(msg);
     } finally {
       setIsSubmitting(false);
@@ -236,7 +242,7 @@ export function SuperAdminPage() {
       setIsEditModalOpen(false);
       fetchDashboardData();
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Failed to update subscription';
+      const msg = (err as any)?.response?.data?.message || (err instanceof Error ? err.message : 'Failed to update subscription');
       setFormError(msg);
     } finally {
       setIsSubmitting(false);
@@ -395,11 +401,13 @@ export function SuperAdminPage() {
   const filteredTenants = tenants.filter((t) => {
     const q = searchQuery.toLowerCase();
     return (
-      t.name.toLowerCase().includes(q) ||
-      t.slug.toLowerCase().includes(q) ||
-      t.owner?.email.toLowerCase().includes(q) ||
-      t.owner?.fullName.toLowerCase().includes(q) ||
-      t.phone.includes(q)
+      (statusFilter === 'ALL' || t.status === statusFilter) &&
+      (planFilter === 'ALL' || t.subscriptionPlan === planFilter) &&
+      (t.name.toLowerCase().includes(q) ||
+        t.slug.toLowerCase().includes(q) ||
+        t.owner?.email.toLowerCase().includes(q) ||
+        t.owner?.fullName.toLowerCase().includes(q) ||
+        t.phone.includes(q))
     );
   });
 
@@ -440,7 +448,7 @@ export function SuperAdminPage() {
             Total Gym Clients
           </div>
           <div className="text-2xl font-bold text-[#0A192F] mt-1 font-mono">
-            {stats?.totalTenants ?? '—'}
+            {stats?.totalTenants ?? ''}
           </div>
           <div className="text-[11px] text-[#10B981] mt-1 font-medium">
             {stats?.activeTenants ?? 0} active subscriptions
@@ -452,7 +460,7 @@ export function SuperAdminPage() {
             Active Trial Gyms
           </div>
           <div className="text-2xl font-bold text-[#0A192F] mt-1 font-mono">
-            {stats?.trialCount ?? '—'}
+            {stats?.trialCount ?? ''}
           </div>
           <div className="text-[11px] text-[#6B7280] mt-1">
             7-day evaluation period
@@ -464,7 +472,7 @@ export function SuperAdminPage() {
             Expired / Overdue
           </div>
           <div className="text-2xl font-bold text-[#B91C1C] mt-1 font-mono">
-            {stats?.expiredCount ?? '—'}
+            {stats?.expiredCount ?? ''}
           </div>
           <div className="text-[11px] text-[#B91C1C] mt-1">
             Pending renewal / follow-up
@@ -476,13 +484,16 @@ export function SuperAdminPage() {
             Total SaaS Revenue
           </div>
           <div className="text-2xl font-bold text-[#FBFBF9] mt-1 font-mono">
-            ₹{stats?.totalRevenue?.toLocaleString('en-IN') ?? '0'}
+            {stats?.totalRevenue?.toLocaleString('en-IN') ?? '0'}
           </div>
           <div className="text-[11px] text-[#34D399] mt-1">
             Collected via client subscriptions
           </div>
         </div>
       </div>
+
+      {feedback && <div className={`p-3 border text-xs ${feedback.type === 'success' ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-red-50 border-red-200 text-red-800'}`}>{feedback.message}</div>}
+      {pageError && <div className="p-3 border border-red-200 bg-red-50 text-red-800 text-xs flex items-center justify-between"><span>{pageError}</span><Button variant="outline" className="rounded-none text-xs h-7" onClick={fetchDashboardData}>Retry</Button></div>}
 
       {/* Client Search & Filter */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
@@ -502,6 +513,16 @@ export function SuperAdminPage() {
           >
             <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
           </svg>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="h-9 border border-[#E5E7EB] bg-[#FBFBF9] px-2 text-xs">
+            <option value="ALL">All statuses</option><option value="ACTIVE">Active</option><option value="SUSPENDED">Suspended</option>
+          </select>
+          <select value={planFilter} onChange={(e) => setPlanFilter(e.target.value)} className="h-9 border border-[#E5E7EB] bg-[#FBFBF9] px-2 text-xs">
+            <option value="ALL">All plans</option>
+            {Object.values(SaaSSubscriptionPlan).map((plan) => <option key={plan} value={plan}>{plan.replace(/_/g, ' ')}</option>)}
+          </select>
         </div>
 
         <div className="text-xs text-[#6B7280]">
@@ -577,7 +598,7 @@ export function SuperAdminPage() {
                           {planInfo?.name || client.subscriptionPlan}
                         </span>
                         <span className="text-[11px] font-mono font-bold text-[#B91C1C]">
-                          ₹{client.subscriptionPrice.toLocaleString('en-IN')}
+                          â‚¹{client.subscriptionPrice.toLocaleString('en-IN')}
                         </span>
                       </td>
 
@@ -719,7 +740,7 @@ export function SuperAdminPage() {
                 onClick={() => setIsCreateModalOpen(false)}
                 className="text-[#6B7280] hover:text-[#0A192F] text-lg font-bold"
               >
-                ✕
+                âœ•
               </button>
             </div>
 
@@ -763,7 +784,7 @@ export function SuperAdminPage() {
                       className="rounded-none text-xs h-9 border-[#E5E7EB] font-mono"
                     />
                     <span className="inline-flex items-center px-3 border border-l-0 border-[#E5E7EB] bg-[#F5F5F0] text-[11px] font-mono text-[#6B7280]">
-                      .fitnexa.in
+                      .trifit.in
                     </span>
                   </div>
                 </div>
@@ -827,7 +848,7 @@ export function SuperAdminPage() {
                   >
                     {Object.values(SAAS_PLANS).map((p) => (
                       <option key={p.id} value={p.id}>
-                        {p.name} - ₹{p.price.toLocaleString('en-IN')} ({p.durationLabel})
+                        {p.name} - â‚¹{p.price.toLocaleString('en-IN')} ({p.durationLabel})
                       </option>
                     ))}
                   </select>
@@ -972,7 +993,7 @@ export function SuperAdminPage() {
                 onClick={() => setIsEditModalOpen(false)}
                 className="text-[#6B7280] hover:text-[#0A192F] text-lg font-bold"
               >
-                ✕
+                âœ•
               </button>
             </div>
 
@@ -1002,7 +1023,7 @@ export function SuperAdminPage() {
                   >
                     {Object.values(SAAS_PLANS).map((p) => (
                       <option key={p.id} value={p.id}>
-                        {p.name} - ₹{p.price.toLocaleString('en-IN')}
+                        {p.name} - â‚¹{p.price.toLocaleString('en-IN')}
                       </option>
                     ))}
                   </select>
@@ -1010,7 +1031,7 @@ export function SuperAdminPage() {
 
                 <div>
                   <label className="block font-semibold mb-1 text-[#111827]">
-                    Agreed Fee (₹)
+                    Agreed Fee (â‚¹)
                   </label>
                   <Input
                     type="number"
@@ -1111,7 +1132,7 @@ export function SuperAdminPage() {
           <div className="bg-[#FBFBF9] border border-[#E5E7EB] w-full max-w-md p-6 space-y-4">
             <div className="border-b border-[#E5E7EB] pb-2">
               <span className="text-[10px] font-mono uppercase font-bold text-emerald-700 tracking-wider">
-                ✓ Onboarding Successful
+                âœ“ Onboarding Successful
               </span>
               <h3 className="text-base font-bold text-[#0A192F] mt-1">
                 Client Credentials Provisioned
@@ -1125,7 +1146,7 @@ export function SuperAdminPage() {
             <div className="p-3 bg-[#F5F5F0] border border-[#E5E7EB] space-y-2 font-mono text-xs">
               <div className="flex justify-between">
                 <span className="text-[#6B7280]">Subdomain URL:</span>
-                <span className="font-bold text-[#0A192F]">{createdClientInfo.slug}.fitnexa.in</span>
+                <span className="font-bold text-[#0A192F]">{createdClientInfo.slug}.trifit.in</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-[#6B7280]">Login Email:</span>
@@ -1167,7 +1188,7 @@ export function SuperAdminPage() {
           <div className="bg-[#FBFBF9] border border-[#E5E7EB] w-full max-w-md p-6 space-y-4">
             <div className="border-b border-[#E5E7EB] pb-2">
               <span className="text-[10px] font-mono uppercase font-bold text-amber-700 tracking-wider">
-                ✓ Temporary Password Generated
+                âœ“ Temporary Password Generated
               </span>
               <h3 className="text-base font-bold text-[#0A192F] mt-1">
                 Password Reset Complete
@@ -1219,7 +1240,7 @@ export function SuperAdminPage() {
                 onClick={() => setTenantToDelete(null)}
                 className="text-[#6B7280] hover:text-[#0A192F] text-lg font-bold"
               >
-                ✕
+                âœ•
               </button>
             </div>
 
@@ -1277,24 +1298,24 @@ export function SuperAdminPage() {
 
       {/* MODAL: ROLE PERMISSIONS MATRIX */}
       {isPermissionsModalOpen && permissionsTenant && createPortal(
-        <div className="fixed inset-0 z-[9999] bg-black/60 flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-[#FBFBF9] border border-[#E5E7EB] w-full max-w-6xl max-h-[92vh] flex flex-col p-6 space-y-4">
+        <div className="fixed inset-0 z-[9999] bg-black/75 flex items-center justify-center p-3 sm:p-6">
+          <div className="bg-[#FBFBF9] border border-[#E5E7EB] w-full max-w-6xl h-[88vh] max-h-[840px] flex flex-col overflow-hidden shadow-2xl">
             {/* Header */}
-            <div className="border-b border-[#E5E7EB] pb-3 flex items-center justify-between shrink-0">
+            <div className="p-5 pb-3.5 border-b border-[#E5E7EB] flex items-center justify-between shrink-0 bg-[#FBFBF9]">
               <div>
                 <div className="flex items-center gap-2">
                   <span className="bg-[#0A192F] text-[#FBFBF9] text-[10px] font-mono px-2 py-0.5 font-bold uppercase tracking-wider">
                     Role Access Control Matrix
                   </span>
                   <span className="text-xs font-mono text-[#6B7280]">
-                    Subdomain: {permissionsTenant.slug}.fitnexa.in
+                    Subdomain: {permissionsTenant.slug}.trifit.in
                   </span>
                 </div>
                 <h3 className="text-base font-bold text-[#0A192F] uppercase tracking-wide mt-1">
                   Manage Role Permissions: {permissionsTenant.name}
                 </h3>
                 <p className="text-xs text-[#6B7280]">
-                  Configure exact permissions per role using interactive ticks (✓ Allowed) and crosses (✕ Blocked). Unchecked features are completely hidden from the client staff.
+                  Configure exact permissions per role using interactive ticks (âœ“ Allowed) and crosses (âœ• Blocked). Unchecked features are completely hidden from the client staff.
                 </p>
               </div>
               <button
@@ -1302,12 +1323,12 @@ export function SuperAdminPage() {
                 onClick={() => setIsPermissionsModalOpen(false)}
                 className="text-[#6B7280] hover:text-[#0A192F] text-xl font-bold p-1"
               >
-                ✕
+                âœ•
               </button>
             </div>
 
             {/* Filter Toolbar */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-[#F5F5F0] border border-[#E5E7EB] shrink-0 text-xs">
+            <div className="px-5 py-2.5 bg-[#F5F5F0] border-b border-[#E5E7EB] shrink-0 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
               <div className="flex flex-wrap items-center gap-1.5">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-[#6B7280] mr-1">
                   Filter Category:
@@ -1348,28 +1369,26 @@ export function SuperAdminPage() {
             </div>
 
             {/* Permissions Matrix Table */}
-            <div className="flex-1 overflow-y-auto border border-[#E5E7EB] bg-white min-h-[300px]">
+            <div className="flex-1 min-h-0 overflow-y-auto bg-white">
               <table className="w-full border-collapse text-left text-xs">
                 <thead className="bg-[#0A192F] text-[#FBFBF9] uppercase text-[10px] tracking-wider font-bold sticky top-0 z-10 select-none">
                   <tr>
                     <th className="py-2.5 px-4 w-72 border-r border-[#162E52]">Feature & Module</th>
                     {[
-                      { key: 'GYM_OWNER', label: 'Gym Owner', icon: '👑' },
-                      { key: 'BRANCH_MANAGER', label: 'Branch Manager', icon: '🏢' },
-                      { key: 'FRONT_DESK', label: 'Front Desk', icon: '🛎️' },
-                      { key: 'TRAINER', label: 'Trainer', icon: '🏋️' },
-                      { key: 'STAFF', label: 'Staff', icon: '🧹' },
+                      { key: 'FRONT_DESK', label: 'Front Desk' },
+                      { key: 'TRAINER', label: 'Trainer' },
+                      { key: 'STAFF', label: 'Staff' },
                     ].map((role) => (
                       <th key={role.key} className="py-2.5 px-2 text-center border-r border-[#162E52] last:border-r-0">
                         <div className="flex flex-col items-center gap-0.5">
-                          <span>{role.icon} {role.label}</span>
+                          <span>{role.label}</span>
                           <div className="flex items-center gap-1 font-mono text-[9px] lowercase font-normal opacity-80">
                             <span
                               onClick={() => handleGrantAllForRole(role.key)}
                               className="cursor-pointer hover:underline text-emerald-300 font-bold"
                               title="Grant all permissions to this role"
                             >
-                              all ✓
+                              all âœ“
                             </span>
                             <span>/</span>
                             <span
@@ -1377,7 +1396,7 @@ export function SuperAdminPage() {
                               className="cursor-pointer hover:underline text-red-300 font-bold"
                               title="Revoke all permissions from this role"
                             >
-                              none ✕
+                              none âœ•
                             </span>
                           </div>
                         </div>
@@ -1443,12 +1462,12 @@ export function SuperAdminPage() {
                               >
                                 {isAllowed ? (
                                   <>
-                                    <span className="text-emerald-700 font-extrabold text-sm">✓</span>
+                                    <span className="text-emerald-700 font-extrabold text-sm">âœ“</span>
                                     <span className="text-[10px] uppercase font-bold tracking-wider">Allowed</span>
                                   </>
                                 ) : (
                                   <>
-                                    <span className="text-[#B91C1C] font-extrabold text-sm">✕</span>
+                                    <span className="text-[#B91C1C] font-extrabold text-sm">âœ•</span>
                                     <span className="text-[10px] uppercase font-bold tracking-wider">Blocked</span>
                                   </>
                                 )}
@@ -1464,9 +1483,9 @@ export function SuperAdminPage() {
             </div>
 
             {/* Modal Footer */}
-            <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-t border-[#E5E7EB] shrink-0 text-xs">
+            <div className="p-3.5 px-5 bg-[#FBFBF9] border-t border-[#E5E7EB] shrink-0 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
               <span className="text-[11px] text-[#6B7280]">
-                Click any cell button to flip between Allowed (✓) and Blocked (✕). Changes take effect instantly for all staff under this client.
+                Click any cell button to flip between Allowed (âœ“) and Blocked (âœ•). Changes take effect instantly for all staff under this client.
               </span>
 
               <div className="flex items-center space-x-3">
@@ -1496,3 +1515,5 @@ export function SuperAdminPage() {
     </div>
   );
 }
+
+

@@ -4,8 +4,10 @@ import {
   BadRequestException,
   ConflictException,
 } from '@nestjs/common';
+import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../../../database/prisma.service';
 import {
+  CreateTrainerDto,
   UpsertTrainerProfileDto,
   SetTrainerAvailabilityDto,
   CreateTrainingPackageDto,
@@ -22,11 +24,74 @@ export class TrainerService {
   // Trainer Profiles
   // --------------------------------------------------------------------------
 
+  async createTrainer(tenantId: string, _createdById: string, dto: CreateTrainerDto) {
+    const existing = await this.prisma.user.findFirst({
+      where: { email: dto.email.toLowerCase().trim() },
+    });
+    if (existing) {
+      throw new ConflictException('A user with this email address already exists');
+    }
+
+    const rawPass = dto.password?.trim() || Math.random().toString(36).slice(-10) + 'X!';
+    const passwordHash = await bcrypt.hash(rawPass, 12);
+
+    return this.prisma.$transaction(async (tx) => {
+      const user = await tx.user.create({
+        data: {
+          tenantId,
+          branchId: dto.branchId || null,
+          email: dto.email.toLowerCase().trim(),
+          phone: dto.phone.trim(),
+          fullName: dto.fullName.trim(),
+          passwordHash,
+          role: 'TRAINER',
+          status: 'ACTIVE',
+        },
+      });
+
+      const trainer = await tx.trainerProfile.create({
+        data: {
+          userId: user.id,
+          tenantId,
+          branchId: dto.branchId || null,
+          photoUrl: dto.photoUrl || null,
+          gender: dto.gender || null,
+          dob: dto.dob ? new Date(dto.dob) : null,
+          bloodGroup: dto.bloodGroup || null,
+          emergencyContactName: dto.emergencyContactName || null,
+          emergencyContactPhone: dto.emergencyContactPhone || null,
+          address: dto.address || null,
+          city: dto.city || null,
+          state: dto.state || null,
+          pincode: dto.pincode || null,
+          dateOfJoining: dto.dateOfJoining ? new Date(dto.dateOfJoining) : new Date(),
+          baseSalaryInPaise: dto.baseSalaryInPaise || 0,
+          commissionPercentage: dto.commissionPercentage || 0,
+          employmentType: dto.employmentType || 'FULL_TIME',
+          shift: dto.shift || 'GENERAL',
+          specializations: dto.specializations || [],
+          certifications: dto.certifications?.trim() || null,
+          experienceYears: dto.experienceYears || 0,
+          idProofType: dto.idProofType || null,
+          idProofNumber: dto.idProofNumber || null,
+          bio: dto.bio?.trim() || null,
+          documents: dto.documents || [],
+          isActive: true,
+        },
+        include: {
+          user: { select: { id: true, fullName: true, email: true, phone: true } },
+        },
+      });
+
+      return trainer;
+    });
+  }
+
   async getTrainers(tenantId: string) {
     return this.prisma.trainerProfile.findMany({
-      where: { tenantId, isActive: true },
+      where: { tenantId },
       include: {
-        user: { select: { id: true, fullName: true, email: true, phone: true } },
+        user: { select: { id: true, fullName: true, email: true, phone: true, status: true } },
         availabilities: true,
         _count: {
           select: { assignments: true, sessions: true },
@@ -40,12 +105,24 @@ export class TrainerService {
     const trainer = await this.prisma.trainerProfile.findFirst({
       where: { id, tenantId },
       include: {
-        user: { select: { id: true, fullName: true, email: true, phone: true } },
+        user: { select: { id: true, fullName: true, email: true, phone: true, status: true, role: true } },
         availabilities: true,
         assignments: {
           include: {
-            member: { select: { id: true, fullName: true, phone: true, memberCode: true } },
+            member: { select: { id: true, fullName: true, phone: true, memberCode: true, photoUrl: true } },
             package: true,
+          },
+        },
+        sessions: {
+          take: 20,
+          orderBy: { scheduledAt: 'desc' },
+          include: {
+            member: { select: { id: true, fullName: true } },
+            assignment: {
+              include: {
+                package: { select: { name: true } },
+              },
+            },
           },
         },
       },
@@ -53,6 +130,39 @@ export class TrainerService {
 
     if (!trainer) throw new NotFoundException('Trainer profile not found');
     return trainer;
+  }
+
+  async updateTrainer(tenantId: string, id: string, dto: CreateTrainerDto) {
+    const trainer = await this.prisma.trainerProfile.findFirst({ where: { id, tenantId }, select: { id: true, userId: true } });
+    if (!trainer) throw new NotFoundException('Trainer profile not found');
+    return this.prisma.$transaction(async (tx) => {
+      await tx.user.update({ where: { id: trainer.userId }, data: {
+        fullName: dto.fullName?.trim(), email: dto.email?.toLowerCase().trim(), phone: dto.phone?.trim(), branchId: dto.branchId || null,
+      }});
+      return tx.trainerProfile.update({ where: { id: trainer.id }, data: {
+        branchId: dto.branchId || null, photoUrl: dto.photoUrl, gender: dto.gender, dob: dto.dob ? new Date(dto.dob) : undefined,
+        bloodGroup: dto.bloodGroup, emergencyContactName: dto.emergencyContactName, emergencyContactPhone: dto.emergencyContactPhone,
+        address: dto.address, city: dto.city, state: dto.state, pincode: dto.pincode, dateOfJoining: dto.dateOfJoining ? new Date(dto.dateOfJoining) : undefined,
+        baseSalaryInPaise: dto.baseSalaryInPaise, commissionPercentage: dto.commissionPercentage, employmentType: dto.employmentType, shift: dto.shift,
+        specializations: dto.specializations, certifications: dto.certifications, experienceYears: dto.experienceYears, idProofType: dto.idProofType,
+        idProofNumber: dto.idProofNumber, bio: dto.bio, documents: dto.documents,
+      }, include: { user: { select: { id: true, fullName: true, email: true, phone: true, status: true } } } });
+    });
+  }
+
+  async deleteTrainer(tenantId: string, id: string) {
+    const trainer = await this.prisma.trainerProfile.findFirst({ where: { id, tenantId }, select: { id: true, userId: true } });
+    if (!trainer) throw new NotFoundException('Trainer profile not found');
+    const [assignments, sessions] = await Promise.all([
+      this.prisma.trainerAssignment.count({ where: { trainerProfileId: id } }),
+      this.prisma.trainingSession.count({ where: { trainerProfileId: id } }),
+    ]);
+    if (assignments || sessions) throw new BadRequestException('Trainer cannot be deleted because assignments or sessions exist. Suspend the trainer instead.');
+    await this.prisma.$transaction([
+      this.prisma.trainerProfile.delete({ where: { id } }),
+      this.prisma.user.delete({ where: { id: trainer.userId } }),
+    ]);
+    return { status: 'success', message: 'Trainer deleted successfully.' };
   }
 
   async upsertTrainerProfile(tenantId: string, dto: UpsertTrainerProfileDto) {
@@ -69,6 +179,23 @@ export class TrainerService {
         specializations: dto.specializations || [],
         certifications: dto.certifications?.trim(),
         commissionPercentage: dto.commissionPercentage || 0,
+        photoUrl: dto.photoUrl,
+        gender: dto.gender,
+        dob: dto.dob ? new Date(dto.dob) : undefined,
+        bloodGroup: dto.bloodGroup,
+        emergencyContactName: dto.emergencyContactName,
+        emergencyContactPhone: dto.emergencyContactPhone,
+        address: dto.address,
+        city: dto.city,
+        state: dto.state,
+        pincode: dto.pincode,
+        dateOfJoining: dto.dateOfJoining ? new Date(dto.dateOfJoining) : undefined,
+        baseSalaryInPaise: dto.baseSalaryInPaise,
+        employmentType: dto.employmentType,
+        shift: dto.shift,
+        experienceYears: dto.experienceYears,
+        idProofType: dto.idProofType,
+        idProofNumber: dto.idProofNumber,
         isActive: dto.isActive !== undefined ? dto.isActive : true,
       },
       create: {
@@ -79,6 +206,23 @@ export class TrainerService {
         specializations: dto.specializations || [],
         certifications: dto.certifications?.trim(),
         commissionPercentage: dto.commissionPercentage || 0,
+        photoUrl: dto.photoUrl,
+        gender: dto.gender,
+        dob: dto.dob ? new Date(dto.dob) : undefined,
+        bloodGroup: dto.bloodGroup,
+        emergencyContactName: dto.emergencyContactName,
+        emergencyContactPhone: dto.emergencyContactPhone,
+        address: dto.address,
+        city: dto.city,
+        state: dto.state,
+        pincode: dto.pincode,
+        dateOfJoining: dto.dateOfJoining ? new Date(dto.dateOfJoining) : new Date(),
+        baseSalaryInPaise: dto.baseSalaryInPaise || 0,
+        employmentType: dto.employmentType || 'FULL_TIME',
+        shift: dto.shift || 'GENERAL',
+        experienceYears: dto.experienceYears || 0,
+        idProofType: dto.idProofType,
+        idProofNumber: dto.idProofNumber,
         isActive: true,
       },
       include: {

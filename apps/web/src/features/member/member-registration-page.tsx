@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../../lib/api-client';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Gender } from '@fitnexa/shared';
 
-const DRAFT_KEY = 'fitnexa_member_reg_draft';
+const DRAFT_KEY = 'trifit_member_reg_draft';
 
 export function MemberRegistrationPage() {
   const navigate = useNavigate();
@@ -225,6 +225,11 @@ export function MemberRegistrationPage() {
       setActiveStep(1);
       return;
     }
+    if (formData.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
+      setErrorMessage('Please enter a valid email address, for example member@gmail.com.');
+      setActiveStep(1);
+      return;
+    }
     if (formData.isMinor && !formData.guardianName.trim()) {
       setErrorMessage('Guardian name is mandatory for minors under 18.');
       setActiveStep(6);
@@ -293,7 +298,7 @@ export function MemberRegistrationPage() {
         },
       };
 
-      const res = await apiClient.post('/members', payload);
+      const res = await apiClient.post('/members', payload, { timeout: 60000 });
       localStorage.removeItem(DRAFT_KEY);
       setIsDirty(false);
       navigate(`/members/${res.data.data.id}`);
@@ -914,7 +919,7 @@ export function MemberRegistrationPage() {
                     className="h-4 w-4 mt-0.5 border-[#E5E7EB] text-[#0A192F] rounded-none"
                   />
                   <span className="text-xs text-[#4B5563]">
-                    Health Data Processing Consent: I consent to the confidential storage of my disclosed health declarations solely for workout safety validation under Fitnexa data governance standards.
+                    Health Data Processing Consent: I consent to the confidential storage of my disclosed health declarations solely for workout safety validation under Trifit data governance standards.
                   </span>
                 </label>
               </div>
@@ -1083,3 +1088,5 @@ export function MemberRegistrationPage() {
     </div>
   );
 }
+
+

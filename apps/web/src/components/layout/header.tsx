@@ -1,4 +1,4 @@
-import * as React from 'react';
+﻿import * as React from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../../context/auth-context';
 import { Button } from '../ui/button';
@@ -7,7 +7,7 @@ interface HeaderProps {
   status?: 'ok' | 'error' | 'degraded';
 }
 
-export function Header({ status = 'ok' }: HeaderProps) {
+export function Header(_props: HeaderProps) {
   const { user, logout } = useAuth();
   const location = useLocation();
   const [time, setTime] = React.useState<string>('');
@@ -32,6 +32,7 @@ export function Header({ status = 'ok' }: HeaderProps) {
 
   const getPageTitle = (path: string): string => {
     if (path.startsWith('/super-admin')) return 'SaaS Platform Control Center';
+    if (path === '/master-dashboard') return 'Master Dashboard';
     if (path === '/' || path === '/dashboard') return 'Executive Dashboard';
     if (path.startsWith('/reports')) return 'Analytics & Reports';
     if (path.startsWith('/telemetry')) return 'System Telemetry';
@@ -84,23 +85,6 @@ export function Header({ status = 'ok' }: HeaderProps) {
 
       {/* Right Controls: Telemetry, Clock, User Profile */}
       <div className="flex items-center space-x-5">
-        <div className="flex items-center space-x-2">
-          <div
-            className={`h-2 w-2 rounded-full ${
-              status === 'ok'
-                ? 'bg-[#10B981]'
-                : status === 'degraded'
-                ? 'bg-[#F59E0B]'
-                : 'bg-[#B91C1C]'
-            }`}
-          />
-          <span className="text-xs font-medium text-[#4B5563]">
-            {status === 'ok' ? 'All Systems Operational' : 'Degraded Mode'}
-          </span>
-        </div>
-
-        <div className="h-4 w-px bg-[#E5E7EB]" />
-
         <div className="text-xs font-mono text-[#6B7280]">{time}</div>
 
         <div className="h-4 w-px bg-[#E5E7EB]" />
@@ -158,3 +142,5 @@ export function Header({ status = 'ok' }: HeaderProps) {
     </header>
   );
 }
+
+

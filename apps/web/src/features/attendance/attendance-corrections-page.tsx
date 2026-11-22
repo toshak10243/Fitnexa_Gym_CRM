@@ -1,4 +1,4 @@
-import { createPortal } from 'react-dom';
+﻿import { createPortal } from 'react-dom';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../../lib/api-client';
@@ -19,8 +19,9 @@ interface CorrectionItem {
   member: {
     id: string;
     memberCode: string;
-    firstName: string;
-    lastName: string;
+    firstName?: string;
+    lastName?: string;
+    fullName?: string;
   };
   requestedByUser?: {
     id: string;
@@ -41,7 +42,8 @@ export function AttendanceCorrectionsPage() {
   // Modal / Form state for new correction
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newMemberCode, setNewMemberCode] = useState('');
-  const [newType, setNewType] = useState('MISSED_CHECK_OUT');
+  const [members, setMembers] = useState<Array<{ id: string; memberCode: string; fullName?: string; firstName?: string; lastName?: string }>>([]);
+  const [newType, setNewType] = useState('INSERT_CHECKOUT');
   const [newTimestamp, setNewTimestamp] = useState(new Date().toISOString().slice(0, 16));
   const [newReason, setNewReason] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -66,6 +68,10 @@ export function AttendanceCorrectionsPage() {
 
   useEffect(() => {
     fetchCorrections();
+    apiClient.get('/members?limit=100').then((res) => {
+      const raw = res.data?.data || res.data;
+      setMembers(raw?.items || (Array.isArray(raw) ? raw : []));
+    }).catch(() => setMembers([]));
   }, []);
 
   const handleCreateCorrection = async (e: React.FormEvent) => {
@@ -80,16 +86,17 @@ export function AttendanceCorrectionsPage() {
 
     try {
       // Find member by code
-      const mRes = await apiClient.get(`/members?search=${encodeURIComponent(newMemberCode.trim())}&limit=1`);
-      const found = mRes.data.data.items?.[0];
+      const found = members.find((member) => member.memberCode === newMemberCode);
       if (!found) {
         throw new Error(`Member with code '${newMemberCode}' not found.`);
       }
 
       await apiClient.post('/attendance/corrections', {
-        memberId: found.id,
         correctionType: newType,
-        correctedTimestamp: new Date(newTimestamp).toISOString(),
+        correctedValue: {
+          checkOutTime: new Date(newTimestamp).toISOString(),
+          memberId: found.id,
+        },
         reason: newReason.trim(),
       });
 
@@ -111,10 +118,7 @@ export function AttendanceCorrectionsPage() {
     setFeedback(null);
 
     try {
-      await apiClient.post(`/attendance/corrections/${selectedCorrection.id}/review`, {
-        approved,
-        reviewNotes: reviewNotes.trim() || undefined,
-      });
+      await apiClient.post(`/attendance/corrections/${selectedCorrection.id}/${approved ? 'approve' : 'reject'}`);
 
       setFeedback({
         type: 'success',
@@ -148,7 +152,7 @@ export function AttendanceCorrectionsPage() {
             className="text-xs border-[#E5E7EB] rounded-none hover:bg-[#F5F5F0]"
             onClick={() => navigate('/attendance')}
           >
-            ← Back to Telemetry
+            â† Back to Telemetry
           </Button>
           <Button
             className="bg-[#0A192F] text-[#FBFBF9] hover:bg-[#162E52] text-xs rounded-none"
@@ -202,7 +206,7 @@ export function AttendanceCorrectionsPage() {
                   </tr>
                 ) : (
                   items.map((c) => {
-                    const isPending = c.status === 'PENDING';
+                    const isPending = c.status === 'PENDING' || c.status === 'PENDING_APPROVAL';
                     return (
                       <tr key={c.id} className="hover:bg-[#F5F5F0] transition-colors">
                         <td className="py-3 px-4 font-mono text-[#0A192F]">
@@ -213,9 +217,9 @@ export function AttendanceCorrectionsPage() {
                           })}
                         </td>
                         <td className="py-3 px-4 font-medium text-[#0A192F]">
-                          {c.member.firstName} {c.member.lastName}
+                          {c.member?.fullName || `${c.member?.firstName || ''} ${c.member?.lastName || ''}`.trim() || c.member?.memberCode || 'Unknown Member'}
                           <span className="block font-mono text-[11px] text-[#6B7280]">
-                            {c.member.memberCode}
+                            {c.member?.memberCode || 'N/A'}
                           </span>
                         </td>
                         <td className="py-3 px-4 font-mono text-[#0A192F]">
@@ -247,17 +251,19 @@ export function AttendanceCorrectionsPage() {
                         </td>
                         <td className="py-3 px-4 text-right">
                           {isPending ? (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="text-xs border-[#E5E7EB] hover:bg-[#0A192F] hover:text-white rounded-none h-7 px-3"
-                              onClick={() => {
-                                setSelectedCorrection(c);
-                                setReviewNotes('');
-                              }}
-                            >
-                              Review
-                            </Button>
+                            <div className="flex gap-2 justify-end">
+                              <Button variant="outline" size="sm" className="text-xs rounded-none h-7 px-3" onClick={() => { setSelectedCorrection(c); setReviewNotes(''); }}>Edit / Review</Button>
+                              <Button variant="outline" size="sm" className="text-xs rounded-none h-7 px-3 text-red-700" onClick={async () => {
+                                if (!window.confirm('Delete this correction request?')) return;
+                                try {
+                                  await apiClient.delete(`/attendance/corrections/${c.id}`);
+                                  setItems((current) => current.filter((item) => item.id !== c.id));
+                                  setFeedback({ type: 'success', message: 'Correction request deleted successfully.' });
+                                } catch (err: any) {
+                                  setFeedback({ type: 'error', message: err?.response?.data?.message || err?.message || 'Delete failed.' });
+                                }
+                              }}>Delete</Button>
+                            </div>
                           ) : (
                             <span className="text-[11px] text-[#6B7280]">
                               Reviewed by {c.reviewedByUser?.fullName || 'Manager'}
@@ -287,22 +293,28 @@ export function AttendanceCorrectionsPage() {
                 onClick={() => setShowCreateModal(false)}
                 className="text-[#6B7280] hover:text-[#0A192F] text-lg font-bold"
               >
-                ✕
+                âœ•
               </button>
             </div>
 
             <form onSubmit={handleCreateCorrection} className="space-y-4 text-xs">
               <div>
                 <label className="block text-[11px] font-bold uppercase text-[#0A192F] mb-1">
-                  Member Code (Exact ID e.g. MEM-001)
+                  Member
                 </label>
-                <Input
+                <select
                   required
                   value={newMemberCode}
                   onChange={(e) => setNewMemberCode(e.target.value)}
-                  placeholder="e.g. MEM-0001"
-                  className="rounded-none border-[#E5E7EB] bg-white h-9 text-xs"
-                />
+                  className="w-full text-xs border border-[#E5E7EB] bg-white px-3 py-2 rounded-none text-[#0A192F]"
+                >
+                  <option value="">Choose member...</option>
+                  {members.map((member) => (
+                    <option key={member.id} value={member.memberCode}>
+                      {member.fullName || `${member.firstName || ''} ${member.lastName || ''}`.trim() || member.memberCode} ({member.memberCode})
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div>
@@ -314,8 +326,10 @@ export function AttendanceCorrectionsPage() {
                   onChange={(e) => setNewType(e.target.value)}
                   className="w-full text-xs border border-[#E5E7EB] bg-white px-3 py-2 rounded-none text-[#0A192F]"
                 >
-                  <option value="MISSED_CHECK_OUT">MISSED CHECK OUT</option>
-                  <option value="MISSED_CHECK_IN">MISSED CHECK IN</option>
+                  <option value="INSERT_CHECKOUT">MISSED CHECK OUT</option>
+                  <option value="MODIFY_TIMESTAMP">MODIFY TIMESTAMP</option>
+                  <option value="VOID_SESSION">VOID SESSION</option>
+                  <option value="MANUAL_SESSION_CREATE">MANUAL SESSION CREATE</option>
                   <option value="TIME_ADJUSTMENT">TIME ADJUSTMENT</option>
                   <option value="MANUAL_OVERRIDE">MANUAL OVERRIDE</option>
                   <option value="DISPUTE_RESOLUTION">DISPUTE RESOLUTION</option>
@@ -384,7 +398,7 @@ export function AttendanceCorrectionsPage() {
                 onClick={() => setSelectedCorrection(null)}
                 className="text-[#6B7280] hover:text-[#0A192F] text-lg font-bold"
               >
-                ✕
+                âœ•
               </button>
             </div>
 
@@ -392,8 +406,8 @@ export function AttendanceCorrectionsPage() {
               <div>
                 <span className="text-[#6B7280]">Member:</span>{' '}
                 <strong className="text-[#0A192F]">
-                  {selectedCorrection.member.firstName} {selectedCorrection.member.lastName} (
-                  {selectedCorrection.member.memberCode})
+                  {selectedCorrection.member?.fullName || `${selectedCorrection.member?.firstName || ''} ${selectedCorrection.member?.lastName || ''}`.trim() || selectedCorrection.member?.memberCode || 'Unknown Member'} (
+                    {selectedCorrection.member?.memberCode || 'N/A'})
                 </strong>
               </div>
               <div>
@@ -450,3 +464,5 @@ export function AttendanceCorrectionsPage() {
     </div>
   );
 }
+
+

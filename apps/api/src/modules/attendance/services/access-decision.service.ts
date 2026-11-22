@@ -254,7 +254,7 @@ export class AccessDecisionService {
         ? AccessReasonCode.VALID_WITH_PENDING_DUES
         : AccessReasonCode.VALID_ACTIVE_MEMBERSHIP,
       reasonDetails: hasDues
-        ? `Valid active membership. Note: Pending balance of ₹${(totalOutstandingDuesPaise / 100).toFixed(2)} recorded on account.`
+        ? `Valid active membership. Note: Pending balance of ${(totalOutstandingDuesPaise / 100).toFixed(2)} recorded on account.`
         : 'Valid active membership. Access granted.',
       outstandingDuesPaise: totalOutstandingDuesPaise,
       membershipId: primaryMembership?.id,

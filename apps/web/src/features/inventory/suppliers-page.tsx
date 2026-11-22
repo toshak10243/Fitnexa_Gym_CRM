@@ -1,4 +1,4 @@
-import { createPortal } from 'react-dom';
+﻿import { createPortal } from 'react-dom';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../../lib/api-client';
@@ -44,6 +44,10 @@ export function SuppliersPage() {
       setError('Supplier name is required');
       return;
     }
+    if (!phone.trim()) {
+      setError('Phone number is required');
+      return;
+    }
     setError(null);
     setIsSubmitting(true);
     try {
@@ -51,10 +55,9 @@ export function SuppliersPage() {
         name: name.trim(),
         contactPerson: contactPerson.trim() || undefined,
         email: email.trim() || undefined,
-        phone: phone.trim() || undefined,
+        phone: phone.trim(),
         gstin: gstin.trim().toUpperCase() || undefined,
         address: address.trim() || undefined,
-        isGstRegistered: !!gstin.trim(),
       });
       setIsModalOpen(false);
       setName('');
@@ -89,7 +92,7 @@ export function SuppliersPage() {
             className="text-xs border-[#E5E7EB] rounded-none hover:bg-[#F5F5F0]"
             onClick={() => navigate('/inventory')}
           >
-            ← Inventory
+            â† Inventory
           </Button>
           <Button
             className="bg-[#0A192F] text-[#FBFBF9] hover:bg-[#162E52] text-xs rounded-none px-4"
@@ -180,7 +183,7 @@ export function SuppliersPage() {
                 className="text-[#6B7280] hover:text-[#0A192F] text-sm font-mono"
                 onClick={() => setIsModalOpen(false)}
               >
-                ✕
+                âœ•
               </button>
             </div>
 
@@ -292,3 +295,5 @@ export function SuppliersPage() {
     </div>
   );
 }
+
+

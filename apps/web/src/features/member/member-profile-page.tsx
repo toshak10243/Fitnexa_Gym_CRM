@@ -1,4 +1,4 @@
-import { createPortal } from 'react-dom';
+﻿import { createPortal } from 'react-dom';
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { apiClient } from '../../lib/api-client';
@@ -48,6 +48,7 @@ export function MemberProfilePage() {
 
   // Modals state
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
+  const [isAssignSubmitting, setIsAssignSubmitting] = useState(false);
   const [isFreezeModalOpen, setIsFreezeModalOpen] = useState(false);
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [selectedMembership, setSelectedMembership] = useState<any>(null);
@@ -58,6 +59,11 @@ export function MemberProfilePage() {
     branchId: '',
     startDate: new Date().toISOString().split('T')[0],
     customPrice: '',
+    paymentType: 'FULL' as 'FULL' | 'INSTALLMENT' | 'PAY_LATER',
+    downPaymentRupees: '',
+    paymentMethod: PaymentMethodType.UPI,
+    paymentReference: '',
+    dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
   });
 
   const [freezeForm, setFreezeForm] = useState({
@@ -225,7 +231,7 @@ export function MemberProfilePage() {
     e.preventDefault();
     try {
       const downPaymentInPaise = parseInrToPaise(renewalForm.downPaymentRupees);
-      await apiClient.post('/billing/renewals', {
+      const renewalResponse = await apiClient.post('/billing/renewals', {
         memberId: id,
         currentMembershipId: renewalForm.membershipId || undefined,
         planId: renewalForm.planId,
@@ -233,11 +239,12 @@ export function MemberProfilePage() {
         downPaymentInPaise: downPaymentInPaise > 0 ? downPaymentInPaise : undefined,
         downPaymentMethod: downPaymentInPaise > 0 ? renewalForm.downPaymentMethod : undefined,
         downPaymentReference: downPaymentInPaise > 0 ? renewalForm.downPaymentRef : undefined,
-      });
+      }, { timeout: 60000 });
       setIsRenewalModalOpen(false);
       fetchFinancials();
       fetchMember();
-      alert('Membership renewal processed successfully.');
+      const delivery = (renewalResponse.data.data || renewalResponse.data).emailDelivery;
+      alert(`Membership renewal processed successfully.${delivery?.success && delivery?.mode === 'smtp' ? ' Invoice email sent.' : ' Email was not delivered; retry from the invoice page.'}`);
     } catch (err: any) {
       alert(err.response?.data?.message || 'Renewal failed');
     }
@@ -245,21 +252,77 @@ export function MemberProfilePage() {
 
   const handleAssignPlan = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isAssignSubmitting) return;
+    setIsAssignSubmitting(true);
     try {
-      await apiClient.post('/memberships/assign', {
+      const selectedPlan = plans.find((p) => p.id === assignForm.planId);
+      const standardPrice = selectedPlan ? selectedPlan.priceInPaise / 100 : 0;
+      const actualPriceRupees = assignForm.customPrice ? parseFloat(assignForm.customPrice) : standardPrice;
+      const customPriceInPaise = assignForm.customPrice ? Math.round(parseFloat(assignForm.customPrice) * 100) : undefined;
+
+      let downPaymentInPaise = 0;
+      if (assignForm.paymentType === 'FULL') {
+        const base = Math.round(actualPriceRupees * 100);
+        downPaymentInPaise = selectedPlan?.isTaxInclusive ? base : base + Math.round(base * (selectedPlan?.taxRateBps ?? 1800) / 10000);
+      } else if (assignForm.paymentType === 'INSTALLMENT' && assignForm.downPaymentRupees) {
+        downPaymentInPaise = parseInrToPaise(assignForm.downPaymentRupees);
+      }
+
+      const enrolmentResponse = await apiClient.post('/billing/renewals', {
         memberId: id,
         planId: assignForm.planId,
         branchId: assignForm.branchId,
         startDate: assignForm.startDate,
-        customPriceInPaise: assignForm.customPrice
-          ? Math.round(parseFloat(assignForm.customPrice) * 100)
-          : undefined,
-      });
+        settlementMode: assignForm.paymentType,
+        customPriceInPaise,
+        downPaymentInPaise: downPaymentInPaise > 0 ? downPaymentInPaise : undefined,
+        downPaymentMethod: downPaymentInPaise > 0 ? assignForm.paymentMethod : undefined,
+        downPaymentReference: downPaymentInPaise > 0 ? assignForm.paymentReference : undefined,
+        dueDate: assignForm.paymentType !== 'FULL' ? assignForm.dueDate : undefined,
+      }, { timeout: 60000 });
+
       setIsAssignModalOpen(false);
-      fetchMember();
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Plan assignment failed';
-      alert(`Assignment failed: ${msg}`);
+      await fetchMember();
+      await fetchFinancials();
+      const delivery = (enrolmentResponse.data.data || enrolmentResponse.data).emailDelivery;
+      alert(`Membership enrolled and official tax invoice generated successfully.${delivery?.success && delivery?.mode === 'smtp' ? ' Invoice email sent.' : ' Invoice email was not delivered; use Email Invoice PDF from the invoice page to retry.'}`);
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Plan assignment failed');
+    } finally {
+      setIsAssignSubmitting(false);
+    }
+  };
+
+  const handleGenerateInvoiceForUnbilled = async (unbilled: any) => {
+    try {
+      const taxRateBps = unbilled.plan.taxRateBps ?? 1800;
+      const res = await apiClient.post('/billing/invoices', {
+        memberId: id,
+        branchId: unbilled.branchId,
+        membershipId: unbilled.id,
+        invoiceDate: new Date().toISOString().split('T')[0],
+        dueDate: new Date().toISOString().split('T')[0],
+        isTaxInclusive: unbilled.plan.isTaxInclusive,
+        notes: `Plan Invoice for ${unbilled.plan.name} (${unbilled.startDate.split('T')[0]} to ${unbilled.endDate.split('T')[0]})`,
+        lineItems: [
+          {
+            description: `Membership Plan: ${unbilled.plan.name}`,
+            quantity: 1,
+            unitPriceInPaise: unbilled.pricePaidInPaise,
+            taxRateBps,
+            itemType: 'PLAN',
+            referenceId: unbilled.plan.id,
+          },
+        ],
+      });
+      await fetchFinancials();
+      await fetchMember();
+      if (res.data?.data) {
+        handleOpenCollectModal(res.data.data);
+      }
+      alert('Tax invoice generated. You can now record installment or full payment.');
+    } catch (err: any) {
+      alert(err?.response?.data?.message || 'Failed to generate invoice for plan');
     }
   };
 
@@ -364,7 +427,7 @@ export function MemberProfilePage() {
   return (
     <div className="p-8 max-w-7xl mx-auto space-y-6">
       {/* 360 Header Card */}
-      <div className="bg-[#0A192F] text-[#FBFBF9] border border-[#162E52] p-6">
+      <div className="bg-[#FBFBF9] text-[#111827] border border-[#E5E7EB] p-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <div className="relative group h-16 w-16 flex-shrink-0">
@@ -372,10 +435,10 @@ export function MemberProfilePage() {
                 <img
                   src={member.photoUrl}
                   alt={member.fullName}
-                  className="h-16 w-16 object-cover rounded-none border border-red-500/30"
+                  className="h-16 w-16 object-cover rounded-none border border-[#E5E7EB]"
                 />
               ) : (
-                <div className="h-16 w-16 bg-[#B91C1C] flex items-center justify-center font-bold text-xl text-[#FBFBF9] rounded-none border border-red-500/30">
+                <div className="h-16 w-16 bg-[#0A192F] flex items-center justify-center font-bold text-xl text-[#FBFBF9] rounded-none">
                   {member.fullName.charAt(0)}
                 </div>
               )}
@@ -402,27 +465,27 @@ export function MemberProfilePage() {
             </div>
             <div>
               <div className="flex items-center gap-3">
-                <h1 className="text-2xl font-bold tracking-tight text-[#FBFBF9]">
+                <h1 className="text-2xl font-bold tracking-tight text-[#0A192F]">
                   {member.fullName}
                 </h1>
-                <span className="font-mono text-xs font-bold px-2 py-0.5 bg-[#162E52] text-[#FBFBF9] border border-[#234578]">
+                <span className="font-mono text-xs font-bold px-2 py-0.5 bg-[#F5F5F0] text-[#0A192F] border border-[#E5E7EB]">
                   {member.memberCode}
                 </span>
                 <span
                   className={`text-[11px] font-bold px-2 py-0.5 rounded-none uppercase ${
                     member.status === 'ACTIVE'
-                      ? 'bg-emerald-950 text-emerald-400 border border-emerald-700'
-                      : 'bg-amber-950 text-amber-400 border border-amber-700'
+                      ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                      : 'bg-amber-50 text-amber-700 border border-amber-200'
                   }`}
                 >
                   {member.status}
                 </span>
               </div>
-              <div className="text-xs text-gray-300 mt-1 flex flex-wrap gap-4">
-                <span>Phone: {member.phone}</span>
-                {member.email && <span>Email: {member.email}</span>}
-                <span>Branch: {member.branch.name}</span>
-                <span>Admitted: {member.joiningDate.split('T')[0]}</span>
+              <div className="text-xs text-[#4B5563] mt-1 flex flex-wrap gap-4">
+                <span>Phone: <strong className="text-[#111827]">{member.phone}</strong></span>
+                {member.email && <span>Email: <strong className="text-[#111827]">{member.email}</strong></span>}
+                <span>Branch: <strong className="text-[#111827]">{member.branch.name}</strong></span>
+                <span>Admitted: <strong className="text-[#111827]">{member.joiningDate.split('T')[0]}</strong></span>
               </div>
             </div>
           </div>
@@ -432,24 +495,23 @@ export function MemberProfilePage() {
               variant="outline"
               size="sm"
               onClick={() => navigate(`/members/${id}/print`)}
-              className="rounded-none text-xs h-8 border-gray-600 bg-transparent text-[#FBFBF9] hover:bg-[#162E52]"
+              className="rounded-none text-xs h-8 border-[#E5E7EB] bg-white text-[#0A192F] hover:bg-[#F5F5F0]"
             >
               Print Admission Form
             </Button>
             {isManagement && (
               <>
                 <Button
-                  variant="outline"
                   size="sm"
                   onClick={() => setIsAssignModalOpen(true)}
-                  className="rounded-none text-xs h-8 border-[#B91C1C] text-[#FBFBF9] bg-[#B91C1C] hover:bg-[#991B1B]"
+                  className="rounded-none text-xs h-8 bg-[#B91C1C] text-[#FBFBF9] hover:bg-[#991B1B]"
                 >
                   Enroll / Renew Plan
                 </Button>
                 <select
                   value={member.status}
                   onChange={(e) => handleStatusChange(e.target.value as MemberStatus)}
-                  className="h-8 text-xs bg-[#162E52] border border-gray-600 text-[#FBFBF9] px-2 rounded-none"
+                  className="h-8 text-xs bg-white border border-[#E5E7EB] text-[#0A192F] px-2 rounded-none"
                 >
                   <option value="ACTIVE">Set: Active</option>
                   <option value="INACTIVE">Set: Inactive</option>
@@ -847,6 +909,33 @@ export function MemberProfilePage() {
             </div>
           )}
 
+          {/* Active Plan Missing Invoice Alert & One-Click Plan Invoice Generator */}
+          {member?.memberships?.filter((m: any) => !memberInvoices.some((inv: any) => inv.membershipId === m.id || inv.lineItems?.some((li: any) => li.referenceId === m.planId))).map((unbilled: any) => (
+            <div
+              key={unbilled.id}
+              className="bg-amber-50 border border-amber-300 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
+            >
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="h-2 w-2 rounded-full bg-amber-600 animate-pulse" />
+                  <span className="font-bold text-[#0A192F] uppercase tracking-wide">
+                    Enrolled Plan Billing Pending: {unbilled.plan?.name || 'Membership'}
+                  </span>
+                </div>
+                <p className="text-[#4B5563] mt-1">
+                  Member has plan <strong>{unbilled.plan?.name}</strong> ({(unbilled.pricePaidInPaise / 100).toLocaleString('en-IN')}) active from {unbilled.startDate?.split('T')[0]} to {unbilled.endDate?.split('T')[0]}, but no tax bill was recorded.
+                </p>
+              </div>
+              <Button
+                size="sm"
+                onClick={() => handleGenerateInvoiceForUnbilled(unbilled)}
+                className="bg-[#0A192F] hover:bg-[#162E52] text-[#FBFBF9] rounded-none text-xs font-semibold whitespace-nowrap px-3 h-8 flex-shrink-0"
+              >
+                + Generate Plan Invoice & Add Installment
+              </Button>
+            </div>
+          ))}
+
           {/* KPI Tiles */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="bg-[#FBFBF9] border border-[#E5E7EB] p-4">
@@ -992,9 +1081,9 @@ export function MemberProfilePage() {
                               variant="primary"
                               size="sm"
                               onClick={() => handleOpenCollectModal(inv)}
-                              className="rounded-none text-[10px] h-6 px-2 bg-[#0A192F] hover:bg-[#0F223D] text-[#FBFBF9]"
+                              className="rounded-none text-[10px] h-6 px-2.5 bg-[#0A192F] hover:bg-[#0F223D] text-[#FBFBF9] font-semibold whitespace-nowrap"
                             >
-                              Collect
+                              {inv.status === 'PARTIALLY_PAID' ? '+ Add Installment' : 'Collect Dues'}
                             </Button>
                           )}
                         </td>
@@ -1241,7 +1330,7 @@ export function MemberProfilePage() {
                               </span>
                             </div>
                           ) : (
-                            <span className="text-[#6B7280]">—</span>
+                            <span className="text-[#6B7280]">-</span>
                           )}
                         </td>
                         <td className="py-3 px-4 font-mono text-[11px] text-[#6B7280]">
@@ -1253,7 +1342,7 @@ export function MemberProfilePage() {
                         <td className="py-3 px-4 font-mono text-[#0A192F]">
                           {act.session?.durationInMinutes != null
                             ? `${act.session.durationInMinutes} mins`
-                            : '—'}
+                            : '-'}
                         </td>
                       </tr>
                     );
@@ -1265,21 +1354,36 @@ export function MemberProfilePage() {
         </div>
       )}
 
-      {/* ASSIGN MEMBERSHIP MODAL */}
+      {/* ASSIGN / ENROLL MEMBERSHIP MODAL WITH INSTALLMENT OPTIONS */}
       {isAssignModalOpen && createPortal(
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4">
-          <div className="bg-[#FBFBF9] border border-[#E5E7EB] w-full max-w-md p-6 space-y-4">
-            <h3 className="text-sm font-bold uppercase tracking-wider text-[#0A192F] pb-1">
-              Enroll / Renew Membership Plan
-            </h3>
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 p-4">
+          <div className="bg-[#FBFBF9] border border-[#E5E7EB] w-full max-w-lg p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+            <div className="border-b border-[#E5E7EB] pb-3">
+              <h3 className="text-base font-bold uppercase tracking-wider text-[#0A192F]">
+                Enroll Membership & Generate Invoice
+              </h3>
+              <p className="text-xs text-[#6B7280] mt-0.5">
+                Assign a membership plan and record full payment, installment deposit, or due invoice.
+              </p>
+            </div>
+
             <form onSubmit={handleAssignPlan} className="space-y-4 text-xs">
               <div>
-                <label className="block font-semibold mb-1">Select Membership Plan *</label>
+                <label className="block font-semibold mb-1 text-[#0A192F]">Select Membership Plan *</label>
                 <select
                   value={assignForm.planId}
-                  onChange={(e) => setAssignForm({ ...assignForm, planId: e.target.value })}
+                  onChange={(e) => {
+                    const pid = e.target.value;
+                    const p = plans.find((item) => item.id === pid);
+                    const defaultRupees = p ? (p.priceInPaise / 100).toFixed(2) : '';
+                    setAssignForm((prev) => ({
+                      ...prev,
+                      planId: pid,
+                      downPaymentRupees: prev.paymentType === 'FULL' ? defaultRupees : prev.downPaymentRupees,
+                    }));
+                  }}
                   required
-                  className="w-full h-9 border border-[#E5E7EB] bg-[#FBFBF9] px-2 rounded-none"
+                  className="w-full h-9 border border-[#E5E7EB] bg-white px-2 rounded-none text-xs text-[#111827]"
                 >
                   {plans.map((p) => (
                     <option key={p.id} value={p.id}>
@@ -1290,44 +1394,207 @@ export function MemberProfilePage() {
                 </select>
               </div>
 
-              <div>
-                <label className="block font-semibold mb-1">Facility Branch *</label>
-                <select
-                  value={assignForm.branchId}
-                  onChange={(e) => setAssignForm({ ...assignForm, branchId: e.target.value })}
-                  required
-                  className="w-full h-9 border border-[#E5E7EB] bg-[#FBFBF9] px-2 rounded-none"
-                >
-                  {branches.map((b) => (
-                    <option key={b.id} value={b.id}>
-                      {b.name}
-                    </option>
-                  ))}
-                </select>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-semibold mb-1 text-[#0A192F]">Facility Branch *</label>
+                  <select
+                    value={assignForm.branchId}
+                    onChange={(e) => setAssignForm({ ...assignForm, branchId: e.target.value })}
+                    required
+                    className="w-full h-9 border border-[#E5E7EB] bg-white px-2 rounded-none text-xs text-[#111827]"
+                  >
+                    {branches.map((b) => (
+                      <option key={b.id} value={b.id}>
+                        {b.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block font-semibold mb-1 text-[#0A192F]">Membership Start Date *</label>
+                  <Input
+                    type="date"
+                    value={assignForm.startDate}
+                    onChange={(e) => setAssignForm({ ...assignForm, startDate: e.target.value })}
+                    required
+                    className="rounded-none text-xs h-9 bg-white"
+                  />
+                </div>
               </div>
 
               <div>
-                <label className="block font-semibold mb-1">Membership Start Date *</label>
-                <Input
-                  type="date"
-                  value={assignForm.startDate}
-                  onChange={(e) => setAssignForm({ ...assignForm, startDate: e.target.value })}
-                  required
-                  className="rounded-none text-xs h-9"
-                />
-              </div>
-
-              <div>
-                <label className="block font-semibold mb-1">
-                  Custom Negotiated Fee in ₹ (Optional Override)
+                <label className="block font-semibold mb-1 text-[#0A192F]">
+                  Custom Negotiated Plan Fee in ₹ (Optional Override)
                 </label>
                 <Input
                   type="number"
                   placeholder="Leave empty to use catalog standard price"
                   value={assignForm.customPrice}
-                  onChange={(e) => setAssignForm({ ...assignForm, customPrice: e.target.value })}
-                  className="rounded-none text-xs h-9"
+                  onChange={(e) => {
+                    const cp = e.target.value;
+                    setAssignForm((prev) => ({
+                      ...prev,
+                      customPrice: cp,
+                      downPaymentRupees: prev.paymentType === 'FULL' ? cp : prev.downPaymentRupees,
+                    }));
+                  }}
+                  className="rounded-none text-xs h-9 bg-white"
                 />
+              </div>
+
+              {/* Installment and Settlement Option */}
+              <div className="border border-[#E5E7EB] bg-white p-3 space-y-3">
+                <label className="block font-bold text-[#0A192F] uppercase tracking-wide text-[11px]">
+                  Payment & Installment Mode *
+                </label>
+                <div className="grid grid-cols-3 gap-2">
+                  <label
+                    className={`border p-2.5 flex flex-col cursor-pointer text-center ${
+                      assignForm.paymentType === 'FULL'
+                        ? 'border-[#0A192F] bg-[#0A192F]/5 font-bold text-[#0A192F]'
+                        : 'border-[#E5E7EB] text-[#4B5563]'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="paymentType"
+                      checked={assignForm.paymentType === 'FULL'}
+                      onChange={() => {
+                        const p = plans.find((item) => item.id === assignForm.planId);
+                        const fullAmount = assignForm.customPrice || (p ? (p.priceInPaise / 100).toFixed(2) : '');
+                        setAssignForm({
+                          ...assignForm,
+                          paymentType: 'FULL',
+                          downPaymentRupees: fullAmount,
+                        });
+                      }}
+                      className="sr-only"
+                    />
+                    <span className="text-xs">Full Settlement</span>
+                    <span className="text-[10px] text-[#6B7280] font-normal">100% upfront payment</span>
+                  </label>
+
+                  <label
+                    className={`border p-2.5 flex flex-col cursor-pointer text-center ${
+                      assignForm.paymentType === 'INSTALLMENT'
+                        ? 'border-[#B91C1C] bg-[#B91C1C]/5 font-bold text-[#B91C1C]'
+                        : 'border-[#E5E7EB] text-[#4B5563]'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="paymentType"
+                      checked={assignForm.paymentType === 'INSTALLMENT'}
+                      onChange={() => {
+                        const p = plans.find((item) => item.id === assignForm.planId);
+                        const total = assignForm.customPrice ? parseFloat(assignForm.customPrice) : p ? p.priceInPaise / 100 : 0;
+                        const half = Math.round(total / 2).toString();
+                        setAssignForm({
+                          ...assignForm,
+                          paymentType: 'INSTALLMENT',
+                          downPaymentRupees: half,
+                        });
+                      }}
+                      className="sr-only"
+                    />
+                    <span className="text-xs">Installment Plan</span>
+                    <span className="text-[10px] text-[#6B7280] font-normal">Partial deposit + balance</span>
+                  </label>
+
+                  <label
+                    className={`border p-2.5 flex flex-col cursor-pointer text-center ${
+                      assignForm.paymentType === 'PAY_LATER'
+                        ? 'border-[#1D4ED8] bg-[#1D4ED8]/5 font-bold text-[#1D4ED8]'
+                        : 'border-[#E5E7EB] text-[#4B5563]'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="paymentType"
+                      checked={assignForm.paymentType === 'PAY_LATER'}
+                      onChange={() =>
+                        setAssignForm({
+                          ...assignForm,
+                          paymentType: 'PAY_LATER',
+                          downPaymentRupees: '0.00',
+                        })
+                      }
+                      className="sr-only"
+                    />
+                    <span className="text-xs">Pay Later</span>
+                    <span className="text-[10px] text-[#6B7280] font-normal">Issue due invoice</span>
+                  </label>
+                </div>
+
+                {/* If Full or Installment: collect deposit */}
+                {assignForm.paymentType !== 'PAY_LATER' && (
+                  <div className="space-y-3 pt-2 border-t border-[#E5E7EB]">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block font-semibold mb-1 text-[#0A192F]">
+                          {assignForm.paymentType === 'INSTALLMENT' ? '1st Installment Deposit (₹) *' : 'Settlement Amount (₹) *'}
+                        </label>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          required
+                          readOnly={assignForm.paymentType === 'FULL'}
+                          value={assignForm.paymentType === 'FULL' ? (() => { const plan = plans.find(p => p.id === assignForm.planId); const base = assignForm.customPrice ? Math.round(Number(assignForm.customPrice) * 100) : Number(plan?.priceInPaise || 0); return ((plan?.isTaxInclusive ? base : base + Math.round(base * (plan?.taxRateBps ?? 1800) / 10000)) / 100).toFixed(2); })() : assignForm.downPaymentRupees}
+                          onChange={(e) => setAssignForm({ ...assignForm, downPaymentRupees: e.target.value })}
+                          className="rounded-none text-xs h-9 bg-[#FBFBF9] font-mono"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block font-semibold mb-1 text-[#0A192F]">Payment Mode *</label>
+                        <select
+                          value={assignForm.paymentMethod}
+                          onChange={(e) =>
+                            setAssignForm({
+                              ...assignForm,
+                              paymentMethod: e.target.value as PaymentMethodType,
+                            })
+                          }
+                          className="w-full h-9 border border-[#E5E7EB] bg-[#FBFBF9] px-2 rounded-none text-xs"
+                        >
+                          <option value={PaymentMethodType.UPI}>UPI / QR</option>
+                          <option value={PaymentMethodType.CASH}>Cash Drawer</option>
+                          <option value={PaymentMethodType.CARD_MANUAL}>Card POS Machine</option>
+                          <option value={PaymentMethodType.BANK_TRANSFER}>Bank Transfer</option>
+                          <option value={PaymentMethodType.CHEQUE}>Cheque</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block font-semibold mb-1 text-[#0A192F]">Reference / UTR / Voucher #</label>
+                      <Input
+                        type="text"
+                        placeholder="e.g. UPI Ref / Cash Voucher #"
+                        value={assignForm.paymentReference}
+                        onChange={(e) => setAssignForm({ ...assignForm, paymentReference: e.target.value })}
+                        className="rounded-none text-xs h-9 bg-[#FBFBF9] font-mono"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* If Installment or Pay Later: ask for balance due date */}
+                {assignForm.paymentType !== 'FULL' && (
+                  <div className="pt-2 border-t border-[#E5E7EB]">
+                    <label className="block font-semibold mb-1 text-[#B91C1C]">
+                      Next Installment Due Date *
+                    </label>
+                    <Input
+                      type="date"
+                      required
+                      value={assignForm.dueDate}
+                      onChange={(e) => setAssignForm({ ...assignForm, dueDate: e.target.value })}
+                      className="rounded-none text-xs h-9 bg-[#FBFBF9]"
+                    />
+                  </div>
+                )}
               </div>
 
               <div className="flex justify-end gap-2 pt-2 border-t border-[#E5E7EB]">
@@ -1339,8 +1606,8 @@ export function MemberProfilePage() {
                 >
                   Cancel
                 </Button>
-                <Button type="submit" className="bg-[#0A192F] text-[#FBFBF9] rounded-none text-xs">
-                  Enroll Member
+                <Button type="submit" disabled={isAssignSubmitting} className="bg-[#0A192F] hover:bg-[#162E52] text-[#FBFBF9] rounded-none text-xs font-semibold px-4 disabled:cursor-not-allowed disabled:opacity-60">
+                  {isAssignSubmitting ? 'Processing...' : 'Enroll & Generate Tax Invoice'}
                 </Button>
               </div>
             </form>
@@ -1454,9 +1721,13 @@ export function MemberProfilePage() {
         <div className="fixed inset-0 z-[9999] bg-black/60 flex items-center justify-center p-4">
           <div className="bg-[#FBFBF9] border border-[#E5E7EB] max-w-md w-full p-6 space-y-4">
             <div className="border-b border-[#E5E7EB] pb-3">
-              <h3 className="text-base font-bold text-[#0A192F]">Collect Member Dues</h3>
+              <h3 className="text-base font-bold text-[#0A192F]">
+                {selectedInvoice.balanceDueInPaise < selectedInvoice.totalAmountInPaise
+                  ? 'Record Next Installment Payment'
+                  : 'Collect Dues / Record Installment'}
+              </h3>
               <p className="text-xs text-[#6B7280] mt-0.5">
-                Invoice {selectedInvoice.invoiceNumber} • Outstanding:{' '}
+                Invoice {selectedInvoice.invoiceNumber} | Remaining Due Balance:{' '}
                 {formatPaiseToInr(selectedInvoice.balanceDueInPaise)}
               </p>
             </div>
@@ -1532,9 +1803,9 @@ export function MemberProfilePage() {
                 </Button>
                 <Button
                   type="submit"
-                  className="bg-[#0A192F] hover:bg-[#0F223D] text-[#FBFBF9] rounded-none text-xs"
+                  className="bg-[#0A192F] hover:bg-[#0F223D] text-[#FBFBF9] rounded-none text-xs font-semibold px-4"
                 >
-                  Record Payment & Issue Receipt
+                  Record Installment / Payment & Issue Receipt
                 </Button>
               </div>
             </form>
@@ -1567,7 +1838,7 @@ export function MemberProfilePage() {
                 >
                   {plans.map((p) => (
                     <option key={p.id} value={p.id}>
-                      {p.name} ({p.durationInDays} days • {formatPaiseToInr(p.priceInPaise)})
+                      {p.name} ({p.durationInDays} days | {formatPaiseToInr(p.priceInPaise)})
                     </option>
                   ))}
                 </select>
@@ -1670,3 +1941,5 @@ export function MemberProfilePage() {
     </div>
   );
 }
+
+

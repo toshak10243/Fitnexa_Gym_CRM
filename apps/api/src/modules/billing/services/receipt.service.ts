@@ -26,6 +26,27 @@ export class ReceiptService {
             branch: {
               select: { id: true, name: true, phone: true, address: true, city: true },
             },
+            tenant: {
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+                gstin: true,
+                pan: true,
+                phone: true,
+                email: true,
+                address: true,
+                city: true,
+                state: true,
+                pincode: true,
+                logoUrl: true,
+                website: true,
+                instagram: true,
+                whatsapp: true,
+                currency: true,
+                timezone: true,
+              },
+            },
             allocations: {
               include: {
                 invoice: {

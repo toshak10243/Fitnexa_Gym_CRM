@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect, useRef } from 'react';
 import { apiClient } from '../../lib/api-client';
 import { Button } from '../../components/ui/button';
 import { Skeleton } from '../../components/ui/skeleton';
@@ -32,6 +32,7 @@ interface PreviewRow {
 }
 
 export function ImportsPage() {
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [branches, setBranches] = useState<Array<{ id: string; name: string }>>([]);
   const [selectedBranchId, setSelectedBranchId] = useState<string>('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -74,6 +75,30 @@ export function ImportsPage() {
       .catch(() => {});
   }, []);
 
+  const handleDownloadSampleTemplate = () => {
+    const csvContent =
+      'Full Name,Phone,Email,Gender,Date of Birth,Joining Date,Address,City,State,Pincode,Emergency Name,Emergency Phone\n' +
+      'Amit Verma,9876543210,amit.verma@example.com,MALE,1995-04-12,2024-01-15,Flat 204 Sunshine Apts,Bengaluru,Karnataka,560038,Sunita Verma,9876543211\n' +
+      'Pooja Sharma,9811223344,pooja.s@example.com,FEMALE,1998-09-25,2024-02-01,12 MG Road Indiranagar,Bengaluru,Karnataka,560001,Rajesh Sharma,9811223345\n' +
+      'Vikram Rao,9822334455,vikram.rao@example.com,MALE,1992-11-30,2024-02-10,78 Ring Road,Bengaluru,Karnataka,560040,Anjali Rao,9822334456\n' +
+      'Neha Kapoor,9833445566,neha.kapoor@example.com,FEMALE,1996-06-18,2024-03-05,21 Koramangala 5th Block,Bengaluru,Karnataka,560095,Rohit Kapoor,9833445567\n' +
+      'Rahul Mehta,9844556677,rahul.mehta@example.com,MALE,1990-02-14,2024-03-18,44 HSR Layout Sector 2,Bengaluru,Karnataka,560102,Meena Mehta,9844556678\n' +
+      'Kavya Iyer,9855667788,kavya.iyer@example.com,FEMALE,1999-12-03,2024-04-02,9 Jayanagar 4th Block,Bengaluru,Karnataka,560011,Suresh Iyer,9855667789\n' +
+      'Arjun Nair,9866778899,arjun.nair@example.com,MALE,1994-08-27,2024-04-22,16 Whitefield Main Road,Bengaluru,Karnataka,560066,Divya Nair,9866778890\n' +
+      'Sneha Reddy,9877889900,sneha.reddy@example.com,FEMALE,1997-01-21,2024-05-10,32 Banashankari 3rd Stage,Bengaluru,Karnataka,560085,Prakash Reddy,9877889901\n' +
+      'Manish Gupta,9888990011,manish.gupta@example.com,MALE,1989-10-09,2024-05-28,8 Malleshwaram 8th Cross,Bengaluru,Karnataka,560003,Anita Gupta,9888990012\n' +
+      'Ishita Sen,9899001122,ishita.sen@example.com,FEMALE,1993-03-16,2024-06-12,27 Indiranagar 12th Main,Bengaluru,Karnataka,560038,Amit Sen,9899001123\n';
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'trifit_member_migration_template.csv');
+    document.body.appendChild(link);
+    link.click();
+    link.parentNode?.removeChild(link);
+  };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setSelectedFile(e.target.files[0]);
@@ -101,14 +126,30 @@ export function ImportsPage() {
     formData.append('branchId', selectedBranchId);
 
     try {
-      const res = await apiClient.post('/imports/upload', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
+      const res = await apiClient.post(
+        `/imports/upload?branchId=${encodeURIComponent(selectedBranchId)}`,
+        formData,
+        {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        }
+      );
       setActiveBatch(res.data.data);
       fetchBatches();
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Validation failed';
+    } catch (err: any) {
+      let msg = err?.response?.data?.message || err?.message || 'Validation failed';
+      if (
+        String(err?.message || err).includes('ERR_UPLOAD_FILE_CHANGED') ||
+        String(err?.code || '').includes('ERR_UPLOAD_FILE_CHANGED')
+      ) {
+        msg =
+          'File was modified or open in another program (like Excel). Please close Excel, re-select the file, and click Validate again.';
+      } else if (msg === 'The uploaded file is empty.') {
+        msg =
+          'The uploaded file is empty or has no member data rows below the header row. Please make sure there are member rows in your file.';
+      }
       alert(`Dry run failed: ${msg}`);
+      setSelectedFile(null);
+      if (fileInputRef.current) fileInputRef.current.value = '';
     } finally {
       setIsUploading(false);
     }
@@ -167,13 +208,25 @@ export function ImportsPage() {
   return (
     <div className="p-8 max-w-7xl mx-auto space-y-6">
       {/* Header */}
-      <div className="border-b border-[#E5E7EB] pb-5">
-        <h1 className="text-2xl font-bold tracking-tight text-[#0A192F]">
-          Legacy Data Migration (Excel / CSV)
-        </h1>
-        <p className="text-sm text-[#6B7280] mt-1">
-          Dry-run validation, duplicate mobile phone detection, and safe batch ingestion for legacy fitness software.
-        </p>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#E5E7EB] pb-5">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-[#0A192F]">
+            Legacy Data Migration (Excel / CSV)
+          </h1>
+          <p className="text-sm text-[#6B7280] mt-1">
+            Dry-run validation, duplicate mobile phone detection, and safe batch ingestion for legacy fitness software.
+          </p>
+        </div>
+        <div>
+          <Button
+            type="button"
+            variant="outline"
+            className="text-xs border-[#0A192F] text-[#0A192F] hover:bg-[#0A192F] hover:text-[#FBFBF9] rounded-none h-9 font-semibold"
+            onClick={handleDownloadSampleTemplate}
+          >
+            Download Sample CSV Template
+          </Button>
+        </div>
       </div>
 
       {statusMessage && (
@@ -184,9 +237,14 @@ export function ImportsPage() {
 
       {/* Upload & Dry-Run Section */}
       <div className="border border-[#E5E7EB] bg-[#FBFBF9] p-6 space-y-4">
-        <h2 className="text-xs font-bold uppercase tracking-wider text-[#0A192F] pb-1">
-          Step 1: Upload Spreadsheet for Dry-Run Validation
-        </h2>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-1 gap-2">
+          <h2 className="text-xs font-bold uppercase tracking-wider text-[#0A192F]">
+            Step 1: Upload Spreadsheet for Dry-Run Validation
+          </h2>
+          <span className="text-[11px] text-[#6B7280]">
+            Make sure to save & close your file in Excel before selecting it.
+          </span>
+        </div>
         <form onSubmit={handleDryRun} className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
           <div>
             <label className="block text-xs font-semibold mb-1 text-[#111827]">
@@ -211,6 +269,7 @@ export function ImportsPage() {
             </label>
             <input
               type="file"
+              ref={fileInputRef}
               accept=".xlsx,.xls,.csv"
               onChange={handleFileChange}
               className="w-full text-xs border border-[#E5E7EB] bg-[#FBFBF9] p-1.5 rounded-none"
@@ -423,3 +482,5 @@ export function ImportsPage() {
     </div>
   );
 }
+
+

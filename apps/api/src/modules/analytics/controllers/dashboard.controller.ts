@@ -1,4 +1,4 @@
-import { Controller, Get, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Query, UseGuards, ForbiddenException } from '@nestjs/common';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../../common/guards/roles.guard';
 import { Roles } from '../../../common/decorators/roles.decorator';
@@ -10,6 +10,13 @@ import { DashboardService } from '../services/dashboard.service';
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class DashboardController {
   constructor(private readonly dashboardService: DashboardService) {}
+
+  @Get('master-dashboard')
+  @Roles(UserRole.SUPER_ADMIN, UserRole.GYM_OWNER, UserRole.BRANCH_MANAGER)
+  async getMaster(@CurrentUser() user: any, @Query('branchId') branchId: string | undefined, @Query('from') from: string, @Query('to') to: string) {
+    if (user.role === UserRole.BRANCH_MANAGER && !user.branchId) throw new ForbiddenException('Branch assignment required');
+    return this.dashboardService.getMasterDashboard(user.tenantId, user.role === UserRole.BRANCH_MANAGER ? user.branchId : branchId, from, to);
+  }
 
   @Get('dashboard')
   @Roles(

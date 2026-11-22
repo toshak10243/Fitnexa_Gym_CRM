@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Sidebar } from './sidebar';
 import { SuperAdminSidebar } from '../../features/super-admin/components/super-admin-sidebar';
 import { Header } from './header';
@@ -19,7 +19,7 @@ export function AppShell({ children, status }: AppShellProps) {
     <div className="flex h-screen w-screen overflow-hidden bg-[#FBFBF9] text-[#111827]">
       {/* Impersonation Active Banner */}
       {isImpersonating && (
-        <div className="fixed top-0 left-0 right-0 z-[9999] bg-[#B91C1C] text-[#FBFBF9] text-xs font-semibold px-4 py-1.5 flex items-center justify-between">
+        <div className="fixed top-0 left-0 right-0 z-[9999] bg-[#B91C1C] text-[#FBFBF9] text-xs font-semibold px-4 py-1.5 flex items-center justify-between print:hidden">
           <div className="flex items-center space-x-2">
             <span className="h-2 w-2 rounded-full bg-white animate-pulse" />
             <span>
@@ -44,15 +44,21 @@ export function AppShell({ children, status }: AppShellProps) {
         />
       )}
 
-      {/* Dedicated Super Admin Sidebar vs Gym CRM Sidebar */}
-      {isSuperAdminPlatform ? <SuperAdminSidebar /> : <Sidebar />}
+      {/* Dedicated Super Admin Sidebar vs Gym CRM Sidebar (hidden in print) */}
+      <div className="print:hidden">
+        {isSuperAdminPlatform ? <SuperAdminSidebar /> : <Sidebar />}
+      </div>
       
-      <div className={`flex-1 flex flex-col min-w-0 overflow-hidden ${isImpersonating ? 'pt-8' : ''}`}>
-        <Header status={status} />
-        <main className="flex-1 overflow-y-auto p-8 bg-[#FBFBF9]">
-          <div className="max-w-7xl mx-auto space-y-6">{children}</div>
+      <div className={`flex-1 flex flex-col min-w-0 overflow-hidden print:overflow-visible print:h-auto print:w-full ${isImpersonating ? 'pt-8' : ''}`}>
+        <div className="print:hidden">
+          <Header status={status} />
+        </div>
+        <main className="flex-1 overflow-y-auto p-8 bg-[#FBFBF9] print:p-0 print:m-0 print:overflow-visible print:bg-white print:w-full">
+          <div className="max-w-7xl mx-auto space-y-6 print:max-w-none print:w-full print:m-0 print:p-0">{children}</div>
         </main>
       </div>
     </div>
   );
 }
+
+

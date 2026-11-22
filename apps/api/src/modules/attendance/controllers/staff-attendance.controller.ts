@@ -33,8 +33,12 @@ export class StaffAttendanceController {
   @ApiOperation({ summary: 'Clock in staff duty shift' })
   async checkIn(
     @CurrentUser('tenantId') tenantId: string,
+    @CurrentUser('userId') userId: string,
+    @CurrentUser('branchId') currentBranchId: string,
     @Body() dto: StaffCheckInDto,
   ) {
+    dto.staffId = userId;
+    dto.branchId = dto.branchId || currentBranchId;
     return this.staffAttendanceService.checkIn(tenantId, dto);
   }
 
@@ -49,8 +53,12 @@ export class StaffAttendanceController {
   @ApiOperation({ summary: 'Clock out staff duty shift' })
   async checkOut(
     @CurrentUser('tenantId') tenantId: string,
+    @CurrentUser('userId') userId: string,
+    @CurrentUser('branchId') currentBranchId: string,
     @Body() dto: StaffCheckOutDto,
   ) {
+    dto.staffId = userId;
+    dto.branchId = dto.branchId || currentBranchId;
     return this.staffAttendanceService.checkOut(tenantId, dto);
   }
 

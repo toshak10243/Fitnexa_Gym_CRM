@@ -1,4 +1,4 @@
-import { createPortal } from 'react-dom';
+﻿import { createPortal } from 'react-dom';
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../../lib/api-client';
@@ -282,12 +282,13 @@ export function InvoicesPage() {
                       {formatPaiseToInr(inv.balanceDueInPaise)}
                     </td>
                     <td className="py-3 px-4">{getStatusBadge(inv.status)}</td>
-                    <td className="py-3 px-4 text-right space-x-1" onClick={(e) => e.stopPropagation()}>
+                    <td className="py-3 px-4 text-right" onClick={(e) => e.stopPropagation()}>
+                      <div className="flex items-center justify-end gap-2 whitespace-nowrap">
                       {inv.balanceDueInPaise > 0 && inv.status !== 'VOID' && isManagement && (
                         <Button
                           size="sm"
                           onClick={(e) => handleOpenCollect(inv, e)}
-                          className="rounded-none text-[11px] h-7 bg-[#0A192F] text-[#FBFBF9]"
+                          className="rounded-none text-[11px] h-7 px-3 bg-[#0A192F] text-[#FBFBF9]"
                         >
                           Collect Payment
                         </Button>
@@ -300,6 +301,7 @@ export function InvoicesPage() {
                       >
                         View
                       </Button>
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -355,7 +357,7 @@ export function InvoicesPage() {
 
             <form onSubmit={handleCollectSubmit} className="space-y-4 text-xs">
               <div>
-                <label className="block font-semibold mb-1">Collection Amount in ₹ *</label>
+                <label className="block font-semibold mb-1">Collection Amount in â‚¹ *</label>
                 <Input
                   type="number"
                   step="0.01"
@@ -426,3 +428,5 @@ export function InvoicesPage() {
     </div>
   );
 }
+
+

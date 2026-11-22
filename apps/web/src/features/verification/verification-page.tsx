@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+﻿import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '../../lib/api-client';
 import { HealthCheckResponse } from '@fitnexa/shared';
 import { Button } from '../../components/ui/button';
@@ -50,7 +50,7 @@ export function VerificationPage() {
               Phase 0 Infrastructure Verification
             </h2>
             <p className="text-xs text-[#6B7280] mt-1">
-              Real-time health telemetry across the Fitnexa micro-architecture.
+              Real-time health telemetry across the Trifit micro-architecture.
             </p>
           </div>
           <Button
@@ -67,7 +67,7 @@ export function VerificationPage() {
           message={
             error instanceof Error
               ? error.message
-              : 'Failed to connect to the Fitnexa API server on port 3000. Ensure the backend process is running.'
+              : 'Failed to connect to the Trifit API server on port 3000. Ensure the backend process is running.'
           }
           onRetry={() => refetch()}
         />
@@ -87,7 +87,7 @@ export function VerificationPage() {
             Phase 0 Infrastructure Verification
           </h2>
           <p className="text-xs text-[#6B7280] mt-1">
-            Real-time health telemetry across the Fitnexa modular monorepo stack.
+            Real-time health telemetry across the Trifit modular monorepo stack.
           </p>
         </div>
         <Button
@@ -277,3 +277,5 @@ export function VerificationPage() {
     </div>
   );
 }
+
+

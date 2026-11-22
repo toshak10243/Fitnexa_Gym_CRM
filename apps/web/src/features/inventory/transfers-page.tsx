@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../../lib/api-client';
 import { Button } from '../../components/ui/button';
@@ -120,7 +120,7 @@ export function TransfersPage() {
             className="text-xs border-[#E5E7EB] rounded-none hover:bg-[#F5F5F0]"
             onClick={() => navigate('/inventory')}
           >
-            ← Inventory
+            â† Inventory
           </Button>
           <Button
             variant="outline"
@@ -240,7 +240,7 @@ export function TransfersPage() {
                     onClick={() => handleRemoveItemRow(idx)}
                     className="text-[#B91C1C] hover:text-red-700 font-mono text-sm px-2"
                   >
-                    ✕
+                    âœ•
                   </button>
                 )}
               </div>
@@ -274,3 +274,5 @@ export function TransfersPage() {
     </div>
   );
 }
+
+

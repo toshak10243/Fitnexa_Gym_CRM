@@ -1358,6 +1358,7 @@ model ProductCategory {
   name        String   @db.VarChar(100)
   code        String   @db.VarChar(50)
   description String?  @db.VarChar(255)
+  imageUrl    String?  @db.VarChar(500)
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -1375,14 +1376,18 @@ model Product {
   categoryId          String
   sku                 String      @db.VarChar(100)
   barcode             String?     @db.VarChar(100)
+  photoUrl            String?     @db.VarChar(500)
   name                String      @db.VarChar(150)
   description         String?     @db.Text
   unit                ProductUnit @default(PIECES)
   costPriceInPaise    Int
   sellingPriceInPaise Int
+  discountPercentage  Decimal     @default(0) @db.Decimal(5, 2)
   taxRatePercentage   Decimal     @default(18.0) @db.Decimal(5, 2)
   hsnCode             String?     @db.VarChar(20)
   reorderThreshold    Int         @default(5)
+  manufacturingDate   DateTime?   @db.Date
+  expiryDate          DateTime?   @db.Date
   isActive            Boolean     @default(true)
   createdAt           DateTime    @default(now())
   updatedAt           DateTime    @updatedAt
@@ -1582,17 +1587,35 @@ model InventoryTransferItem {
 // ----------------------------------------------------------------------------
 
 model TrainerProfile {
-  id                   String   @id @default(uuid())
-  userId               String   @unique
+  id                   String    @id @default(uuid())
+  userId               String    @unique
   tenantId             String
   branchId             String?
-  bio                  String?  @db.Text
+  bio                  String?   @db.Text
   specializations      String[]
-  certifications       String?  @db.Text
-  commissionPercentage Int      @default(0) // Basis points (e.g. 1500 = 15%)
-  isActive             Boolean  @default(true)
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
+  certifications       String?   @db.Text
+  commissionPercentage Int       @default(0) // Basis points (e.g. 1500 = 15%)
+  photoUrl             String?   @db.VarChar(500)
+  gender               String?   @db.VarChar(20)
+  dob                  DateTime?
+  bloodGroup           String?   @db.VarChar(10)
+  emergencyContactName String?   @db.VarChar(100)
+  emergencyContactPhone String?  @db.VarChar(20)
+  address              String?   @db.VarChar(255)
+  city                 String?   @db.VarChar(100)
+  state                String?   @db.VarChar(100)
+  pincode              String?   @db.VarChar(20)
+  dateOfJoining        DateTime?
+  baseSalaryInPaise    Int?      @default(0)
+  employmentType       String?   @default("FULL_TIME") @db.VarChar(50)
+  shift                String?   @default("GENERAL") @db.VarChar(50)
+  experienceYears      Int?      @default(0)
+  idProofType          String?   @db.VarChar(50)
+  idProofNumber        String?   @db.VarChar(50)
+  documents            Json?     @default("[]")
+  isActive             Boolean   @default(true)
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
 
   user           User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
   availabilities TrainerAvailability[]

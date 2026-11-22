@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Post,
+  Delete,
   Patch,
   Body,
   Param,
@@ -181,6 +182,17 @@ export class MemberController {
     @Body('status') status: MemberStatus,
   ) {
     return this.memberService.updateStatus(tenantId, id, userId, status);
+  }
+
+  @Delete(':id')
+  @Roles(UserRole.GYM_OWNER, UserRole.BRANCH_MANAGER)
+  @ApiOperation({ summary: 'Permanently delete a member and related records' })
+  async remove(
+    @CurrentUser('tenantId') tenantId: string,
+    @CurrentUser('userId') userId: string,
+    @Param('id') id: string,
+  ) {
+    return this.memberService.removePermanently(tenantId, id, userId);
   }
 
   @Post(':id/notes')

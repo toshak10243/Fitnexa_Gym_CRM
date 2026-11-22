@@ -50,10 +50,13 @@ export class ExpenseController {
     @Query('page') page?: string,
     @Query('limit') limit?: string,
   ) {
+    const scopedBranchId = [UserRole.GYM_OWNER, UserRole.SUPER_ADMIN].includes(user.role)
+      ? branchId
+      : (branchId || user.branchId);
     return this.expenseService.getExpenses(user.tenantId, {
       categoryId,
       status,
-      branchId: branchId || user.branchId,
+      branchId: scopedBranchId,
       startDate,
       endDate,
       page: page ? parseInt(page, 10) : 1,

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../../lib/api-client';
 import { Button } from '../../components/ui/button';
@@ -35,7 +35,8 @@ export function DeviceCreatePage() {
       setIsLoadingBranches(true);
       try {
         const res = await apiClient.get('/tenant/branches');
-        const list = res.data.data || [];
+        const raw = res.data?.data || res.data;
+        const list = Array.isArray(raw) ? raw : raw?.items || [];
         setBranches(list);
         if (list.length > 0) {
           setBranchId(list[0].id);
@@ -76,7 +77,7 @@ export function DeviceCreatePage() {
       }
 
       const res = await apiClient.post('/devices', payload);
-      const data = res.data.data;
+      const data = res.data?.data || res.data;
       setCreatedSecretToken(data.assignedSecretToken);
       setCreatedDeviceCode(data.deviceCode);
     } catch (err: any) {
@@ -104,7 +105,7 @@ export function DeviceCreatePage() {
             className="text-xs border-[#E5E7EB] rounded-none hover:bg-[#F5F5F0]"
             onClick={() => navigate('/devices')}
           >
-            ← Back to Directory
+            â† Back to Directory
           </Button>
         </div>
       </div>
@@ -119,7 +120,7 @@ export function DeviceCreatePage() {
       {createdSecretToken ? (
         <div className="bg-[#FBFBF9] border border-[#0A192F] p-6 space-y-4">
           <div className="flex items-center space-x-2 text-emerald-700 font-bold text-sm uppercase">
-            <span>✓ Terminal Successfully Registered</span>
+            <span>âœ“ Terminal Successfully Registered</span>
           </div>
 
           <div className="p-4 bg-white border border-[#E5E7EB] space-y-3">
@@ -130,7 +131,7 @@ export function DeviceCreatePage() {
               {createdSecretToken}
             </div>
             <div className="text-[11px] text-red-700 font-semibold">
-              Warning: Copy this token now. For cryptographic safety, Fitnexa hashes this token and will not display it in plaintext again.
+              Warning: Copy this token now. For cryptographic safety, Trifit hashes this token and will not display it in plaintext again.
             </div>
           </div>
 
@@ -311,3 +312,5 @@ export function DeviceCreatePage() {
     </div>
   );
 }
+
+

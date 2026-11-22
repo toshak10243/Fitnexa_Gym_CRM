@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { apiClient } from '../../lib/api-client';
 import { Button } from '../../components/ui/button';
@@ -21,6 +21,8 @@ export function ProductsPage() {
   const [products, setProducts] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
+  const pageSize = 20;
 
   // Filters
   const [search, setSearch] = useState('');
@@ -28,11 +30,18 @@ export function ProductsPage() {
   const [isLowStockOnly, setIsLowStockOnly] = useState(
     searchParams.get('isLowStock') === 'true',
   );
+  const handleDelete = async (product: any) => {
+    if (!window.confirm(`Deactivate ${product.name}?`)) return;
+    try {
+      await apiClient.delete(`/inventory/products/${product.id}`);
+      await fetchProducts();
+    } catch (err: any) { window.alert(err.message || 'Unable to delete product.'); }
+  };
 
   const fetchProducts = async () => {
     setIsLoading(true);
     try {
-      let url = '/inventory/products?limit=50';
+      let url = `/inventory/products?page=${page}&limit=${pageSize}`;
       if (search.trim()) url += `&search=${encodeURIComponent(search.trim())}`;
       if (selectedCat) url += `&categoryId=${selectedCat}`;
       if (isLowStockOnly) url += '&isLowStock=true';
@@ -54,7 +63,9 @@ export function ProductsPage() {
 
   useEffect(() => {
     fetchProducts();
-  }, [search, selectedCat, isLowStockOnly]);
+  }, [search, selectedCat, isLowStockOnly, page]);
+
+  useEffect(() => { setPage(1); }, [search, selectedCat, isLowStockOnly]);
 
   return (
     <div className="p-8 max-w-7xl mx-auto space-y-6">
@@ -74,7 +85,7 @@ export function ProductsPage() {
             className="text-xs border-[#E5E7EB] rounded-none hover:bg-[#F5F5F0]"
             onClick={() => navigate('/inventory')}
           >
-            ← Valuation Dashboard
+            â† Valuation Dashboard
           </Button>
           {canCreate && (
             <Button
@@ -139,6 +150,7 @@ export function ProductsPage() {
             <table className="w-full text-left border-collapse text-xs">
               <thead>
                 <tr className="border-b border-[#E5E7EB] bg-[#F5F5F0] text-[#6B7280] uppercase tracking-wider text-[10px]">
+                  <th className="py-2.5 px-4 font-semibold">Image</th>
                   <th className="py-2.5 px-4 font-semibold">Product Name</th>
                   <th className="py-2.5 px-4 font-semibold">SKU / Barcode</th>
                   <th className="py-2.5 px-4 font-semibold">Category</th>
@@ -152,7 +164,7 @@ export function ProductsPage() {
               <tbody className="divide-y divide-[#E5E7EB]">
                 {products.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="py-12 text-center text-[#6B7280]">
+                    <td colSpan={9} className="py-12 text-center text-[#6B7280]">
                       No products found matching current criteria.
                     </td>
                   </tr>
@@ -161,6 +173,9 @@ export function ProductsPage() {
                     const isLow = p.isLowStock;
                     return (
                       <tr key={p.id} className="hover:bg-[#F5F5F0] transition-colors">
+                        <td className="py-3 px-4 w-20">
+                          {p.photoUrl ? <img src={p.photoUrl} alt={p.name} className="h-12 w-12 object-cover border border-[#E5E7EB]" /> : <div className="h-12 w-12 bg-[#0A192F] text-[#FBFBF9] flex items-center justify-center text-lg font-bold">{p.name?.charAt(0)}</div>}
+                        </td>
                         <td className="py-3 px-4 font-bold text-[#0A192F]">
                           <button
                             type="button"
@@ -176,7 +191,7 @@ export function ProductsPage() {
                             <span className="text-[10px] text-[#9CA3AF]">{p.barcode}</span>
                           )}
                         </td>
-                        <td className="py-3 px-4 text-[#6B7280]">{p.category?.name || '—'}</td>
+                        <td className="py-3 px-4 text-[#6B7280]">{p.category?.name || ''}</td>
                         <td className="py-3 px-4 font-mono text-[#6B7280]">
                           {formatPaiseToInr(p.costPriceInPaise)}
                         </td>
@@ -200,7 +215,14 @@ export function ProductsPage() {
                             </span>
                           )}
                         </td>
-                        <td className="py-3 px-4 text-right">
+                        <td className="py-3 px-4 text-right whitespace-nowrap min-w-[250px]">
+                          <div className="flex items-center justify-end gap-1">
+                          {canCreate && <Button
+                            variant="outline"
+                            size="sm"
+                            className="mr-1 text-xs border-[#E5E7EB] rounded-none h-7 px-2"
+                            onClick={() => navigate('/inventory/products/new', { state: { product: p } })}
+                          >Edit</Button>}
                           <Button
                             variant="outline"
                             size="sm"
@@ -209,6 +231,8 @@ export function ProductsPage() {
                           >
                             Inspect
                           </Button>
+                          {canCreate && <Button variant="outline" size="sm" className="text-xs border-red-200 text-red-700 rounded-none h-7 px-2" onClick={() => handleDelete(p)}>Delete</Button>}
+                          </div>
                         </td>
                       </tr>
                     );
@@ -219,6 +243,18 @@ export function ProductsPage() {
           </div>
         )}
       </div>
+      {total > pageSize && (
+        <div className="flex items-center justify-between border border-[#E5E7EB] bg-[#FBFBF9] px-4 py-3 text-xs">
+          <span className="text-[#6B7280]">Showing {(page - 1) * pageSize + 1}-{Math.min(page * pageSize, total)} of {total} products</span>
+          <div className="flex items-center gap-1">
+            <Button variant="outline" size="sm" disabled={page === 1} onClick={() => setPage((p) => Math.max(1, p - 1))} className="rounded-none text-xs">Previous</Button>
+            {Array.from({ length: Math.ceil(total / pageSize) }, (_, i) => i + 1).map((n) => <Button key={n} variant="outline" size="sm" onClick={() => setPage(n)} className={`rounded-none text-xs ${n === page ? 'bg-[#0A192F] text-[#FBFBF9]' : ''}`}>{n}</Button>)}
+            <Button variant="outline" size="sm" disabled={page >= Math.ceil(total / pageSize)} onClick={() => setPage((p) => p + 1)} className="rounded-none text-xs">Next</Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+
+

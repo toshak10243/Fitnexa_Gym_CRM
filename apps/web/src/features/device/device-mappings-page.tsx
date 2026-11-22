@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { apiClient } from '../../lib/api-client';
 import { Button } from '../../components/ui/button';
@@ -131,7 +131,7 @@ export function DeviceMappingsPage() {
             className="text-xs border-[#E5E7EB] rounded-none hover:bg-[#F5F5F0]"
             onClick={() => navigate(`/devices/${id}`)}
           >
-            ← Back to Device Details
+            â† Back to Device Details
           </Button>
         </div>
       </div>
@@ -235,7 +235,7 @@ export function DeviceMappingsPage() {
                           window.scrollTo({ top: 0, behavior: 'smooth' });
                         }}
                       >
-                        Use Slot #{evt.deviceUserId} ↑
+                        Use Slot #{evt.deviceUserId} â†‘
                       </Button>
                     </td>
                   </tr>
@@ -308,3 +308,5 @@ export function DeviceMappingsPage() {
     </div>
   );
 }
+
+

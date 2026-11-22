@@ -129,3 +129,61 @@ aside::-webkit-scrollbar-thumb:hover {
   scrollbar-width: thin;
   scrollbar-color: #1D4ED8 transparent;
 }
+
+/* ==========================================================================
+   ENTERPRISE PRINT STYLES (A4 GST Invoices, Admission Forms & Receipts)
+   ========================================================================== */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 10mm 12mm 10mm 12mm;
+  }
+
+  html,
+  body,
+  #root {
+    height: auto !important;
+    min-height: auto !important;
+    overflow: visible !important;
+    background: #FFFFFF !important;
+    color: #000000 !important;
+    font-size: 11pt !important;
+  }
+
+  /* Force hide all navigation chrome, sidebars, buttons, toolbars */
+  aside,
+  header,
+  nav,
+  .print\:hidden,
+  button:not(.print\:show) {
+    display: none !important;
+  }
+
+  main {
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: visible !important;
+    background: #FFFFFF !important;
+    height: auto !important;
+    width: 100% !important;
+  }
+
+  /* Printable Canvas expands edge-to-edge with no shadow or screen borders */
+  .printable-document {
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    background: #FFFFFF !important;
+  }
+
+  /* Avoid awkward page breaks inside table rows or signature blocks */
+  tr,
+  table,
+  .print-avoid-break {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+}

@@ -13,6 +13,7 @@ import {
   addDaysToDate,
 } from '../../../common/utils/date.util';
 import { MembershipStatus, PaymentMethodType } from '@prisma/client';
+import { calculateLineItemFinancials } from '../../../common/utils/financial.util';
 
 @Injectable()
 export class RenewalService {
@@ -43,7 +44,7 @@ export class RenewalService {
     // Determine chained start date
     if (dto.currentMembershipId) {
       const current = await this.prisma.memberMembership.findFirst({
-        where: { id: dto.currentMembershipId, tenantId },
+        where: { id: dto.currentMembershipId, tenantId, memberId: member.id },
       });
       if (current && new Date(current.endDate) >= today) {
         // Continuous chaining: start day after previous plan expires
@@ -59,7 +60,11 @@ export class RenewalService {
     const priceInPaise = dto.customPriceInPaise ?? plan.priceInPaise;
     const taxRateBps = plan.taxRateBps ?? 1800;
 
-    const hasImmediateDownPayment = (dto.downPaymentInPaise || 0) > 0;
+    const financials = calculateLineItemFinancials(priceInPaise, 1, 0, taxRateBps, plan.isTaxInclusive);
+    const downPayment = dto.settlementMode === 'FULL' ? financials.totalAmountInPaise : dto.settlementMode === 'PAY_LATER' ? 0 : (dto.downPaymentInPaise || 0);
+    if (downPayment > financials.totalAmountInPaise) throw new BadRequestException('Deposit cannot exceed invoice total');
+    if (dto.settlementMode === 'INSTALLMENT' && downPayment <= 0) throw new BadRequestException('Installment deposit must be greater than zero');
+    const hasImmediateDownPayment = downPayment > 0;
     const initialStatus = hasImmediateDownPayment ? MembershipStatus.ACTIVE : MembershipStatus.PENDING;
 
     // 1. Create renewal membership record
@@ -72,7 +77,7 @@ export class RenewalService {
         startDate,
         endDate,
         pricePaidInPaise: priceInPaise,
-        taxPaidInPaise: Math.round((priceInPaise * taxRateBps) / 10000),
+        taxPaidInPaise: financials.taxAmountInPaise,
         status: initialStatus,
         assignedBy: currentUserId,
       },
@@ -109,7 +114,7 @@ export class RenewalService {
           referenceId: plan.id,
         },
       ],
-    });
+    }, false);
 
     // 3. Process immediate down payment if collected at renewal
     let payment = null;
@@ -117,14 +122,14 @@ export class RenewalService {
       payment = await this.paymentService.create(tenantId, currentUserId, {
         memberId: member.id,
         branchId: branch.id,
-        amountInPaise: dto.downPaymentInPaise!,
+        amountInPaise: downPayment,
         method: (dto.downPaymentMethod || PaymentMethodType.UPI) as any,
         referenceNumber: dto.downPaymentReference,
         notes: `Immediate renewal deposit for Invoice ${invoice.invoiceNumber}`,
         allocations: [
           {
             invoiceId: invoice.id,
-            amountInPaise: Math.min(dto.downPaymentInPaise!, invoice.grandTotalInPaise),
+            amountInPaise: downPayment,
           },
         ],
       });
@@ -140,16 +145,19 @@ export class RenewalService {
         memberId: member.id,
         planName: plan.name,
         invoiceNumber: invoice.invoiceNumber,
-        downPaymentInPaise: dto.downPaymentInPaise,
+        downPaymentInPaise: downPayment,
       },
       ipAddress: 'internal',
       userAgent: 'Fitnexa-API',
     });
 
+    const emailDelivery = await this.invoiceService.emailInvoice(tenantId, invoice.id, currentUserId);
+    const updatedInvoice = await this.invoiceService.findById(tenantId, invoice.id);
     return {
       membership,
-      invoice,
+      invoice: updatedInvoice,
       payment,
+      emailDelivery,
     };
   }
 

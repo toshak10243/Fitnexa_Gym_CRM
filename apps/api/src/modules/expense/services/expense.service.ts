@@ -144,6 +144,12 @@ export class ExpenseService {
     userRole: UserRole,
     dto: CreateExpenseDto,
   ) {
+    const branch = await this.prisma.branch.findFirst({
+      where: { id: dto.branchId, tenantId },
+      select: { id: true },
+    });
+    if (!branch) throw new NotFoundException('Gym branch not found for this account');
+
     const category = await this.prisma.expenseCategory.findFirst({
       where: { id: dto.categoryId, tenantId },
     });

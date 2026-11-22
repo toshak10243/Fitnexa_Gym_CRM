@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../../lib/api-client';
 import { Button } from '../../components/ui/button';
@@ -9,6 +9,7 @@ interface ActiveSessionItem {
   id: string;
   memberId: string;
   checkInTime: string;
+  branchId?: string;
   member: {
     id: string;
     memberCode: string;
@@ -59,6 +60,7 @@ export function ActiveSessionsPage() {
     try {
       await apiClient.post('/attendance/check-out', {
         memberId,
+        branchId: sessions.find((session) => session.memberId === memberId)?.branchId,
         source: 'MANUAL_FRONT_DESK',
       });
       setFeedback(`Successfully checked out ${memberName}.`);
@@ -183,10 +185,15 @@ export function ActiveSessionsPage() {
                       s.member?.fullName ||
                       `${s.member?.firstName || ''} ${s.member?.lastName || ''}`.trim() ||
                       'Unknown Member';
-                    const emContact =
+                    const rawEmContact =
                       s.member?.emergencyContact ||
                       s.member?.emergencyContacts?.[0]?.phone ||
                       null;
+                    const emContact = typeof rawEmContact === 'string'
+                      ? rawEmContact
+                      : rawEmContact && typeof rawEmContact === 'object'
+                        ? (rawEmContact as any).phone || (rawEmContact as any).name || 'Registered'
+                        : null;
                     return (
                       <tr key={s.id} className="hover:bg-[#F5F5F0] transition-colors">
                         <td className="py-3 px-4 font-bold text-[#0A192F]">
@@ -199,9 +206,9 @@ export function ActiveSessionsPage() {
                           </button>
                         </td>
                         <td className="py-3 px-4 font-mono text-[#6B7280]">
-                          {s.member?.memberCode || '—'}
+                          {s.member?.memberCode || ''}
                         </td>
-                        <td className="py-3 px-4 text-[#6B7280]">{s.member?.phone || '—'}</td>
+                        <td className="py-3 px-4 text-[#6B7280]">{s.member?.phone || ''}</td>
                         <td className="py-3 px-4 font-mono text-[#0A192F]">
                           {new Date(s.checkInTime).toLocaleTimeString('en-IN', {
                             hour: '2-digit',
@@ -241,3 +248,5 @@ export function ActiveSessionsPage() {
     </div>
   );
 }
+
+

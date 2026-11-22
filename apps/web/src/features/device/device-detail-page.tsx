@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { apiClient } from '../../lib/api-client';
 import { Button } from '../../components/ui/button';
@@ -16,7 +16,7 @@ export function DeviceDetailPage() {
     setIsLoading(true);
     try {
       const res = await apiClient.get(`/devices/${id}`);
-      setDevice(res.data.data);
+      setDevice(res.data?.data || res.data);
     } catch {
       // Handled gracefully
     } finally {
@@ -34,8 +34,8 @@ export function DeviceDetailPage() {
     try {
       const res = await apiClient.post(`/devices/${id}/test-connection`);
       setTestResult({
-        success: res.data.data.success,
-        message: res.data.data.message,
+        success: (res.data?.data || res.data).success,
+        message: (res.data?.data || res.data).message,
       });
       await fetchDevice();
     } catch (err: any) {
@@ -97,7 +97,7 @@ export function DeviceDetailPage() {
             className="text-xs border-[#E5E7EB] rounded-none hover:bg-[#F5F5F0]"
             onClick={() => navigate('/devices')}
           >
-            ← Back to Directory
+            â† Back to Directory
           </Button>
           <Button
             variant="outline"
@@ -170,7 +170,7 @@ export function DeviceDetailPage() {
           </h2>
           <div className="space-y-3 text-xs">
             <p className="text-[#6B7280]">
-              To stream real-time gate tap events from your physical hardware or gateway to Fitnexa, post JSON payloads to:
+              To stream real-time gate tap events from your physical hardware or gateway to Trifit, post JSON payloads to:
             </p>
             <div className="font-mono text-[11px] bg-white border border-[#E5E7EB] p-2.5 text-[#0A192F] select-all">
               POST /api/v1/devices/ingest/{device.deviceCode}
@@ -190,3 +190,5 @@ export function DeviceDetailPage() {
     </div>
   );
 }
+
+

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../../lib/api-client';
 import { Button } from '../../components/ui/button';
@@ -51,7 +51,7 @@ export function ExpenseCreatePage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const amountVal = parseFloat(amountRupees);
-    if (!branchId || !categoryId || !payeeName.trim() || !description.trim() || !amountVal || amountVal <= 0) {
+    if (!branchId || !categoryId || !amountVal || amountVal <= 0) {
       setError('Please fill in all mandatory fields with a valid expense amount.');
       return;
     }
@@ -65,8 +65,8 @@ export function ExpenseCreatePage() {
         expenseDate,
         amountInPaise: Math.round(amountVal * 100),
         paymentMethod,
-        payeeName: payeeName.trim(),
-        description: description.trim(),
+        payeeName: payeeName.trim() || 'General Expense',
+        description: description.trim() || 'Operational expense',
         notes: notes.trim() || undefined,
       });
 
@@ -95,7 +95,7 @@ export function ExpenseCreatePage() {
           className="text-xs border-[#E5E7EB] rounded-none hover:bg-[#F5F5F0]"
           onClick={() => navigate('/expenses')}
         >
-          ← Cancel
+          Cancel
         </Button>
       </div>
 
@@ -258,3 +258,5 @@ export function ExpenseCreatePage() {
     </div>
   );
 }
+
+

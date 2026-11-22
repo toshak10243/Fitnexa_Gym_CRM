@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../../lib/api-client';
 import { Button } from '../../components/ui/button';
@@ -29,14 +29,12 @@ export function AttendancePoliciesPage() {
         const res = await apiClient.get('/attendance/policy');
         const policy = res.data.data;
         if (policy) {
-          setGracePeriodDays(policy.gracePeriodDays ?? 2);
-          setAllowBranchRoaming(policy.allowBranchRoaming ?? false);
+          setGracePeriodDays(policy.allowGracePeriodDays ?? 2);
+          setAllowBranchRoaming(policy.enforceBranchAccess === false);
           setRestrictOnOutstandingDues(policy.restrictOnOutstandingDues ?? false);
           setMaxDuesThresholdRupees(Math.floor((policy.maxDuesThresholdInPaise ?? 0) / 100));
           setDuplicateCheckinWindowMinutes(policy.duplicateCheckinWindowMinutes ?? 15);
           setAutoCheckoutAfterHours(policy.autoCheckoutAfterHours ?? 4);
-          setOperatingHoursStart(policy.operatingHoursStart ?? '05:30');
-          setOperatingHoursEnd(policy.operatingHoursEnd ?? '23:00');
         }
       } catch {
         // Default policy fallback
@@ -55,14 +53,12 @@ export function AttendancePoliciesPage() {
 
     try {
       await apiClient.put('/attendance/policy', {
-        gracePeriodDays: Number(gracePeriodDays),
-        allowBranchRoaming: Boolean(allowBranchRoaming),
+        allowGracePeriodDays: Number(gracePeriodDays),
+        enforceBranchAccess: !allowBranchRoaming,
         restrictOnOutstandingDues: Boolean(restrictOnOutstandingDues),
         maxDuesThresholdInPaise: Math.round(Number(maxDuesThresholdRupees) * 100),
         duplicateCheckinWindowMinutes: Number(duplicateCheckinWindowMinutes),
         autoCheckoutAfterHours: Number(autoCheckoutAfterHours),
-        operatingHoursStart,
-        operatingHoursEnd,
       });
 
       setFeedback({
@@ -106,7 +102,7 @@ export function AttendancePoliciesPage() {
             className="text-xs border-[#E5E7EB] rounded-none hover:bg-[#F5F5F0]"
             onClick={() => navigate('/attendance')}
           >
-            ← Back to Telemetry
+            â† Back to Telemetry
           </Button>
         </div>
       </div>
@@ -160,10 +156,10 @@ export function AttendancePoliciesPage() {
           {restrictOnOutstandingDues && (
             <div className="bg-white border border-[#E5E7EB] p-4 space-y-2">
               <label className="block text-[11px] font-bold uppercase text-[#0A192F]">
-                Maximum Permissible Dues Threshold (INR ₹)
+                Maximum Permissible Dues Threshold (INR â‚¹)
               </label>
               <div className="flex items-center gap-2">
-                <span className="text-sm font-bold text-[#6B7280]">₹</span>
+                <span className="text-sm font-bold text-[#6B7280]">â‚¹</span>
                 <Input
                   type="number"
                   min={0}
@@ -323,3 +319,5 @@ export function AttendancePoliciesPage() {
     </div>
   );
 }
+
+

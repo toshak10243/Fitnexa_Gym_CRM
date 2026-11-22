@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+﻿import React, { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 
 interface ModalProps {
@@ -30,3 +30,5 @@ export function Modal({ isOpen, onClose, children, maxWidth = 'max-w-md' }: Moda
     document.body
   );
 }
+
+

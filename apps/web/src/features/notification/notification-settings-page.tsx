@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../../lib/api-client';
 import { Button } from '../../components/ui/button';
@@ -84,7 +84,7 @@ export function NotificationSettingsPage() {
           className="text-xs border-[#E5E7EB] rounded-none hover:bg-[#F5F5F0]"
           onClick={() => navigate('/notifications')}
         >
-          ← Alerts Feed
+          Alerts Feed
         </Button>
       </div>
 
@@ -180,3 +180,5 @@ export function NotificationSettingsPage() {
     </div>
   );
 }
+
+

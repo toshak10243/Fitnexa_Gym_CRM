@@ -5,6 +5,7 @@ import {
   ConflictException,
 } from '@nestjs/common';
 import { PrismaService } from '../../../database/prisma.service';
+import { PosEmailService } from './pos-email.service';
 import { StockService } from '../../inventory/services/stock.service';
 import { PosCheckoutDto, PosSaleReturnDto } from '../dto/pos-checkout.dto';
 import {
@@ -20,6 +21,7 @@ import {
 export class PosService {
   constructor(
     private readonly prisma: PrismaService,
+    private readonly posEmailService: PosEmailService,
     private readonly stockService: StockService,
   ) {}
 
@@ -78,7 +80,7 @@ export class PosService {
       memberId = walkInMember.id;
     }
 
-    return this.prisma.$transaction(async (tx) => {
+    const result = await this.prisma.$transaction(async (tx) => {
       // 1. Lock and verify stock for all cart items
       for (const item of dto.items) {
         // Query current aggregate stock for product at location
@@ -279,6 +281,34 @@ export class PosService {
         receipt,
       };
     });
+
+    // Receipt email is deliberately sent after the database transaction. A mail outage must never roll back a paid sale.
+    try {
+      const [tenant, member, products] = await Promise.all([
+        this.prisma.tenant.findUnique({ where: { id: tenantId }, select: { name: true, email: true, phone: true, address: true, city: true, state: true, pincode: true, gstin: true, pan: true, logoUrl: true, website: true, whatsapp: true } }),
+        dto.memberId ? this.prisma.member.findFirst({ where: { id: dto.memberId, tenantId }, select: { fullName: true, email: true } }) : null,
+        this.prisma.product.findMany({ where: { id: { in: dto.items.map((item) => item.productId) }, tenantId }, select: { id: true, name: true, sku: true, photoUrl: true } }),
+      ]);
+      if (tenant && (member?.email || dto.walkInCustomerEmail)) {
+        await this.posEmailService.sendReceipt({
+          to: member?.email || dto.walkInCustomerEmail,
+          customerName: member?.fullName || dto.walkInCustomerName || 'Customer',
+          tenant,
+          invoice: result.invoice,
+          paymentMethod: dto.paymentMethod,
+          items: dto.items.map((item) => {
+            const product = products.find((candidate) => candidate.id === item.productId);
+            const taxable = item.quantity * item.unitPriceInPaise - (item.discountInPaise || 0);
+            const tax = Math.round((taxable * (item.taxRatePercentage || 0)) / 100);
+            return { description: `${product?.name || 'Product'} (${product?.sku || ''})`, quantity: item.quantity, unitPriceInPaise: item.unitPriceInPaise, taxRatePercentage: item.taxRatePercentage || 0, totalAmountInPaise: taxable + tax, photoUrl: product?.photoUrl };
+          }),
+        });
+      }
+    } catch (error) {
+      // Payment success is independent from email delivery; log without exposing customer data.
+      console.error('POS receipt email delivery failed', error instanceof Error ? error.message : error);
+    }
+    return result;
   }
 
   // --------------------------------------------------------------------------
@@ -327,7 +357,16 @@ export class PosService {
     });
 
     if (!invoice) throw new NotFoundException('Sale invoice not found');
-    return invoice;
+    const products = await this.prisma.product.findMany({
+      where: { tenantId, isActive: true },
+      select: { id: true, sku: true, photoUrl: true, category: { select: { name: true } } },
+    });
+    const productMap = new Map(products.map((product) => [product.id, product]));
+    return { ...invoice, lineItems: invoice.lineItems.map((item) => {
+      const sku = String(item.description || '').match(/\(([^)]+)\)$/)?.[1];
+      const product = (item.referenceId ? productMap.get(item.referenceId) : undefined) || products.find((candidate) => candidate.sku === sku);
+      return { ...item, product: product || null };
+    }) };
   }
 
   // --------------------------------------------------------------------------

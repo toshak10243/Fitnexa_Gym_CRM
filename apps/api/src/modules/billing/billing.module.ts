@@ -17,9 +17,10 @@ import { ReceiptController } from './controllers/receipt.controller';
 import { RenewalController } from './controllers/renewal.controller';
 import { RefundController } from './controllers/refund.controller';
 import { CashRegisterController } from './controllers/cash-register.controller';
+import { MailModule } from '../mail/mail.module';
 
 @Module({
-  imports: [PrismaModule, AuditLogModule],
+  imports: [PrismaModule, AuditLogModule, MailModule],
   controllers: [
     InvoiceController,
     PaymentController,

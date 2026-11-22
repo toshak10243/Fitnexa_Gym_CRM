@@ -1,6 +1,7 @@
 import {
   Injectable,
   NotFoundException,
+  BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '../../../database/prisma.service';
 import { CreateSupplierDto } from '../dto/supplier.dto';
@@ -76,9 +77,25 @@ export class SupplierService {
     dto: CreatePurchaseOrderDto,
   ) {
     const poNumber = `PO-${Date.now().toString().slice(-6)}`;
+    const productIds = dto.items.map((item) => item.productId);
+    const products = await this.prisma.product.findMany({
+      where: { tenantId, id: { in: productIds } },
+      select: { id: true, costPriceInPaise: true, sellingPriceInPaise: true },
+    });
+    const productById = new Map(products.map((product) => [product.id, product]));
+    const normalizedItems = dto.items.map((item) => {
+      const product = productById.get(item.productId);
+      const unitCostInPaise = item.unitCostInPaise > 0
+        ? item.unitCostInPaise
+        : product?.costPriceInPaise || product?.sellingPriceInPaise || 0;
+      if (unitCostInPaise <= 0) {
+        throw new BadRequestException('Purchase cost is required for every product');
+      }
+      return { ...item, unitCostInPaise };
+    });
     let totalInPaise = 0;
 
-    for (const item of dto.items) {
+    for (const item of normalizedItems) {
       totalInPaise += item.quantityOrdered * item.unitCostInPaise;
     }
 
@@ -94,7 +111,7 @@ export class SupplierService {
         totalInPaise,
         createdBy: userId,
         items: {
-          create: dto.items.map((i) => ({
+          create: normalizedItems.map((i) => ({
             productId: i.productId,
             quantityOrdered: i.quantityOrdered,
             quantityReceived: 0,
@@ -189,5 +206,15 @@ export class SupplierService {
 
       return grn;
     });
+  }
+
+  async deletePurchaseOrder(tenantId: string, purchaseOrderId: string) {
+    const po = await this.prisma.purchaseOrder.findFirst({ where: { id: purchaseOrderId, tenantId }, include: { goodsReceipts: true } });
+    if (!po) throw new NotFoundException('Purchase order not found');
+    if (po.goodsReceipts.length > 0) {
+      throw new BadRequestException('Received purchase orders cannot be deleted. Process a supplier return instead.');
+    }
+    await this.prisma.purchaseOrder.delete({ where: { id: po.id } });
+    return { deleted: true };
   }
 }

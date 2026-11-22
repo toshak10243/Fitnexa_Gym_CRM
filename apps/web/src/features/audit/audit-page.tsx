@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '../../lib/api-client';
 import { AuditLogResponse, PaginatedResult } from '@fitnexa/shared';
@@ -135,7 +135,7 @@ export function AuditPage() {
                     View Diff
                   </Button>
                 ) : (
-                  <span className="text-xs text-[#9CA3AF]">—</span>
+                  <span className="text-xs text-[#9CA3AF]">â€”</span>
                 )}
               </TableCell>
             </TableRow>
@@ -213,3 +213,5 @@ export function AuditPage() {
     </div>
   );
 }
+
+

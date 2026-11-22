@@ -68,6 +68,12 @@ export class InvoiceController {
     return this.invoiceService.findById(tenantId, id);
   }
 
+  @Post(':id/email')
+  @Roles(UserRole.GYM_OWNER, UserRole.BRANCH_MANAGER, UserRole.FRONT_DESK)
+  async email(@CurrentUser('tenantId') tenantId: string, @CurrentUser('userId') userId: string, @Param('id') id: string) {
+    return this.invoiceService.emailInvoice(tenantId, id, userId);
+  }
+
   @Post(':id/void')
   @Roles(UserRole.GYM_OWNER, UserRole.BRANCH_MANAGER)
   @ApiOperation({ summary: 'Void an unpaid invoice with rationale' })

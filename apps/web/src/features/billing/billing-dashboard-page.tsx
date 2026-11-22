@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+﻿import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   BarChart,
@@ -226,7 +226,7 @@ export function BillingDashboardPage() {
             className="text-xs border-[#E5E7EB] rounded-none hover:bg-white h-7"
             onClick={() => navigate('/billing/dues')}
           >
-            Full Aging Ledger →
+            Full Aging Ledger â†’
           </Button>
         </div>
 
@@ -237,7 +237,7 @@ export function BillingDashboardPage() {
               <XAxis dataKey="bucket" stroke="#6B7280" fontSize={11} tickLine={false} />
               <YAxis stroke="#6B7280" fontSize={10} tickLine={false} />
               <Tooltip
-                formatter={(val: number) => [`₹${val.toLocaleString('en-IN')}`, 'Outstanding']}
+                formatter={(val: number) => [`â‚¹${val.toLocaleString('en-IN')}`, 'Outstanding']}
                 contentStyle={{ backgroundColor: '#0A192F', color: '#FBFBF9', border: '1px solid #162E52', fontSize: '11px' }}
               />
               <Bar dataKey="amount" fill="#1D4ED8" />
@@ -427,3 +427,5 @@ export function BillingDashboardPage() {
     </div>
   );
 }
+
+

@@ -12,12 +12,14 @@ import { MemberQueryDto } from './dto/member-query.dto';
 import { CreateMemberNoteDto } from './dto/member-note.dto';
 import { MemberStatus, Prisma } from '@prisma/client';
 import { generateCsvString } from '../../common/utils/security.util';
+import { MailService } from '../mail/mail.service';
 
 @Injectable()
 export class MemberService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly auditLogService: AuditLogService,
+    private readonly mailService: MailService,
   ) {}
 
   /**
@@ -194,6 +196,27 @@ export class MemberService {
       userAgent: 'Fitnexa-API',
     });
 
+    if (createdMember.email) {
+      try {
+        const tenant = await this.prisma.tenant.findUnique({ where: { id: tenantId } });
+        const record = await this.findById(tenantId, createdMember.id);
+        const detailFields = (value: object | null | undefined): Record<string, unknown> => Object.fromEntries(Object.entries(value || {}).filter(([key]) => !['id', 'memberId', 'tenantId', 'createdAt', 'updatedAt', 'ipAddress', 'userAgent'].includes(key)).map(([key, val]) => [key.replace(/([A-Z])/g, ' $1').replace(/^./, letter => letter.toUpperCase()), val]));
+        const printUser = await this.prisma.user.findFirst({ where: { id: currentUserId, tenantId }, select: { id: true, fullName: true, role: true, email: true, branchId: true } });
+        if (!tenant || !printUser) throw new NotFoundException('Registration print context not found');
+        await this.mailService.sendMemberWelcomeEmail({ to: createdMember.email, memberName: createdMember.fullName, memberCode: createdMember.memberCode, gymName: tenant?.name || branch.name, phone: createdMember.phone, email: createdMember.email, address: tenant?.address, logoUrl: tenant?.logoUrl, website: tenant?.website, gymPhone: tenant?.phone, photoUrl: record.photoUrl,
+          printData: { tenant: { name: tenant.name, address: tenant.address, city: tenant.city, state: tenant.state, pincode: tenant.pincode, phone: tenant.phone, email: tenant.email, logoUrl: tenant.logoUrl, website: tenant.website, gstin: tenant.gstin, pan: tenant.pan, whatsapp: tenant.whatsapp, instagram: tenant.instagram, timezone: tenant.timezone, currency: tenant.currency }, user: printUser, member: record, memberId: record.id },
+          sections: [
+            { title: 'Gym contact details', fields: { Address: tenant?.address, Phone: tenant?.phone, Email: tenant?.email, Website: tenant?.website } },
+            { title: '1. Member identification', fields: { 'Member ID': record.memberCode, Name: record.fullName, Phone: record.phone, Email: record.email, 'Date of birth': record.dob, Gender: record.gender, Occupation: record.occupation, 'Admission date': record.joiningDate, Branch: record.branch.name, Trainer: record.assignedTrainer?.fullName || 'General floor staff' } },
+            { title: '2. Address', fields: detailFields(record.address) },
+            { title: '3. Emergency contact', fields: detailFields(record.emergencyContact) },
+            { title: '4. Health declaration', fields: detailFields(record.healthDeclaration) },
+            { title: '5. Consent and acknowledgement', fields: detailFields(record.consent) },
+          ],
+        });
+      } catch (error) { console.error('Member welcome email delivery failed', error instanceof Error ? error.message : error); }
+    }
+
     return this.findById(tenantId, createdMember.id);
   }
 
@@ -207,6 +230,9 @@ export class MemberService {
 
     const where: Prisma.MemberWhereInput = {
       tenantId,
+      // Retail walk-in sales use an internal guest profile for billing relations;
+      // it must never appear in the gym's member directory.
+      NOT: { memberCode: 'MEM-WALKIN-RETAIL' },
     };
 
     if (query.status) {
@@ -502,6 +528,24 @@ export class MemberService {
     });
 
     return updated;
+  }
+
+  /** Permanently remove a member and all records owned by that member. */
+  async removePermanently(tenantId: string, id: string, currentUserId: string) {
+    const member = await this.prisma.member.findFirst({ where: { id, tenantId } });
+    if (!member) throw new NotFoundException('Member not found');
+
+    await this.prisma.$transaction(async (tx) => {
+      // These relations intentionally use Restrict because normal operation must preserve history.
+      // A confirmed owner/manager deletion explicitly removes the dependent records first.
+      await tx.trainingSession.deleteMany({ where: { tenantId, memberId: id } });
+      await tx.trainerAssignment.deleteMany({ where: { tenantId, memberId: id } });
+      await tx.invoice.deleteMany({ where: { tenantId, memberId: id } });
+      await tx.payment.deleteMany({ where: { tenantId, memberId: id } });
+      await tx.member.delete({ where: { id } });
+    });
+
+    return { status: 'success', data: { id, deleted: true, deletedBy: currentUserId } };
   }
 
   /**

@@ -22,6 +22,15 @@ export class CreateStockAdjustmentDto {
   reason: string;
 }
 
+export class CreateStockMovementDto {
+  @IsString() @IsNotEmpty() branchId: string;
+  @IsString() @IsNotEmpty() productId: string;
+  @IsString() @IsNotEmpty() locationId: string;
+  @IsInt() @Min(1) quantity: number;
+  @IsString() @IsNotEmpty() reason: string;
+  @IsString() @IsNotEmpty() direction: 'IN' | 'OUT';
+}
+
 export class CreateStockLocationDto {
   @IsString()
   @IsNotEmpty()

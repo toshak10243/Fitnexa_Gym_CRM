@@ -1,12 +1,14 @@
-import { createPortal } from 'react-dom';
+﻿import { createPortal } from 'react-dom';
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { apiClient } from '../../lib/api-client';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 
 export function ProductCreatePage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const editProduct = (location.state as any)?.product;
 
   const [categories, setCategories] = useState<any[]>([]);
   const [isLoadingCats, setIsLoadingCats] = useState(true);
@@ -17,14 +19,21 @@ export function ProductCreatePage() {
   const [categoryId, setCategoryId] = useState('');
   const [sku, setSku] = useState('');
   const [barcode, setBarcode] = useState('');
+  const [photoUrl, setPhotoUrl] = useState('');
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const [photoPreview, setPhotoPreview] = useState('');
+  const [toast, setToast] = useState<string | null>(null);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [unit, setUnit] = useState('PIECES');
   const [costRupees, setCostRupees] = useState('');
   const [sellingRupees, setSellingRupees] = useState('');
+  const [discountPercentage, setDiscountPercentage] = useState('0');
   const [taxRate, setTaxRate] = useState('18');
   const [hsnCode, setHsnCode] = useState('2106');
   const [reorderThreshold, setReorderThreshold] = useState('5');
+  const [manufacturingDate, setManufacturingDate] = useState('');
+  const [expiryDate, setExpiryDate] = useState('');
 
   // Quick Category Modal
   const [showCatModal, setShowCatModal] = useState(false);
@@ -50,6 +59,21 @@ export function ProductCreatePage() {
   useEffect(() => {
     fetchCategories();
   }, []);
+
+  useEffect(() => {
+    if (!editProduct) return;
+    setCategoryId(editProduct.categoryId || editProduct.category?.id || '');
+    setSku(editProduct.sku || ''); setBarcode(editProduct.barcode || '');
+    setName(editProduct.name || ''); setDescription(editProduct.description || '');
+    setUnit(editProduct.unit || 'PIECES'); setPhotoUrl(editProduct.photoUrl || ''); setPhotoPreview(editProduct.photoUrl || '');
+    setCostRupees(String((editProduct.costPriceInPaise || 0) / 100));
+    setSellingRupees(String((editProduct.sellingPriceInPaise || 0) / 100));
+    setDiscountPercentage(String(editProduct.discountPercentage ?? 0));
+    setTaxRate(String(editProduct.taxRatePercentage ?? 18));
+    setHsnCode(editProduct.hsnCode || ''); setReorderThreshold(String(editProduct.reorderThreshold ?? 5));
+    setManufacturingDate(editProduct.manufacturingDate ? String(editProduct.manufacturingDate).slice(0, 10) : '');
+    setExpiryDate(editProduct.expiryDate ? String(editProduct.expiryDate).slice(0, 10) : '');
+  }, [editProduct]);
 
   const handleCreateCategory = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -84,24 +108,37 @@ export function ProductCreatePage() {
       setError('Selling price must be greater than zero.');
       return;
     }
+    if (!manufacturingDate || !expiryDate) { setError('Manufacturing date and expiry date are mandatory.'); return; }
+    if (new Date(expiryDate) <= new Date(manufacturingDate)) { setError('Expiry date must be after manufacturing date.'); return; }
 
     setIsSubmitting(true);
     setError(null);
 
     try {
-      await apiClient.post('/inventory/products', {
+      const payload = {
         categoryId,
         sku: sku.trim().toUpperCase(),
         barcode: barcode.trim() || undefined,
+        photoUrl: photoUrl || undefined,
         name: name.trim(),
         description: description.trim() || undefined,
         unit,
         costPriceInPaise: costPaise,
         sellingPriceInPaise: sellingPaise,
+        discountPercentage: Math.min(100, Math.max(0, parseFloat(discountPercentage) || 0)),
         taxRatePercentage: parseFloat(taxRate) || 0,
         hsnCode: hsnCode.trim() || undefined,
         reorderThreshold: parseInt(reorderThreshold, 10) || 5,
-      });
+        manufacturingDate,
+        expiryDate,
+      };
+      if (editProduct?.id) {
+        // Existing API deployments may still expose the older update contract;
+        // SKU/barcode remain immutable identifiers during ordinary edits.
+        const { sku: _sku, barcode: _barcode, ...editablePayload } = payload;
+        await apiClient.put(`/inventory/products/${editProduct.id}`, editablePayload);
+      }
+      else await apiClient.post('/inventory/products', payload);
 
       navigate('/inventory/products');
     } catch (err: any) {
@@ -111,13 +148,30 @@ export function ProductCreatePage() {
     }
   };
 
+  const handlePhotoUpload = async (file?: File) => {
+    if (!file) return;
+    setIsUploadingPhoto(true);
+    try {
+      const form = new FormData();
+      form.append('photo', file);
+      setPhotoPreview(URL.createObjectURL(file));
+      const res = await apiClient.post('/inventory/products/upload-photo', form, { headers: { 'Content-Type': 'multipart/form-data' } });
+      const payload = res.data?.data ?? res.data;
+      setPhotoUrl(payload.photoUrl);
+      setToast('Product photo uploaded successfully.');
+      window.setTimeout(() => setToast(null), 3000);
+    } catch (err: any) { setError(err.message || 'Product image upload failed.'); setToast('Product photo upload failed.'); }
+    finally { setIsUploadingPhoto(false); }
+  };
+
   return (
     <div className="p-8 max-w-4xl mx-auto space-y-6">
+      {toast && <div className="fixed right-6 top-6 z-[10000] border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs font-semibold text-emerald-800">{toast}</div>}
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#E5E7EB] pb-5">
         <div>
           <h1 className="text-xl font-bold tracking-tight text-[#0A192F] uppercase">
-            Create Retail Inventory Product
+            {editProduct ? 'Edit Retail Inventory Product' : 'Create Retail Inventory Product'}
           </h1>
           <p className="text-xs text-[#6B7280] mt-1">
             Configure new retail merchandise, dietary supplements, beverage stock, or gym spares.
@@ -129,7 +183,7 @@ export function ProductCreatePage() {
             className="text-xs border-[#E5E7EB] rounded-none hover:bg-[#F5F5F0]"
             onClick={() => navigate('/inventory/products')}
           >
-            ← Back to Products
+            â† Back to Products
           </Button>
         </div>
       </div>
@@ -142,6 +196,25 @@ export function ProductCreatePage() {
 
       {/* Product Form */}
       <form onSubmit={handleSubmit} className="bg-[#FBFBF9] border border-[#E5E7EB] p-6 space-y-6">
+        {/* Product photo stays at the top so the uploaded preview is immediately visible. */}
+        <div className="border-b border-[#E5E7EB] pb-5">
+          <label className="block text-[11px] font-bold uppercase text-[#0A192F] mb-2">Product Photo</label>
+          <div className="flex items-start gap-4">
+            <div className="h-32 w-32 border border-[#E5E7EB] bg-white flex items-center justify-center overflow-hidden">
+              {photoPreview ? (
+                <img src={photoPreview} alt="Product preview" className="h-full w-full object-cover" onError={() => setPhotoPreview('')} />
+              ) : (
+                <span className="text-[10px] uppercase text-[#6B7280] text-center px-2">No image selected</span>
+              )}
+            </div>
+            <div className="flex-1">
+              <input type="file" accept="image/jpeg,image/png,image/webp" disabled={isUploadingPhoto}
+                onChange={(e) => handlePhotoUpload(e.target.files?.[0])}
+                className="w-full text-xs border border-[#E5E7EB] p-2 bg-[#FBFBF9]" />
+              <p className="text-[10px] text-[#6B7280] mt-2">JPG, PNG or WebP up to 5 MB. Preview appears immediately after selection.</p>
+            </div>
+          </div>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
           {/* Category */}
           <div>
@@ -149,13 +222,7 @@ export function ProductCreatePage() {
               <label className="text-[11px] font-bold uppercase text-[#0A192F]">
                 Product Category *
               </label>
-              <button
-                type="button"
-                onClick={() => setShowCatModal(true)}
-                className="text-[10px] text-[#B91C1C] hover:underline font-bold uppercase"
-              >
-                + New Category
-              </button>
+              <a href="/inventory/categories" className="text-[10px] text-[#B91C1C] hover:underline font-bold uppercase">Manage Categories</a>
             </div>
             <select
               required
@@ -254,10 +321,10 @@ export function ProductCreatePage() {
           {/* Cost Price */}
           <div>
             <label className="block text-[11px] font-bold uppercase text-[#0A192F] mb-1">
-              Acquisition Cost Price (INR ₹) *
+              Purchase Price (INR â‚¹) *
             </label>
             <div className="flex items-center gap-2">
-              <span className="font-bold text-[#6B7280]">₹</span>
+              <span className="font-bold text-[#6B7280]">â‚¹</span>
               <Input
                 required
                 type="number"
@@ -274,10 +341,10 @@ export function ProductCreatePage() {
           {/* Selling Price */}
           <div>
             <label className="block text-[11px] font-bold uppercase text-[#0A192F] mb-1">
-              Retail Selling Price / MRP (INR ₹) *
+              Selling Price / MRP (INR â‚¹) *
             </label>
             <div className="flex items-center gap-2">
-              <span className="font-bold text-[#6B7280]">₹</span>
+              <span className="font-bold text-[#6B7280]">â‚¹</span>
               <Input
                 required
                 type="number"
@@ -288,6 +355,14 @@ export function ProductCreatePage() {
                 placeholder="3200.00"
                 className="rounded-none border-[#E5E7EB] bg-white h-9 text-xs font-mono font-bold text-[#0A192F]"
               />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-[11px] font-bold uppercase text-[#0A192F] mb-1">Discount (%)</label>
+            <div className="flex items-center gap-2">
+              <Input type="number" min="0" max="100" step="0.01" value={discountPercentage} onChange={(e) => setDiscountPercentage(e.target.value)} placeholder="0" className="rounded-none border-[#E5E7EB] bg-white h-9 text-xs font-mono" />
+              <span className="text-xs text-[#6B7280]">off MRP</span>
             </div>
           </div>
 
@@ -334,6 +409,15 @@ export function ProductCreatePage() {
               onChange={(e) => setReorderThreshold(e.target.value)}
               className="rounded-none border-[#E5E7EB] bg-white h-9 text-xs font-mono"
             />
+          </div>
+
+          <div>
+            <label className="block text-[11px] font-bold uppercase text-[#0A192F] mb-1">Manufacturing Date *</label>
+            <Input type="date" required value={manufacturingDate} onChange={(e) => setManufacturingDate(e.target.value)} className="rounded-none border-[#E5E7EB] bg-white h-9 text-xs" />
+          </div>
+          <div>
+            <label className="block text-[11px] font-bold uppercase text-[#0A192F] mb-1">Expiry Date *</label>
+            <Input type="date" required value={expiryDate} min={manufacturingDate || undefined} onChange={(e) => setExpiryDate(e.target.value)} className="rounded-none border-[#E5E7EB] bg-white h-9 text-xs" />
           </div>
         </div>
 
@@ -412,3 +496,5 @@ export function ProductCreatePage() {
     </div>
   );
 }
+
+

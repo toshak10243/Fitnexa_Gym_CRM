@@ -497,6 +497,24 @@ export class AttendanceService {
     });
   }
 
+  async deleteCorrection(tenantId: string, correctionId: string) {
+    const correction = await this.prisma.attendanceCorrection.findFirst({ where: { id: correctionId, tenantId } });
+    if (!correction) throw new NotFoundException('Correction request not found.');
+    return this.prisma.attendanceCorrection.delete({ where: { id: correctionId } });
+  }
+
+  async rejectCorrection(tenantId: string, rejectedByUserId: string, correctionId: string) {
+    const correction = await this.prisma.attendanceCorrection.findFirst({ where: { id: correctionId, tenantId } });
+    if (!correction) throw new NotFoundException('Correction request not found.');
+    if (correction.status !== CorrectionStatus.PENDING_APPROVAL) {
+      throw new BadRequestException('Correction is not pending approval.');
+    }
+    return this.prisma.attendanceCorrection.update({
+      where: { id: correctionId },
+      data: { status: CorrectionStatus.REJECTED, approvedByUserId: rejectedByUserId },
+    });
+  }
+
   async listCorrections(tenantId: string) {
     return this.prisma.attendanceCorrection.findMany({
       where: { tenantId },

@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  Logger,
 } from '@nestjs/common';
 import { PrismaService } from '../../../database/prisma.service';
 import { AuditLogService } from '../../audit-log/audit-log.service';
@@ -11,20 +12,23 @@ import { CreateInvoiceDto } from '../dto/create-invoice.dto';
 import { InvoiceQueryDto, VoidInvoiceDto } from '../dto/invoice-query.dto';
 import { InvoiceStatus, LedgerEntryType, Prisma } from '@prisma/client';
 import { calculateLineItemFinancials } from '../../../common/utils/financial.util';
+import { MailService } from '../../mail/mail.service';
 
 @Injectable()
 export class InvoiceService {
+  private readonly logger = new Logger(InvoiceService.name);
   constructor(
     private readonly prisma: PrismaService,
     private readonly auditLogService: AuditLogService,
     private readonly sequenceService: BillingSequenceService,
     private readonly ledgerService: MemberLedgerService,
+    private readonly mailService: MailService,
   ) {}
 
   /**
    * Generates an authoritative tax invoice with integer paise precision
    */
-  async create(tenantId: string, currentUserId: string, dto: CreateInvoiceDto) {
+  async create(tenantId: string, currentUserId: string, dto: CreateInvoiceDto, sendEmail = true) {
     const [member, branch] = await Promise.all([
       this.prisma.member.findFirst({ where: { id: dto.memberId, tenantId } }),
       this.prisma.branch.findFirst({ where: { id: dto.branchId, tenantId } }),
@@ -148,7 +152,28 @@ export class InvoiceService {
       userAgent: 'Fitnexa-API',
     });
 
-    return invoice;
+    const emailDelivery = sendEmail ? await this.emailInvoice(tenantId, invoice.id, currentUserId) : undefined;
+    return { ...invoice, emailDelivery };
+  }
+
+  async emailInvoice(tenantId: string, invoiceId: string, currentUserId: string) {
+    const invoice = await this.findById(tenantId, invoiceId);
+    if (!invoice.member.email) return { success: false, reason: 'Member email is missing' };
+    const user = await this.prisma.user.findFirst({ where: { id: currentUserId, tenantId }, select: { id: true, fullName: true, role: true, email: true } });
+    if (!user) throw new NotFoundException('Invoice sender not found');
+    try {
+      return await this.mailService.sendBillingInvoiceEmail({
+        to: invoice.member.email, memberName: invoice.member.fullName, memberCode: invoice.member.memberCode, memberId: invoice.memberId,
+        invoiceId: invoice.id, invoiceNumber: invoice.invoiceNumber, gymName: invoice.tenant.name, logoUrl: invoice.tenant.logoUrl,
+        address: [invoice.tenant.address, invoice.tenant.city, invoice.tenant.state, invoice.tenant.pincode].filter(Boolean).join(', '), contact: [invoice.tenant.phone, invoice.tenant.email, invoice.tenant.website].filter(Boolean).join(' | '),
+        user, tenant: invoice.tenant, invoice, total: invoice.grandTotalInPaise, paid: invoice.paidAmountInPaise, due: invoice.balanceDueInPaise, subtotal: invoice.subtotalInPaise, tax: invoice.taxAmountInPaise, dueDate: invoice.dueDate,
+        planName: invoice.membership?.plan.name, startDate: invoice.membership?.startDate, endDate: invoice.membership?.endDate,
+        items: invoice.lineItems, payments: invoice.allocations.map(allocation => ({ method: allocation.payment.method, reference: allocation.payment.referenceNumber, amount: allocation.allocatedInPaise })),
+      });
+    } catch (error) {
+      this.logger.error(`Invoice email failed for ${invoice.id}: ${error instanceof Error ? error.message : 'Delivery error'}`);
+      return { success: false, reason: 'Invoice saved; email delivery failed' };
+    }
   }
 
   /**
@@ -229,6 +254,7 @@ export class InvoiceService {
     const invoice = await this.prisma.invoice.findFirst({
       where: { id, tenantId },
       include: {
+        membership: { include: { plan: true } },
         member: {
           select: {
             id: true,
@@ -255,13 +281,21 @@ export class InvoiceService {
           select: {
             id: true,
             name: true,
+            slug: true,
             gstin: true,
             pan: true,
             phone: true,
             email: true,
             address: true,
             city: true,
+            state: true,
+            pincode: true,
+            logoUrl: true,
+            website: true,
+            instagram: true,
+            whatsapp: true,
             currency: true,
+            timezone: true,
           },
         },
         lineItems: true,

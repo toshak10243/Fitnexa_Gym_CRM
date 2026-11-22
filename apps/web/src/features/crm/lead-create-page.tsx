@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../../lib/api-client';
 import { Button } from '../../components/ui/button';
@@ -29,15 +29,19 @@ export function LeadCreatePage() {
           apiClient.get('/auth/me'),
           apiClient.get('/tenant/branches'),
         ]);
-        const branchList = branchRes.data.data || [];
+        const branchPayload = branchRes.data?.data && branchRes.data.data !== branchRes.data
+          ? branchRes.data.data
+          : branchRes.data;
+        const branchList = Array.isArray(branchPayload) ? branchPayload : branchPayload?.items || [];
         setBranches(branchList);
-        if (meRes.data.data?.branchId) {
-          setBranchId(meRes.data.data.branchId);
+        const userPayload = meRes.data?.data && meRes.data.data !== meRes.data ? meRes.data.data : meRes.data;
+        if (userPayload?.branchId && branchList.some((branch: any) => branch.id === userPayload.branchId)) {
+          setBranchId(userPayload.branchId);
         } else if (branchList.length > 0) {
           setBranchId(branchList[0].id);
         }
-      } catch {
-        // Handled gracefully
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Unable to load gym branches.');
       }
     };
     fetchUserAndBranches();
@@ -65,9 +69,11 @@ export function LeadCreatePage() {
         notes: notes.trim() || undefined,
       });
 
-      navigate(`/leads/${res.data.data.id}`);
+      const payload = res.data?.data && res.data.data !== res.data ? res.data.data : res.data;
+      if (!payload?.id) throw new Error('Lead was created but the server returned no lead ID.');
+      navigate(`/leads/${payload.id}`);
     } catch (err: any) {
-      setError(err?.response?.data?.message || 'Failed to create lead inquiry.');
+      setError(err?.response?.data?.message || err?.message || 'Failed to create lead inquiry.');
     } finally {
       setIsSubmitting(false);
     }
@@ -90,7 +96,7 @@ export function LeadCreatePage() {
           className="text-xs border-[#E5E7EB] rounded-none hover:bg-[#F5F5F0]"
           onClick={() => navigate('/leads')}
         >
-          ← Cancel
+          Cancel
         </Button>
       </div>
 
@@ -263,3 +269,5 @@ export function LeadCreatePage() {
     </div>
   );
 }
+
+

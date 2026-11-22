@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { apiClient } from '../../lib/api-client';
 import { Button } from '../../components/ui/button';
 import { Skeleton } from '../../components/ui/skeleton';
 import { useAuth } from '../../context/auth-context';
+import { printHtmlElement } from '../../lib/print-document';
 
 export function MemberPrintPage() {
   const { id } = useParams<{ id: string }>();
@@ -55,37 +56,64 @@ export function MemberPrintPage() {
         <div className="flex items-center gap-2">
           <Button
             size="sm"
-            onClick={() => window.print()}
-            className="rounded-none text-xs bg-[#0A192F] text-[#FBFBF9] px-6"
+            onClick={() => printHtmlElement('printable-admission-form', `Admission_Form_${member.memberCode}`)}
+            className="rounded-none text-xs bg-[#0A192F] text-[#FBFBF9] px-6 inline-flex items-center gap-1.5"
           >
+            <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+            </svg>
             Print Admission Form (A4)
           </Button>
         </div>
       </div>
 
       {/* A4 Form Canvas */}
-      <div className="max-w-4xl mx-auto bg-[#FBFBF9] border border-[#E5E7EB] p-8 md:p-12 text-[#111827] space-y-6 print:border-none print:p-0 print:m-0 print:max-w-none">
+      <div id="printable-admission-form" className="max-w-4xl mx-auto bg-[#FBFBF9] border border-[#E5E7EB] p-8 md:p-12 text-[#111827] space-y-6 printable-document print:border-none print:p-0 print:m-0 print:max-w-none">
         {/* Header Branding */}
-        <div className="border-b-2 border-[#0A192F] pb-4 flex justify-between items-start">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="font-extrabold text-xl tracking-wider text-[#0A192F] uppercase">
-                {tenant?.name || 'Fitnexa Fitness Enterprise'}
-              </span>
-            </div>
-            <p className="text-xs text-[#4B5563] mt-1">
-              Branch: {member.branch.name} | {member.branch.city}
-            </p>
-            {tenant?.gstin && (
-              <p className="text-[11px] font-mono text-[#6B7280]">GSTIN: {tenant.gstin}</p>
+        <div className="border-b-2 border-[#0A192F] pb-4 flex flex-col md:flex-row print:flex-row justify-between items-start gap-4 print-avoid-break">
+          <div className="flex items-start gap-3.5 min-w-0 flex-1">
+            {tenant?.logoUrl ? (
+              <img
+                src={tenant.logoUrl}
+                alt="Brand Logo"
+                className="h-16 w-16 object-contain rounded-none border border-[#E5E7EB] bg-white p-1 flex-shrink-0"
+              />
+            ) : (
+              <div className="h-14 w-14 bg-[#0A192F] text-white flex items-center justify-center font-bold text-lg rounded-none flex-shrink-0">
+                {(tenant?.name || 'F').charAt(0)}
+              </div>
             )}
+            <div className="min-w-0 break-words">
+              <h1 className="font-extrabold text-xl tracking-wider text-[#0A192F] uppercase">
+                {tenant?.name || 'Trifit Elite Fitness & Sports Club'}
+              </h1>
+              <p className="text-xs text-[#374151] mt-0.5">
+                {tenant?.address}, {tenant?.city}, {tenant?.state} - {tenant?.pincode}
+              </p>
+              <p className="text-[11px] text-[#4B5563] mt-0.5">
+                Facility Branch: {member.branch.name} | {member.branch.city}
+              </p>
+              <div className="text-[11px] font-mono text-[#6B7280] mt-1 flex flex-wrap gap-x-3 gap-y-0.5">
+                <span>Phone: <strong className="text-[#111827]">{tenant?.phone || '-'}</strong></span>
+                <span>Email: <strong className="text-[#111827]">{tenant?.email || '-'}</strong></span>
+                {tenant?.website && <span>Web: <strong className="text-[#111827]">{tenant.website}</strong></span>}
+              </div>
+              <div className="text-[11px] font-mono text-[#6B7280] mt-0.5 flex flex-wrap gap-x-3">
+                <span>GSTIN: <strong className="text-[#0A192F]">{tenant?.gstin || 'N/A'}</strong></span>
+                <span>PAN: <strong className="text-[#0A192F]">{tenant?.pan || 'N/A'}</strong></span>
+              </div>
+            </div>
           </div>
-          <div className="text-right">
-            <span className="inline-block border-2 border-[#0A192F] font-mono font-bold text-sm px-3 py-1">
+
+          <div className="text-right flex-shrink-0 self-end md:self-start print:self-start print:ml-auto">
+            <span className="inline-block border-2 border-[#0A192F] font-mono font-bold text-sm px-3 py-1 bg-white">
               {member.memberCode}
             </span>
-            <p className="text-[10px] text-[#6B7280] mt-1">
-              Admission: {member.joiningDate.split('T')[0]}
+            <p className="text-[11px] font-mono text-[#6B7280] mt-1">
+              Admission: <strong className="text-[#111827]">{member.joiningDate.split('T')[0]}</strong>
+            </p>
+            <p className="text-[10px] font-mono text-[#6B7280]">
+              Currency: {tenant?.currency || 'INR'}
             </p>
           </div>
         </div>
@@ -95,6 +123,7 @@ export function MemberPrintPage() {
         </div>
 
         {/* Section 1: Personal Details */}
+        {member.photoUrl && <div className="flex justify-start print-avoid-break"><img src={member.photoUrl} alt={`${member.fullName} photograph`} className="h-32 w-28 object-contain border border-[#E5E7EB] bg-[#FBFBF9] p-1" /></div>}
         <div className="space-y-2">
           <h2 className="text-xs font-bold uppercase tracking-wider text-[#0A192F] pb-1">
             1. Member Identification
@@ -192,8 +221,35 @@ export function MemberPrintPage() {
           </ol>
         </div>
 
+        {/* Social and Communication Contact Row */}
+        <div className="bg-[#FBFBF9] border border-[#E5E7EB] p-3 flex flex-wrap items-center justify-between gap-3 text-xs mt-6 print-avoid-break">
+          <div className="flex flex-wrap items-center gap-4 text-[#374151]">
+            {tenant?.whatsapp && (
+              <span className="inline-flex items-center gap-1 font-medium">
+                <span className="font-bold text-[#0A192F]">WhatsApp:</span> {tenant.whatsapp}
+              </span>
+            )}
+            {tenant?.instagram && (
+              <span className="inline-flex items-center gap-1 font-medium">
+                <span className="font-bold text-[#0A192F]">Instagram:</span> {tenant.instagram}
+              </span>
+            )}
+            {tenant?.website && (
+              <span className="inline-flex items-center gap-1 font-medium">
+                <span className="font-bold text-[#0A192F]">Web:</span> {tenant.website}
+              </span>
+            )}
+            <span className="inline-flex items-center gap-1 font-medium">
+              <span className="font-bold text-[#0A192F]">Helpdesk:</span> {tenant?.email || tenant?.phone}
+            </span>
+          </div>
+          <div className="text-[10px] font-mono text-[#6B7280]">
+            Timezone: {tenant?.timezone || 'Asia/Kolkata'}
+          </div>
+        </div>
+
         {/* Signature Blocks */}
-        <div className="pt-8 grid grid-cols-2 gap-12 text-xs">
+        <div className="pt-6 grid grid-cols-2 gap-12 text-xs print-avoid-break">
           <div className="border-t border-[#111827] pt-2">
             <p className="font-bold">Member / Guardian Signature</p>
             <p className="text-[10px] text-[#6B7280]">Date: ________________________</p>
@@ -207,3 +263,5 @@ export function MemberPrintPage() {
     </div>
   );
 }
+
+

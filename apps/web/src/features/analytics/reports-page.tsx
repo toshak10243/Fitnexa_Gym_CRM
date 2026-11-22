@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../../lib/api-client';
 import { Button } from '../../components/ui/button';
@@ -6,6 +6,18 @@ import { Input } from '../../components/ui/input';
 import { Skeleton } from '../../components/ui/skeleton';
 import { formatPaiseToInr } from '../../lib/utils';
 import { ReportType } from '@fitnexa/shared';
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Legend,
+  Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts';
 
 export function ReportsPage() {
   const navigate = useNavigate();
@@ -24,6 +36,9 @@ export function ReportsPage() {
   const [reportData, setReportData] = useState<any | null>(null);
   const [page, setPage] = useState(1);
   const [isExporting, setIsExporting] = useState(false);
+  const [statusFilter, setStatusFilter] = useState('');
+  const [methodFilter, setMethodFilter] = useState('');
+  const [textFilter, setTextFilter] = useState('');
 
   useEffect(() => {
     const fetchBranches = async () => {
@@ -57,6 +72,12 @@ export function ReportsPage() {
     fetchReport();
   }, [activeReport, selectedBranchId, startDate, endDate, page]);
 
+  useEffect(() => {
+    setStatusFilter('');
+    setMethodFilter('');
+    setTextFilter('');
+  }, [activeReport]);
+
   const handleExportCsv = async () => {
     setIsExporting(true);
     try {
@@ -68,7 +89,7 @@ export function ReportsPage() {
       const downloadUrl = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = downloadUrl;
-      link.setAttribute('download', `fitnexa-${activeReport}-${endDate}.csv`);
+      link.setAttribute('download', `trifit-${activeReport}-${endDate}.csv`);
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -88,6 +109,43 @@ export function ReportsPage() {
     { type: ReportType.LEAD_CONVERSIONS, label: 'Lead CRM Conversions' },
   ];
 
+  const visibleRecords = (Array.isArray(reportData?.records) ? reportData.records : []).filter((row: any) => {
+    const matchesStatus = !statusFilter || String(row.status || '').toUpperCase() === statusFilter;
+    const methodValue = String(row.method || row.paymentMethod || '').toUpperCase();
+    const matchesMethod = !methodFilter || methodValue === methodFilter;
+    const haystack = Object.values(row).join(' ').toLowerCase();
+    return matchesStatus && matchesMethod && (!textFilter || haystack.includes(textFilter.toLowerCase()));
+  });
+
+  const chartRows = visibleRecords;
+  const summaryRows = reportData?.summary
+    ? [{
+        __label: 'Summary',
+        ...Object.fromEntries(
+          Object.entries(reportData.summary)
+            .filter(([, value]) => typeof value === 'number' || !Number.isNaN(Number(value)))
+            .map(([key, value]) => [key, Number(value) || 0]),
+        ),
+      }]
+    : [];
+  const chartSourceRows = chartRows.length > 0 ? chartRows : summaryRows;
+  const chartNumericKeys = chartSourceRows.length
+    ? Object.keys(chartSourceRows[0]).filter(
+        (key) =>
+          key !== 'id' && key !== '__label' &&
+          chartSourceRows.some((row: any) => typeof row[key] === 'number' || !Number.isNaN(Number(row[key]))),
+      )
+    : [];
+  const chartLabelKey = chartSourceRows.length
+    ? Object.keys(chartSourceRows[0]).find((key) => key !== 'id' && key !== '__label' && !chartNumericKeys.includes(key)) || '__label'
+    : 'id';
+  const chartData = chartSourceRows.slice(0, 24).map((row: any, index: number) => ({
+    ...row,
+    __label: String(row[chartLabelKey] ?? index + 1).slice(0, 18),
+    ...Object.fromEntries(chartNumericKeys.map((key) => [key, Number(row[key]) || 0])),
+  }));
+  const chartMetricKeys = chartNumericKeys.slice(0, 2);
+
   return (
     <div className="p-8 max-w-7xl mx-auto space-y-6">
       {/* Header */}
@@ -106,14 +164,14 @@ export function ReportsPage() {
             className="text-xs border-[#E5E7EB] rounded-none hover:bg-[#F5F5F0]"
             onClick={() => navigate('/')}
           >
-            ← Executive Dashboard
+            â† Executive Dashboard
           </Button>
           <Button
             disabled={isExporting}
             className="bg-[#0A192F] text-[#FBFBF9] hover:bg-[#162E52] text-xs rounded-none px-4"
             onClick={handleExportCsv}
           >
-            {isExporting ? 'Generating Export...' : '⬇ Export Sanitized CSV'}
+            {isExporting ? 'Generating Export...' : ' Export Sanitized CSV'}
           </Button>
         </div>
       </div>
@@ -177,9 +235,30 @@ export function ReportsPage() {
           )}
         </div>
 
-        <div className="text-xs text-[#6B7280] font-mono">
-          Report Records: <span className="font-bold text-[#0A192F]">{reportData?.totalRecords || 0}</span>
+          <div className="text-xs text-[#6B7280] font-mono">
+          Report Records: <span className="font-bold text-[#0A192F]">{visibleRecords.length}</span>
         </div>
+      </div>
+
+      <div className="bg-[#FBFBF9] border border-[#E5E7EB] p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <Input
+          placeholder="Search report records..."
+          value={textFilter}
+          onChange={(e) => setTextFilter(e.target.value)}
+          className="text-xs border-[#E5E7EB] bg-white h-8 rounded-none"
+        />
+        <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="text-xs border border-[#E5E7EB] bg-white px-3 h-8 rounded-none text-[#0A192F]">
+          <option value="">All Statuses</option>
+          {Array.from(new Set<string>((reportData?.records || []).map((row: any) => String(row.status || '').toUpperCase()).filter(Boolean))).map((status: string) => <option key={status} value={status}>{status.replace(/_/g, ' ')}</option>)}
+        </select>
+        <select value={methodFilter} onChange={(e) => setMethodFilter(e.target.value)} className="text-xs border border-[#E5E7EB] bg-white px-3 h-8 rounded-none text-[#0A192F]">
+          <option value="">All Payment Methods</option>
+          <option value="CASH">Cash</option>
+          <option value="UPI">UPI</option>
+          <option value="CARD">Card</option>
+          <option value="BANK_TRANSFER">Bank Transfer</option>
+        </select>
+        <div className="text-[11px] text-[#6B7280] flex items-center justify-end">Showing <span className="font-bold text-[#0A192F] mx-1">{visibleRecords.length}</span> filtered rows</div>
       </div>
 
       {/* Summary KPI Ribbon for Active Report */}
@@ -208,6 +287,43 @@ export function ReportsPage() {
         </div>
       )}
 
+      {chartData.length > 0 && chartMetricKeys.length > 0 && (
+        <div className="bg-[#FBFBF9] border border-[#E5E7EB] p-4">
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <h2 className="text-xs font-bold uppercase tracking-wide text-[#0A192F]">Report Trend</h2>
+              <p className="text-[11px] text-[#6B7280] mt-1">Visual summary of the selected report data.</p>
+            </div>
+          </div>
+          <div className="h-72 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              {chartMetricKeys.length > 1 && chartRows.length > 0 ? (
+                <LineChart data={chartData} margin={{ top: 8, right: 16, left: 0, bottom: 8 }}>
+                  <CartesianGrid stroke="#E5E7EB" strokeDasharray="3 3" />
+                  <XAxis dataKey="__label" tick={{ fontSize: 10, fill: '#6B7280' }} />
+                  <YAxis tick={{ fontSize: 10, fill: '#6B7280' }} />
+                  <Tooltip />
+                  <Legend wrapperStyle={{ fontSize: 11 }} />
+                  {chartMetricKeys.map((key, index) => (
+                    <Line key={key} type="monotone" dataKey={key} name={key.replace(/([A-Z])/g, ' $1')} stroke={index === 0 ? '#0A192F' : '#B91C1C'} strokeWidth={2} dot={false} />
+                  ))}
+                </LineChart>
+              ) : (
+                <BarChart data={chartData} margin={{ top: 8, right: 16, left: 0, bottom: 8 }}>
+                  <CartesianGrid stroke="#E5E7EB" strokeDasharray="3 3" />
+                  <XAxis dataKey="__label" tick={{ fontSize: 10, fill: '#6B7280' }} />
+                  <YAxis tick={{ fontSize: 10, fill: '#6B7280' }} />
+                  <Tooltip />
+                  {chartMetricKeys.map((key, index) => (
+                    <Bar key={key} dataKey={key} name={key.replace(/Paise$/, '').replace(/([A-Z])/g, ' $1')} fill={index === 0 ? '#0A192F' : '#B91C1C'} />
+                  ))}
+                </BarChart>
+              )}
+            </ResponsiveContainer>
+          </div>
+        </div>
+      )}
+
       {/* Dynamic Report Data Table */}
       <div className="bg-[#FBFBF9] border border-[#E5E7EB]">
         <div className="overflow-x-auto">
@@ -217,7 +333,7 @@ export function ReportsPage() {
                 <Skeleton key={i} className="h-8 w-full" />
               ))}
             </div>
-          ) : !reportData?.records || reportData.records.length === 0 ? (
+          ) : visibleRecords.length === 0 ? (
             <div className="py-16 text-center text-xs text-[#6B7280]">
               No records found for the selected reporting period and branch.
             </div>
@@ -225,7 +341,7 @@ export function ReportsPage() {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="border-b border-[#E5E7EB] bg-[#F5F5F0] text-[10px] font-bold uppercase tracking-wider text-[#6B7280]">
-                  {Object.keys(reportData.records[0])
+                  {Object.keys(visibleRecords[0])
                     .filter((col) => col !== 'id')
                     .map((col) => (
                       <th key={col} className="py-2.5 px-3">
@@ -235,7 +351,7 @@ export function ReportsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#E5E7EB] text-xs">
-                {reportData.records.map((row: any, idx: number) => (
+                {visibleRecords.map((row: any, idx: number) => (
                   <tr key={row.id || idx} className="hover:bg-white transition-colors">
                     {Object.keys(row)
                       .filter((col) => col !== 'id')
@@ -268,7 +384,7 @@ export function ReportsPage() {
         {/* Pagination Footer */}
         <div className="p-4 border-t border-[#E5E7EB] flex items-center justify-between text-xs text-[#6B7280]">
           <div>
-            Showing <span className="font-bold text-[#0A192F]">{reportData?.records?.length || 0}</span> of{' '}
+            Showing <span className="font-bold text-[#0A192F]">{visibleRecords.length}</span> of{' '}
             <span className="font-bold text-[#0A192F]">{reportData?.totalRecords || 0}</span> entries
           </div>
           <div className="flex items-center gap-2">
@@ -295,3 +411,6 @@ export function ReportsPage() {
     </div>
   );
 }
+
+
+

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../../lib/api-client';
 import { Button } from '../../components/ui/button';
@@ -25,11 +25,12 @@ export function PaymentsPage() {
       if (selectedMethod) params.append('method', selectedMethod);
 
       const res = await apiClient.get(`/billing/payments?${params.toString()}`);
-      if (res.data.success) {
-        setPayments(res.data.data.items || []);
-        setTotalPages(res.data.data.meta.totalPages || 1);
-        setTotalCount(res.data.data.meta.total || 0);
-      }
+      const payload = res.data?.data || res.data;
+      const items = payload?.items || payload?.data || [];
+      const meta = payload?.meta || {};
+      setPayments(Array.isArray(items) ? items : []);
+      setTotalPages(meta.totalPages || 1);
+      setTotalCount(meta.total || items.length || 0);
     } catch {
       // Handled gracefully
     } finally {
@@ -138,7 +139,7 @@ export function PaymentsPage() {
                   <th className="py-3 px-4">Member</th>
                   <th className="py-3 px-4">Method</th>
                   <th className="py-3 px-4">Reference / UTR</th>
-                  <th className="py-3 px-4 text-right">Amount (₹)</th>
+                  <th className="py-3 px-4 text-right">Amount (â‚¹)</th>
                   <th className="py-3 px-4">Received By</th>
                   <th className="py-3 px-4 text-center">Receipt</th>
                 </tr>
@@ -247,3 +248,5 @@ export function PaymentsPage() {
     </div>
   );
 }
+
+

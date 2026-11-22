@@ -1,5 +1,5 @@
-const { PrismaClient } = require('C:/Fitnexa/node_modules/.pnpm/@prisma+client@6.19.3_prism_1d040ab5215f59f0e27ddee7f0cf082e/node_modules/@prisma/client');
-const bcrypt = require('C:/Fitnexa/node_modules/.pnpm/bcrypt@6.0.0/node_modules/bcrypt');
+const { PrismaClient } = require('../apps/api/node_modules/@prisma/client');
+const bcrypt = require('../apps/api/node_modules/bcrypt');
 
 const prisma = new PrismaClient();
 

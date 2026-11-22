@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../../lib/api-client';
 import { Button } from '../../components/ui/button';
@@ -104,7 +104,7 @@ export function MemberListPage() {
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', `fitnexa-members-${new Date().toISOString().split('T')[0]}.csv`);
+      link.setAttribute('download', `trifit-members-${new Date().toISOString().split('T')[0]}.csv`);
       document.body.appendChild(link);
       link.click();
       link.parentNode?.removeChild(link);
@@ -113,6 +113,20 @@ export function MemberListPage() {
       alert(`Export failed: ${msg}`);
     } finally {
       setIsExporting(false);
+    }
+  };
+
+  const handleDeleteMember = async (member: MemberItem) => {
+    const confirmed = window.confirm(
+      `Permanently delete ${member.fullName}? All profile, membership, sales, payment, attendance, and training records will be deleted. This cannot be undone.`,
+    );
+    if (!confirmed) return;
+
+    try {
+      await apiClient.delete(`/members/${member.id}`);
+      await fetchMembers();
+    } catch {
+      alert('Unable to permanently delete this member. Please try again.');
     }
   };
 
@@ -359,6 +373,7 @@ export function MemberListPage() {
                         {member.joiningDate.split('T')[0]}
                       </td>
                       <td className="py-3 px-4 text-right" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center justify-end gap-2">
                         <Button
                           variant="outline"
                           size="sm"
@@ -367,6 +382,19 @@ export function MemberListPage() {
                         >
                           View 360
                         </Button>
+                        {(user?.role === UserRole.GYM_OWNER ||
+                          user?.role === UserRole.BRANCH_MANAGER) &&
+                          member.status !== MemberStatus.ARCHIVED && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleDeleteMember(member)}
+                              className="rounded-none text-xs h-7 border-red-300 text-red-700 hover:bg-red-50"
+                            >
+                              Delete
+                            </Button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   );
@@ -410,3 +438,5 @@ export function MemberListPage() {
     </div>
   );
 }
+
+

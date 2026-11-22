@@ -11,7 +11,7 @@ export class PurchaseOrderItemDto {
   quantityOrdered: number;
 
   @IsInt()
-  @Min(0)
+  @Min(1)
   unitCostInPaise: number;
 }
 

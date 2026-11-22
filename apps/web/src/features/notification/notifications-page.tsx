@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../../lib/api-client';
@@ -12,6 +12,9 @@ export function NotificationsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [notifications, setNotifications] = useState<any[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [search, setSearch] = useState('');
+  const [filterType, setFilterType] = useState('');
+  const [filterChannel, setFilterChannel] = useState('');
 
   // Send Notification Modal
   const [isSendModalOpen, setIsSendModalOpen] = useState(false);
@@ -27,7 +30,7 @@ export function NotificationsPage() {
     try {
       const res = await apiClient.get('/notifications/feed?limit=50');
       const data = res.data.data;
-      setNotifications(data.notifications || []);
+      setNotifications(data.notifications || data.items || []);
       setUnreadCount(data.unreadCount || 0);
     } catch {
       // Handled gracefully
@@ -39,6 +42,16 @@ export function NotificationsPage() {
   useEffect(() => {
     fetchFeed();
   }, []);
+
+  const visibleNotifications = notifications.filter((notification) => {
+    const query = search.trim().toLowerCase();
+    const matchesSearch = !query || [notification.title, notification.message]
+      .filter(Boolean)
+      .some((value) => String(value).toLowerCase().includes(query));
+    const matchesType = !filterType || notification.type === filterType;
+    const matchesChannel = !filterChannel || notification.channel === filterChannel;
+    return matchesSearch && matchesType && matchesChannel;
+  });
 
   const handleMarkAsRead = async (id: string) => {
     try {
@@ -129,18 +142,51 @@ export function NotificationsPage() {
         </div>
       </div>
 
+      <div className="bg-[#FBFBF9] border border-[#E5E7EB] p-4 flex flex-col md:flex-row gap-3">
+        <Input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search notifications by title or message..."
+          className="text-xs border-[#E5E7EB] bg-white rounded-none"
+        />
+        <select
+          value={filterType}
+          onChange={(e) => setFilterType(e.target.value)}
+          className="text-xs border border-[#E5E7EB] bg-white px-3 h-9 rounded-none text-[#0A192F]"
+        >
+          <option value="">All Types</option>
+          {Object.values(NotificationType).map((notificationType) => (
+            <option key={notificationType} value={notificationType}>
+              {notificationType.replace(/_/g, ' ')}
+            </option>
+          ))}
+        </select>
+        <select
+          value={filterChannel}
+          onChange={(e) => setFilterChannel(e.target.value)}
+          className="text-xs border border-[#E5E7EB] bg-white px-3 h-9 rounded-none text-[#0A192F]"
+        >
+          <option value="">All Channels</option>
+          {Object.values(NotificationChannel).map((notificationChannel) => (
+            <option key={notificationChannel} value={notificationChannel}>
+              {notificationChannel.replace(/_/g, ' ')}
+            </option>
+          ))}
+        </select>
+      </div>
+
       {/* Notifications Feed */}
       <div className="space-y-3">
         {isLoading ? (
           Array.from({ length: 5 }).map((_, i) => (
             <Skeleton key={i} className="h-20 w-full" />
           ))
-        ) : notifications.length === 0 ? (
+        ) : visibleNotifications.length === 0 ? (
           <div className="bg-[#FBFBF9] border border-[#E5E7EB] p-12 text-center text-xs text-[#6B7280]">
-            No notifications in your feed. All caught up!
+            No notifications match your search or filters.
           </div>
         ) : (
-          notifications.map((n) => {
+          visibleNotifications.map((n) => {
             return (
               <div
                 key={n.id}
@@ -212,7 +258,7 @@ export function NotificationsPage() {
                 className="text-[#6B7280] hover:text-[#0A192F] text-sm font-mono"
                 onClick={() => setIsSendModalOpen(false)}
               >
-                ✕
+                Close
               </button>
             </div>
 
@@ -311,3 +357,5 @@ export function NotificationsPage() {
     </div>
   );
 }
+
+

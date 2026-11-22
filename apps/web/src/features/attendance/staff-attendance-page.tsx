@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../../lib/api-client';
 import { Button } from '../../components/ui/button';
@@ -25,12 +25,16 @@ export function StaffAttendancePage() {
   const [shifts, setShifts] = useState<StaffAttendanceItem[]>([]);
   const [isClocking, setIsClocking] = useState(false);
   const [notes, setNotes] = useState('');
+  const [staffId, setStaffId] = useState('');
+  const [branchId, setBranchId] = useState('');
+  const [staffOptions, setStaffOptions] = useState<Array<{ id: string; fullName?: string; email?: string }>>([]);
+  const [branchOptions, setBranchOptions] = useState<Array<{ id: string; name: string }>>([]);
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   const fetchStaffAttendance = async () => {
     setIsLoading(true);
     try {
-      const res = await apiClient.get('/staff-attendance/history?limit=25');
+      const res = await apiClient.get('/staff-attendance');
       const raw = res.data?.data || res.data;
       setShifts(raw?.items || (Array.isArray(raw) ? raw : []));
     } catch {
@@ -42,13 +46,19 @@ export function StaffAttendancePage() {
 
   useEffect(() => {
     fetchStaffAttendance();
+    Promise.allSettled([apiClient.get('/staff?limit=100'), apiClient.get('/tenant/branches')]).then(([staffRes, branchRes]) => {
+      if (staffRes.status === 'fulfilled') { const raw = staffRes.value.data?.data || staffRes.value.data; setStaffOptions(raw?.items || raw || []); }
+      if (branchRes.status === 'fulfilled') { const raw = branchRes.value.data?.data || branchRes.value.data; setBranchOptions(raw?.items || raw || []); }
+    });
   }, []);
 
   const handleClockIn = async () => {
+    if (!staffId || !branchId) { setFeedback({ type: 'error', message: 'Select staff member and branch first.' }); return; }
     setIsClocking(true);
     setFeedback(null);
     try {
-      await apiClient.post('/staff-attendance/clock-in', {
+      await apiClient.post('/staff-attendance/check-in', {
+        staffId, branchId,
         notes: notes.trim() || undefined,
       });
       setFeedback({ type: 'success', message: 'Staff successfully clocked in for shift duty.' });
@@ -62,10 +72,12 @@ export function StaffAttendancePage() {
   };
 
   const handleClockOut = async () => {
+    if (!staffId || !branchId) { setFeedback({ type: 'error', message: 'Select staff member and branch first.' }); return; }
     setIsClocking(true);
     setFeedback(null);
     try {
-      await apiClient.post('/staff-attendance/clock-out', {
+      await apiClient.post('/staff-attendance/check-out', {
+        staffId, branchId,
         notes: notes.trim() || undefined,
       });
       setFeedback({ type: 'success', message: 'Staff successfully clocked out of shift duty.' });
@@ -96,7 +108,7 @@ export function StaffAttendancePage() {
             className="text-xs border-[#E5E7EB] rounded-none hover:bg-[#F5F5F0]"
             onClick={() => navigate('/attendance')}
           >
-            ← Back to Telemetry
+            â† Back to Telemetry
           </Button>
         </div>
       </div>
@@ -119,6 +131,14 @@ export function StaffAttendancePage() {
           Shift Duty Action
         </h2>
         <div className="flex flex-col md:flex-row items-center gap-3">
+          <select value={staffId} onChange={(e) => setStaffId(e.target.value)} className="h-9 border border-[#E5E7EB] bg-white px-3 text-xs">
+            <option value="">Select staff member</option>
+            {staffOptions.map((staff) => <option key={staff.id} value={staff.id}>{staff.fullName || staff.email}</option>)}
+          </select>
+          <select value={branchId} onChange={(e) => setBranchId(e.target.value)} className="h-9 border border-[#E5E7EB] bg-white px-3 text-xs">
+            <option value="">Select branch</option>
+            {branchOptions.map((branch) => <option key={branch.id} value={branch.id}>{branch.name}</option>)}
+          </select>
           <Input
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
@@ -128,7 +148,7 @@ export function StaffAttendancePage() {
           <div className="flex items-center gap-2">
             <Button
               disabled={isClocking}
-              className="bg-[#0A192F] text-white hover:bg-[#162E52] text-xs rounded-none px-5 h-9"
+              className="bg-[#0A192F] text-white hover:bg-[#162E52] text-xs rounded-none px-5 h-9 min-w-[110px] whitespace-nowrap"
               onClick={handleClockIn}
             >
               Clock In Duty
@@ -136,7 +156,7 @@ export function StaffAttendancePage() {
             <Button
               disabled={isClocking}
               variant="outline"
-              className="border-red-300 text-red-700 hover:bg-red-50 text-xs rounded-none px-5 h-9"
+              className="border-red-300 text-red-700 hover:bg-red-50 text-xs rounded-none px-5 h-9 min-w-[110px] whitespace-nowrap"
               onClick={handleClockOut}
             >
               Clock Out Duty
@@ -206,7 +226,7 @@ export function StaffAttendancePage() {
                           {new Date(s.clockInTime).toLocaleString('en-IN')}
                         </td>
                         <td className="py-3 px-4 font-mono text-[#0A192F]">
-                          {s.clockOutTime ? new Date(s.clockOutTime).toLocaleString('en-IN') : '—'}
+                          {s.clockOutTime ? new Date(s.clockOutTime).toLocaleString('en-IN') : ''}
                         </td>
                         <td className="py-3 px-4 font-semibold">
                           <span
@@ -219,7 +239,7 @@ export function StaffAttendancePage() {
                             {durationText}
                           </span>
                         </td>
-                        <td className="py-3 px-4 text-[#6B7280]">{s.notes || '—'}</td>
+                        <td className="py-3 px-4 text-[#6B7280]">{s.notes || 'â€”'}</td>
                       </tr>
                     );
                   })
@@ -232,3 +252,5 @@ export function StaffAttendancePage() {
     </div>
   );
 }
+
+

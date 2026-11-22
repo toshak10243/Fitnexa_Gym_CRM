@@ -1,4 +1,4 @@
-import { createPortal } from 'react-dom';
+﻿import { createPortal } from 'react-dom';
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../../lib/api-client';
@@ -40,18 +40,14 @@ export function CashRegisterPage() {
         apiClient.get('/tenant/branches'),
       ]);
 
-      if (currentRes.data.success) {
-        setActiveSession(currentRes.data.data);
-      } else {
-        setActiveSession(null);
-      }
+      const currentPayload = currentRes.data?.data || currentRes.data;
+      setActiveSession(currentPayload?.id ? currentPayload : null);
 
-      if (branchesRes.data.success) {
-        const bList = branchesRes.data.data || [];
-        setBranches(bList);
-        if (bList.length > 0 && !openForm.branchId) {
-          setOpenForm((prev) => ({ ...prev, branchId: bList[0].id }));
-        }
+      const branchesPayload = branchesRes.data?.data || branchesRes.data;
+      const bList = Array.isArray(branchesPayload) ? branchesPayload : branchesPayload?.items || [];
+      setBranches(bList);
+      if (bList.length > 0 && !openForm.branchId) {
+        setOpenForm((prev) => ({ ...prev, branchId: bList[0].id }));
       }
     } catch {
       setActiveSession(null);
@@ -82,7 +78,13 @@ export function CashRegisterPage() {
         fetchRegisterData();
       }
     } catch (err: any) {
-      setActionError(err.response?.data?.message || 'Failed to open register session');
+      const status = err.response?.status;
+      setActionError(
+        status === 409
+          ? 'A cash register shift is already open for this branch. Close the active shift before opening a new one.'
+          : err.response?.data?.message || 'Failed to open register session',
+      );
+      if (status === 409) fetchRegisterData();
     } finally {
       setIsSubmitting(false);
     }
@@ -305,7 +307,7 @@ export function CashRegisterPage() {
 
               <div>
                 <label className="block text-xs font-semibold text-[#0A192F] uppercase tracking-wider mb-1">
-                  Opening Float (₹) *
+                  Opening Float (â‚¹) *
                 </label>
                 <Input
                   type="number"
@@ -383,7 +385,7 @@ export function CashRegisterPage() {
 
               <div>
                 <label className="block text-xs font-semibold text-[#0A192F] uppercase tracking-wider mb-1">
-                  Actual Physical Cash Count (₹) *
+                  Actual Physical Cash Count (â‚¹) *
                 </label>
                 <Input
                   type="number"
@@ -456,3 +458,5 @@ export function CashRegisterPage() {
     </div>
   );
 }
+
+
