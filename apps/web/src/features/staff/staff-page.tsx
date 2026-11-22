@@ -437,7 +437,7 @@ export function StaffPage() {
         isOpen={isPermissionsModalOpen}
         onClose={() => setIsPermissionsModalOpen(false)}
         title={tenant ? `Role Permissions Matrix: ${tenant.name}` : 'Role Permissions Matrix'}
-        subtitle={tenant?.slug ? `Facility: ${tenant.slug}.trifit.in` : undefined}
+        subtitle={tenant?.slug ? `Facility: ${tenant.slug}.trifit.space` : undefined}
         initialPermissions={tenant?.rolePermissions}
         onSave={async (updatedPermissions) => {
           await savePermissionsMutation.mutateAsync(updatedPermissions);

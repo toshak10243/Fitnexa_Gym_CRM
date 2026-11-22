@@ -216,7 +216,7 @@ export function SettingsPage() {
               : 'Standard Enterprise License'}
           </h3>
           <p className="text-xs text-[#9CA3AF] mt-0.5">
-            Company Subdomain: <span className="font-mono text-[#FBFBF9]">{tenant.slug}.trifit.in</span>
+            Company Subdomain: <span className="font-mono text-[#FBFBF9]">{tenant.slug}.trifit.space</span>
           </p>
         </div>
 

@@ -1,0 +1,65 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-fitnexa_app}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env.production}
+      POSTGRES_DB: ${POSTGRES_DB:-fitnexa}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U $${POSTGRES_USER:-fitnexa_app} -d $${POSTGRES_DB:-fitnexa}']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ['redis-server', '--appendonly', 'yes', '--requirepass', '${REDIS_PASSWORD}']
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ['CMD-SHELL', 'redis-cli -a "${REDIS_PASSWORD}" ping | grep PONG']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/Dockerfile.api
+    restart: unless-stopped
+    env_file: .env.production
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    expose:
+      - '3000'
+    command: ['sh', '-c', 'cd apps/api && pnpm prisma migrate deploy && cd /app && node apps/api/dist/main.js']
+
+  web:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/Dockerfile.web
+    restart: unless-stopped
+    expose:
+      - '80'
+
+  edge:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    depends_on:
+      - api
+      - web
+    ports:
+      - '127.0.0.1:8080:80'
+    volumes:
+      - ./infrastructure/docker/nginx-production.conf:/etc/nginx/conf.d/default.conf:ro
+
+volumes:
+  postgres_data:
+  redis_data:

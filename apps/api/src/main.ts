@@ -64,8 +64,25 @@ async function bootstrap() {
 
   // Restrictive CORS
   const corsOrigin = process.env.CORS_ORIGIN || 'http://localhost:5173';
+  const allowedOrigins = corsOrigin
+    .split(',')
+    .map((o) => o.trim())
+    .filter(Boolean);
   app.enableCors({
-    origin: corsOrigin.split(',').map((o) => o.trim()),
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      try {
+        const parsed = new URL(origin);
+        const isTrifitTenant =
+          parsed.protocol === 'https:' &&
+          parsed.hostname.endsWith('.trifit.space');
+        return callback(null, isTrifitTenant);
+      } catch {
+        return callback(null, false);
+      }
+    },
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     credentials: true,
     allowedHeaders: [

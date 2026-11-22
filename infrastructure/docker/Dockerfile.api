@@ -9,7 +9,10 @@ COPY pnpm-workspace.yaml package.json pnpm-lock.yaml* tsconfig.base.json ./
 COPY packages/shared/package.json ./packages/shared/
 COPY apps/api/package.json ./apps/api/
 
-RUN pnpm install --frozen-lockfile || pnpm install
+RUN pnpm install --no-frozen-lockfile
+RUN pnpm install --filter @fitnexa/shared... --no-frozen-lockfile
+RUN pnpm add zod@3.25.76 --workspace-root --no-frozen-lockfile
+RUN npm install --no-save zod@3.25.76
 
 COPY packages/shared ./packages/shared
 COPY apps/api ./apps/api
@@ -23,6 +26,19 @@ FROM node:22-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 
+RUN corepack enable && corepack prepare pnpm@12.21.0 --activate
+
+# Chromium is required by the PDF renderer used for branded invoice and
+# membership emails. Keep it inside the API image so production rendering does
+# not depend on a host browser installation.
+RUN apk add --no-cache \
+    chromium \
+    nss \
+    freetype \
+    harfbuzz \
+    ca-certificates \
+    ttf-freefont
+
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nestjs
 
@@ -32,6 +48,8 @@ COPY --from=builder /app/apps/api/dist ./apps/api/dist
 COPY --from=builder /app/apps/api/node_modules ./apps/api/node_modules
 COPY --from=builder /app/apps/api/package.json ./apps/api/package.json
 COPY --from=builder /app/apps/api/prisma ./apps/api/prisma
+
+ENV PDF_BROWSER_PATH=/usr/bin/chromium-browser
 
 USER nestjs
 

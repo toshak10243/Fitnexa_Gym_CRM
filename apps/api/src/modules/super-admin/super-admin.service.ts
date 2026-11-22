@@ -33,9 +33,10 @@ export class SuperAdminService {
 
   async getDashboardStats() {
     const [totalTenants, activeTenants, tenants] = await Promise.all([
-      this.prisma.tenant.count(),
-      this.prisma.tenant.count({ where: { status: 'ACTIVE' } }),
+      this.prisma.tenant.count({ where: { id: { not: 'system-platform' } } }),
+      this.prisma.tenant.count({ where: { id: { not: 'system-platform' }, status: 'ACTIVE' } }),
       this.prisma.tenant.findMany({
+        where: { id: { not: 'system-platform' } },
         select: {
           id: true,
           name: true,
@@ -84,6 +85,7 @@ export class SuperAdminService {
 
   async getAllTenants() {
     const tenants = await this.prisma.tenant.findMany({
+      where: { id: { not: 'system-platform' } },
       orderBy: { createdAt: 'desc' },
       include: {
         users: {
@@ -246,7 +248,8 @@ export class SuperAdminService {
       userAgent: 'Fitnexa-SaaS-Engine',
     });
 
-    const appUrl = this.configService.get<string>('APP_URL') || 'http://localhost:5173';
+    const platformDomain = process.env.PLATFORM_DOMAIN || 'trifit.space';
+    const clientAppUrl = `https://${result.tenant.slug}.${platformDomain}`;
     let mailSent = false;
     let mailMode = 'dev_log';
     try {
@@ -256,7 +259,7 @@ export class SuperAdminService {
         adminName: result.user.fullName,
         tempPassword,
         planName: planConfig.name,
-        loginUrl: `${appUrl}/login`,
+        loginUrl: `${clientAppUrl}/login`,
         expiresAt: result.tenant.planExpiresAt,
         isLifetime: result.tenant.isLifetime,
       });
@@ -275,7 +278,7 @@ export class SuperAdminService {
         fullName: result.user.fullName,
       },
       temporaryPassword: tempPassword,
-      subdomainUrl: `http://${cleanSlug}.localhost:5173`,
+      subdomainUrl: `https://${cleanSlug}.trifit.space`,
       mailDispatched: mailSent,
       mailDeliveryMode: mailMode,
     };

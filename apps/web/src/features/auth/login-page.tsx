@@ -42,10 +42,9 @@ export function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-[#0A192F] p-4 md:p-8 text-[#111827]">
-      <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-[1.15fr_0.85fr] border border-[#334155] bg-[#FBFBF9]">
-        <section className="relative overflow-hidden bg-[#0F223D] p-8 md:p-12 text-[#FBFBF9] flex flex-col justify-between min-h-[360px] lg:min-h-[680px]">
-          <div className="absolute -right-20 -bottom-24 h-80 w-80 rounded-full border-[34px] border-[#B91C1C]/20" aria-hidden="true" />
+    <div className="min-h-screen w-full overflow-y-auto lg:h-screen lg:overflow-hidden flex items-stretch bg-[#FBFBF9] text-[#111827]">
+      <div className="w-full min-h-screen lg:h-full overflow-visible grid grid-cols-1 lg:grid-cols-[1.15fr_0.85fr] bg-[#FBFBF9]">
+        <section className="order-2 lg:order-1 relative overflow-hidden bg-[#0F223D] p-7 md:p-10 text-[#FBFBF9] flex flex-col justify-between min-h-[330px] lg:min-h-0">
           <div className="relative z-10">
             <div className="flex items-center gap-4">
               <div className="h-16 w-16 flex items-center justify-center bg-[#FBFBF9] p-2 border border-[#CBD5E1]"><img src={fitnexaLogo} alt="Trifit" className="h-full w-full object-contain" /></div>
@@ -58,7 +57,7 @@ export function LoginPage() {
             {['Member lifecycle', 'POS & invoicing', 'Reports & controls'].map((feature) => <div key={feature} className="border border-[#334E70] bg-[#0A192F] p-4"><span className="mb-3 block h-1 w-8 bg-[#B91C1C]" /><span className="font-semibold text-[#FBFBF9]">{feature}</span></div>)}
           </div>
         </section>
-        <section className="p-6 md:p-10 lg:p-12 flex items-center">
+        <section className="order-1 lg:order-2 p-6 md:p-10 lg:p-12 flex items-center">
           <div className="w-full max-w-md mx-auto">
         {/* Brand Header */}
         <div className="flex items-center space-x-3 border-b border-[#E5E7EB] pb-4 mb-6">
@@ -127,7 +126,6 @@ export function LoginPage() {
         </section>
       </div>
 
-      <div className="fixed bottom-2 left-0 right-0 text-[11px] text-[#CBD5E1] text-center">Secure access for your gym team</div>
     </div>
   );
 }

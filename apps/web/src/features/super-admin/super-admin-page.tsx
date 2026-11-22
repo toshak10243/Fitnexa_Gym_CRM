@@ -579,7 +579,7 @@ export function SuperAdminPage() {
                           <div>
                             <div className="font-bold text-[#0A192F]">{client.name}</div>
                             <div className="font-mono text-[11px] text-[#6B7280]">
-                              {client.slug}.localhost:5173
+                              {client.slug}.trifit.space
                             </div>
                           </div>
                         </div>
@@ -784,7 +784,7 @@ export function SuperAdminPage() {
                       className="rounded-none text-xs h-9 border-[#E5E7EB] font-mono"
                     />
                     <span className="inline-flex items-center px-3 border border-l-0 border-[#E5E7EB] bg-[#F5F5F0] text-[11px] font-mono text-[#6B7280]">
-                      .trifit.in
+                      .trifit.space
                     </span>
                   </div>
                 </div>
@@ -1146,7 +1146,7 @@ export function SuperAdminPage() {
             <div className="p-3 bg-[#F5F5F0] border border-[#E5E7EB] space-y-2 font-mono text-xs">
               <div className="flex justify-between">
                 <span className="text-[#6B7280]">Subdomain URL:</span>
-                <span className="font-bold text-[#0A192F]">{createdClientInfo.slug}.trifit.in</span>
+                <span className="font-bold text-[#0A192F]">{createdClientInfo.slug}.trifit.space</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-[#6B7280]">Login Email:</span>
@@ -1308,7 +1308,7 @@ export function SuperAdminPage() {
                     Role Access Control Matrix
                   </span>
                   <span className="text-xs font-mono text-[#6B7280]">
-                    Subdomain: {permissionsTenant.slug}.trifit.in
+                    Subdomain: {permissionsTenant.slug}.trifit.space
                   </span>
                 </div>
                 <h3 className="text-base font-bold text-[#0A192F] uppercase tracking-wide mt-1">
