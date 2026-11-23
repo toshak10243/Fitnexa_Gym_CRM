@@ -10,10 +10,10 @@ export function LandingNavbar({ onOpenTrial, onOpenSubdomain }: LandingNavbarPro
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navLinks = [
-    { label: 'Features', href: '#features' },
-    { label: 'Hardware', href: '#hardware' },
+    { label: 'Platform Modules', href: '#features' },
+    { label: 'Turnstile Hardware', href: '#hardware' },
     { label: 'ROI Calculator', href: '#calculator' },
-    { label: 'Pricing', href: '#pricing' },
+    { label: 'Pricing Plans', href: '#pricing' },
     { label: 'FAQ', href: '#faq' },
   ];
 
@@ -21,23 +21,28 @@ export function LandingNavbar({ onOpenTrial, onOpenSubdomain }: LandingNavbarPro
     <header className="sticky top-0 z-50 w-full bg-[#FBFBF9]/95 backdrop-blur-md border-b border-[#E5E7EB]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         {/* Brand Logo & Name */}
-        <a href="/" className="flex items-center gap-2.5 focus-visible:outline-2 focus-visible:outline-[#0A192F]">
+        <a href="/" className="flex items-center gap-3 focus-visible:outline-2 focus-visible:outline-[#0A192F] group">
           <img src={fitnexaLogo} alt="Trifit Gym ERP" className="h-9 w-9 object-contain" />
-          <div className="flex items-center gap-1.5">
-            <span className="font-extrabold text-base tracking-tight text-[#0A192F]">TRIFIT</span>
-            <span className="text-[9px] font-mono font-bold uppercase tracking-wider px-1.5 py-0.5 bg-[#0A192F] text-[#FBFBF9]">
-              ERP
+          <div className="flex flex-col">
+            <div className="flex items-center gap-1.5">
+              <span className="font-extrabold text-base tracking-tight text-[#0A192F]">TRIFIT</span>
+              <span className="text-[9px] font-mono font-bold uppercase tracking-wider px-1.5 py-0.2 bg-[#0A192F] text-[#FBFBF9]">
+                ERP
+              </span>
+            </div>
+            <span className="text-[9px] font-mono text-[#6B7280] tracking-wider uppercase hidden sm:block">
+              Biometric Gym OS
             </span>
           </div>
         </a>
 
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center gap-6 text-xs font-semibold text-[#374151]">
+        <nav className="hidden lg:flex items-center gap-7 text-xs font-semibold text-[#374151]">
           {navLinks.map((link) => (
             <a
               key={link.label}
               href={link.href}
-              className="text-[#4B5563] hover:text-[#0A192F] transition-colors py-1"
+              className="text-[#4B5563] hover:text-[#0A192F] transition-colors py-1 relative hover:after:w-full after:w-0 after:h-[2px] after:bg-[#B91C1C] after:absolute after:bottom-0 after:left-0 after:transition-all"
             >
               {link.label}
             </a>
@@ -49,7 +54,7 @@ export function LandingNavbar({ onOpenTrial, onOpenSubdomain }: LandingNavbarPro
           <button
             type="button"
             onClick={onOpenSubdomain}
-            className="px-3.5 py-2 text-xs font-semibold uppercase tracking-wider text-[#0A192F] bg-white border border-[#CBD5E1] hover:bg-[#F5F5F0] transition-colors"
+            className="px-4 py-2 text-xs font-bold uppercase tracking-wider text-[#0A192F] bg-white border border-[#CBD5E1] hover:bg-[#F5F5F0] transition-colors"
           >
             Client Login
           </button>
@@ -63,18 +68,18 @@ export function LandingNavbar({ onOpenTrial, onOpenSubdomain }: LandingNavbarPro
         </div>
 
         {/* Mobile Hamburger Button */}
-        <div className="flex items-center gap-2 md:hidden">
+        <div className="flex items-center gap-2 lg:hidden">
           <button
             type="button"
             onClick={onOpenTrial}
-            className="sm:hidden px-2.5 py-1.5 text-[11px] font-bold uppercase tracking-wider text-[#FBFBF9] bg-[#B91C1C]"
+            className="sm:hidden px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-[#FBFBF9] bg-[#B91C1C]"
           >
             Free Trial
           </button>
           <button
             type="button"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-1.5 border border-[#CBD5E1] text-[#0A192F] bg-white"
+            className="p-2 border border-[#CBD5E1] text-[#0A192F] bg-white"
             aria-label="Toggle navigation menu"
           >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -90,7 +95,7 @@ export function LandingNavbar({ onOpenTrial, onOpenSubdomain }: LandingNavbarPro
 
       {/* Mobile Menu Dropdown */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-t border-[#E5E7EB] bg-[#FBFBF9] px-4 pt-3 pb-5 space-y-2">
+        <div className="lg:hidden border-t border-[#E5E7EB] bg-[#FBFBF9] px-4 pt-3 pb-5 space-y-2">
           {navLinks.map((link) => (
             <a
               key={link.label}
@@ -101,14 +106,14 @@ export function LandingNavbar({ onOpenTrial, onOpenSubdomain }: LandingNavbarPro
               {link.label}
             </a>
           ))}
-          <div className="pt-2 border-t border-[#E5E7EB] flex flex-col gap-2">
+          <div className="pt-3 border-t border-[#E5E7EB] flex flex-col gap-2">
             <button
               type="button"
               onClick={() => {
                 setMobileMenuOpen(false);
                 onOpenSubdomain();
               }}
-              className="w-full text-center py-2 text-xs font-semibold uppercase tracking-wider text-[#0A192F] border border-[#CBD5E1] bg-white"
+              className="w-full py-2.5 text-xs font-semibold uppercase tracking-wider text-[#0A192F] bg-white border border-[#CBD5E1] text-center"
             >
               Client Login
             </button>
@@ -118,7 +123,7 @@ export function LandingNavbar({ onOpenTrial, onOpenSubdomain }: LandingNavbarPro
                 setMobileMenuOpen(false);
                 onOpenTrial();
               }}
-              className="w-full text-center py-2 text-xs font-bold uppercase tracking-wider text-[#FBFBF9] bg-[#B91C1C]"
+              className="w-full py-2.5 text-xs font-bold uppercase tracking-wider text-[#FBFBF9] bg-[#B91C1C] text-center"
             >
               Claim 7-Day Free Trial
             </button>

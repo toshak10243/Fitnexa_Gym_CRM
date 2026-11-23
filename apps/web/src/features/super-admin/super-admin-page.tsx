@@ -122,7 +122,7 @@ export function SuperAdminPage() {
   // Form State for Edit Client
   const [editFormData, setEditFormData] = useState({
     plan: SaaSSubscriptionPlan.MONTH_1,
-    price: 800,
+    price: SAAS_PLANS[SaaSSubscriptionPlan.MONTH_1].price,
     paymentStatus: 'PAID',
     paymentReference: '',
     status: 'ACTIVE',
@@ -727,8 +727,8 @@ export function SuperAdminPage() {
 
       {/* MODAL: ONBOARD NEW CLIENT */}
       {isCreateModalOpen && createPortal(
-        <div className="fixed inset-0 z-[9999] bg-black/60 flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
-          <div className="bg-[#FBFBF9] border border-[#E5E7EB] w-full max-w-2xl max-h-[92vh] overflow-y-auto p-6 space-y-4 my-auto">
+        <div className="fixed inset-0 z-[9999] bg-black/60 overflow-y-auto p-3 sm:p-6 flex justify-center items-start min-h-screen">
+          <div className="bg-[#FBFBF9] border border-[#E5E7EB] w-full max-w-2xl my-6 sm:my-10 p-6 space-y-4 relative">
             <div className="border-b border-[#E5E7EB] pb-3 flex items-center justify-between">
               <div>
                 <h3 className="text-sm font-bold uppercase tracking-wider text-[#0A192F]">
@@ -1000,8 +1000,8 @@ export function SuperAdminPage() {
 
       {/* MODAL: EDIT SUBSCRIPTION & MODULES */}
       {isEditModalOpen && selectedTenant && createPortal(
-        <div className="fixed inset-0 z-[9999] bg-black/60 flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
-          <div className="bg-[#FBFBF9] border border-[#E5E7EB] w-full max-w-xl max-h-[92vh] overflow-y-auto p-6 space-y-4 my-auto">
+        <div className="fixed inset-0 z-[9999] bg-black/60 overflow-y-auto p-3 sm:p-6 flex justify-center items-start min-h-screen">
+          <div className="bg-[#FBFBF9] border border-[#E5E7EB] w-full max-w-xl my-6 sm:my-10 p-6 space-y-4 relative">
             <div className="border-b border-[#E5E7EB] pb-3 flex items-center justify-between">
               <div>
                 <h3 className="text-sm font-bold uppercase tracking-wider text-[#0A192F]">

@@ -125,8 +125,8 @@ export function TrialModal({ isOpen, onClose, defaultSlug }: TrialModalProps) {
 
   return (
     <>
-      <div className="fixed inset-0 z-50 overflow-y-auto bg-[#0A192F]/85 backdrop-blur-sm p-3 sm:p-6 flex justify-center items-center min-h-screen">
-        <div className="relative w-full max-w-2xl max-h-[92vh] overflow-y-auto bg-[#FBFBF9] border border-[#CBD5E1] p-5 sm:p-7 text-[#111827] shadow-none my-auto">
+      <div className="fixed inset-0 z-50 overflow-y-auto bg-[#0A192F]/85 backdrop-blur-sm p-3 sm:p-6 flex justify-center items-start min-h-screen">
+        <div className="relative w-full max-w-2xl bg-[#FBFBF9] border border-[#CBD5E1] p-5 sm:p-7 text-[#111827] shadow-none my-4 sm:my-8">
           {/* Close Button */}
           <button
             type="button"
