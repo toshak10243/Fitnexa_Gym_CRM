@@ -296,7 +296,7 @@ export function TrainersPage() {
   }, [trainers, searchQuery, filterShift, filterBloodGroup]);
 
   const formatCurrency = (paise?: number) => {
-    if (paise === undefined || paise === null) return 'â‚¹0';
+    if (paise === undefined || paise === null) return '₹0';
     return (paise / 100).toLocaleString('en-IN', {
       style: 'currency',
       currency: 'INR',
@@ -340,7 +340,7 @@ export function TrainersPage() {
             className="text-xs border-[#E5E7EB] rounded-none hover:bg-[#F5F5F0] text-[#0A192F]"
             onClick={() => navigate('/trainers/schedule')}
           >
-            PT Session Calendar â†’
+            PT Session Calendar →
           </Button>
           <Button
             className="bg-[#0A192F] text-[#FBFBF9] hover:bg-[#162E52] text-xs rounded-none px-4 flex items-center gap-2"
@@ -506,7 +506,7 @@ export function TrainersPage() {
                           {t.bloodGroup}
                         </span>
                       ) : (
-                        <span className="text-[#9CA3AF] text-[10px]">â€”</span>
+                        <span className="text-[#9CA3AF] text-[10px]">-</span>
                       )}
                     </td>
 
@@ -569,7 +569,7 @@ export function TrainersPage() {
                           navigate(`/trainers/${t.id}`);
                         }}
                       >
-                        View Profile â†’
+                        View Profile →
                       </Button>
                     </td>
                   </tr>
@@ -597,10 +597,13 @@ export function TrainersPage() {
                 </div>
                 <button
                   type="button"
-                  className="text-[#9CA3AF] hover:text-[#FBFBF9] text-sm font-mono"
+                  className="text-[#9CA3AF] hover:text-[#FBFBF9] p-1 transition-colors"
+                  aria-label="Close"
                   onClick={() => setIsModalOpen(false)}
                 >
-                  âœ•
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
                 </button>
               </div>
 
@@ -866,7 +869,7 @@ export function TrainersPage() {
 
                     <div>
                       <label className="block text-[11px] font-bold uppercase text-[#0A192F] mb-1">
-                        Base Monthly Salary (â‚¹ INR) *
+                        Base Monthly Salary (₹ INR) *
                       </label>
                       <Input
                         type="number"
@@ -1076,7 +1079,7 @@ export function TrainersPage() {
                                 rel="noreferrer"
                                 className="text-[11px] text-[#0A192F] hover:underline"
                               >
-                                View File â†—
+                                View File ↗
                               </a>
                               <button
                                 type="button"

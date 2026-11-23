@@ -421,7 +421,7 @@ export function DuesPage() {
 
               <div>
                 <label className="block text-xs font-semibold text-[#0A192F] uppercase tracking-wider mb-1">
-                  Collection Amount (â‚¹) *
+                  Collection Amount (₹) *
                 </label>
                 <Input
                   type="number"

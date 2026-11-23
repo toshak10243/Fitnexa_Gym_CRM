@@ -139,7 +139,7 @@ export function PaymentsPage() {
                   <th className="py-3 px-4">Member</th>
                   <th className="py-3 px-4">Method</th>
                   <th className="py-3 px-4">Reference / UTR</th>
-                  <th className="py-3 px-4 text-right">Amount (â‚¹)</th>
+                  <th className="py-3 px-4 text-right">Amount (₹)</th>
                   <th className="py-3 px-4">Received By</th>
                   <th className="py-3 px-4 text-center">Receipt</th>
                 </tr>

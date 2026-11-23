@@ -164,7 +164,7 @@ export class MailService {
   }
 
   async sendMembershipAssignedEmail(dto: SendMembershipAssignedEmailDto) {
-    const money = (value: number) => `â‚¹${(value / 100).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+    const money = (value: number) => `₹${(value / 100).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
     const date = (value: Date) => new Date(value).toLocaleDateString('en-IN', { dateStyle: 'long' });
     const logo = dto.logoUrl ? `<img src="${dto.logoUrl}" alt="${dto.gymName}" style="max-height:64px;max-width:180px;background:#fff;padding:6px;margin-bottom:12px">` : '';
     const html = `<div style="font-family:Arial,sans-serif;background:#fff;padding:32px;color:#111827"><div style="max-width:680px;margin:auto;border:1px solid #E5E7EB;background:#fff"><header style="background:#0A192F;padding:32px;color:#fff;border-bottom:4px solid #B91C1C">${logo}<h1 style="margin:0;font-size:28px">${dto.gymName}</h1><p style="margin:8px 0 0;color:#CBD5E1">Membership confirmation</p></header><main style="padding:36px"><p style="font-size:16px">Hello <strong>${dto.memberName}</strong>,</p><p>Your membership plan has been activated successfully.</p><div style="background:#F5F5F0;border:1px solid #E5E7EB;padding:22px;margin:24px 0"><p><strong>Member ID:</strong> ${dto.memberCode}</p><p><strong>Plan:</strong> ${dto.planName}</p><p><strong>Valid from:</strong> ${date(dto.startDate)}</p><p><strong>Valid until:</strong> ${date(dto.endDate)}</p><p><strong>Amount paid:</strong> ${money(dto.amountInPaise)}</p><p><strong>GST:</strong> ${money(dto.taxInPaise)}</p><p style="font-size:18px;border-top:1px solid #E5E7EB;padding-top:12px"><strong>Total:</strong> ${money(dto.amountInPaise + dto.taxInPaise)}</p></div><p>Keep this email for your records. Please contact the front desk for any membership assistance.</p></main><footer style="background:#0F223D;color:#CBD5E1;padding:24px 36px;font-size:12px;line-height:1.7"><strong style="color:#fff">${dto.gymName}</strong><br/>${dto.address || ''}<br/>${dto.phone || ''}${dto.website ? `  ${dto.website}` : ''}</footer></div></div>`;
@@ -266,7 +266,7 @@ export class MailService {
           </div>
 
           <p style="font-size: 12px; color: #6B7280; line-height: 1.5; margin-top: 20px;">
-            To extend your plan or upgrade to our Lifetime + Free AMC tier (â‚¹25,000), please reach out to your account executive or contact platform support.
+            To extend your plan or upgrade to our Lifetime + Free AMC tier (₹25,000), please reach out to your account executive or contact platform support.
           </p>
         </div>
       </div>

@@ -283,7 +283,7 @@ export function InvoiceCreatePage() {
                 </div>
 
                 <div className="col-span-5 md:col-span-2">
-                  <label className="block font-semibold mb-1 text-[11px]">Rate (â‚¹) *</label>
+                  <label className="block font-semibold mb-1 text-[11px]">Rate (₹) *</label>
                   <Input
                     type="number"
                     step="0.01"
@@ -296,7 +296,7 @@ export function InvoiceCreatePage() {
                 </div>
 
                 <div className="col-span-4 md:col-span-2">
-                  <label className="block font-semibold mb-1 text-[11px]">Discount (â‚¹)</label>
+                  <label className="block font-semibold mb-1 text-[11px]">Discount (₹)</label>
                   <Input
                     type="number"
                     step="0.01"

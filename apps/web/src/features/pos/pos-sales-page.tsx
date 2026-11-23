@@ -99,7 +99,7 @@ export function PosSalesPage() {
             className="text-xs border-[#E5E7EB] rounded-none hover:bg-[#F5F5F0]"
             onClick={() => navigate('/inventory')}
           >
-            â† Inventory
+            ← Inventory
           </Button>
           <Button
             variant="outline"
@@ -112,7 +112,7 @@ export function PosSalesPage() {
             className="bg-[#0A192F] text-[#FBFBF9] hover:bg-[#162E52] text-xs rounded-none px-4"
             onClick={() => navigate('/pos')}
           >
-            Open POS Counter â†’
+            Open POS Counter →
           </Button>
         </div>
       </div>
@@ -142,8 +142,8 @@ export function PosSalesPage() {
           <input value={productSearch} onChange={(e) => setProductSearch(e.target.value)} placeholder="Filter by product / SKU" className="h-9 border border-[#E5E7EB] bg-[#FBFBF9] px-3 text-xs" />
           <label className="text-[10px] text-[#6B7280]">From<input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="mt-1 w-full h-8 border border-[#E5E7EB] bg-[#FBFBF9] px-2 text-xs" /></label>
           <label className="text-[10px] text-[#6B7280]">To<input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="mt-1 w-full h-8 border border-[#E5E7EB] bg-[#FBFBF9] px-2 text-xs" /></label>
-          <input type="number" min="0" value={minAmount} onChange={(e) => setMinAmount(e.target.value)} placeholder="Minimum amount (â‚¹)" className="h-9 border border-[#E5E7EB] bg-[#FBFBF9] px-3 text-xs" />
-          <input type="number" min="0" value={maxAmount} onChange={(e) => setMaxAmount(e.target.value)} placeholder="Maximum amount (â‚¹)" className="h-9 border border-[#E5E7EB] bg-[#FBFBF9] px-3 text-xs" />
+          <input type="number" min="0" value={minAmount} onChange={(e) => setMinAmount(e.target.value)} placeholder="Minimum amount (₹)" className="h-9 border border-[#E5E7EB] bg-[#FBFBF9] px-3 text-xs" />
+          <input type="number" min="0" value={maxAmount} onChange={(e) => setMaxAmount(e.target.value)} placeholder="Maximum amount (₹)" className="h-9 border border-[#E5E7EB] bg-[#FBFBF9] px-3 text-xs" />
         </div>
       </div>}
 

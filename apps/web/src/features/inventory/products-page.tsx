@@ -85,7 +85,7 @@ export function ProductsPage() {
             className="text-xs border-[#E5E7EB] rounded-none hover:bg-[#F5F5F0]"
             onClick={() => navigate('/inventory')}
           >
-            â† Valuation Dashboard
+            ← Valuation Dashboard
           </Button>
           {canCreate && (
             <Button

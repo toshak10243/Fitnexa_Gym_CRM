@@ -135,7 +135,7 @@ export function AuditPage() {
                     View Diff
                   </Button>
                 ) : (
-                  <span className="text-xs text-[#9CA3AF]">â€”</span>
+                  <span className="text-xs text-[#9CA3AF]">-</span>
                 )}
               </TableCell>
             </TableRow>

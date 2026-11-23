@@ -87,7 +87,7 @@ export function AttendanceHistoryPage() {
             className="text-xs border-[#E5E7EB] rounded-none hover:bg-[#F5F5F0]"
             onClick={() => navigate('/attendance')}
           >
-            â† Back to Telemetry
+            ← Back to Telemetry
           </Button>
           <Button
             className="bg-[#0A192F] text-[#FBFBF9] hover:bg-[#162E52] text-xs rounded-none"
@@ -237,7 +237,7 @@ export function AttendanceHistoryPage() {
                               )}
                             </div>
                           ) : (
-                            <span className="text-[#6B7280]">â€”</span>
+                            <span className="text-[#6B7280]">-</span>
                           )}
                         </td>
                         <td className="py-3 px-4 font-mono text-[11px] text-[#6B7280]">
@@ -258,7 +258,7 @@ export function AttendanceHistoryPage() {
                         <td className="py-3 px-4 font-mono text-[#0A192F]">
                           {row.session?.durationInMinutes != null
                             ? `${row.session.durationInMinutes} mins`
-                            : 'â€”'}
+                            : '-'}
                         </td>
                       </tr>
                     );

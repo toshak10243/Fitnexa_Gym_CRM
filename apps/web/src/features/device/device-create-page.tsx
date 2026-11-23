@@ -105,7 +105,7 @@ export function DeviceCreatePage() {
             className="text-xs border-[#E5E7EB] rounded-none hover:bg-[#F5F5F0]"
             onClick={() => navigate('/devices')}
           >
-            â† Back to Directory
+            ← Back to Directory
           </Button>
         </div>
       </div>
@@ -120,7 +120,7 @@ export function DeviceCreatePage() {
       {createdSecretToken ? (
         <div className="bg-[#FBFBF9] border border-[#0A192F] p-6 space-y-4">
           <div className="flex items-center space-x-2 text-emerald-700 font-bold text-sm uppercase">
-            <span>âœ“ Terminal Successfully Registered</span>
+            <span>✓ Terminal Successfully Registered</span>
           </div>
 
           <div className="p-4 bg-white border border-[#E5E7EB] space-y-3">

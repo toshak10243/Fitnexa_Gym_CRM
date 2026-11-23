@@ -598,7 +598,7 @@ export function SuperAdminPage() {
                           {planInfo?.name || client.subscriptionPlan}
                         </span>
                         <span className="text-[11px] font-mono font-bold text-[#B91C1C]">
-                          â‚¹{client.subscriptionPrice.toLocaleString('en-IN')}
+                          ₹{client.subscriptionPrice.toLocaleString('en-IN')}
                         </span>
                       </td>
 
@@ -737,10 +737,14 @@ export function SuperAdminPage() {
                 </p>
               </div>
               <button
+                type="button"
                 onClick={() => setIsCreateModalOpen(false)}
-                className="text-[#6B7280] hover:text-[#0A192F] text-lg font-bold"
+                className="text-[#6B7280] hover:text-[#0A192F] p-1 transition-colors"
+                aria-label="Close"
               >
-                âœ•
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
               </button>
             </div>
 
@@ -848,7 +852,7 @@ export function SuperAdminPage() {
                   >
                     {Object.values(SAAS_PLANS).map((p) => (
                       <option key={p.id} value={p.id}>
-                        {p.name} - â‚¹{p.price.toLocaleString('en-IN')} ({p.durationLabel})
+                        {p.name} - ₹{p.price.toLocaleString('en-IN')} ({p.durationLabel})
                       </option>
                     ))}
                   </select>
@@ -990,10 +994,14 @@ export function SuperAdminPage() {
                 </p>
               </div>
               <button
+                type="button"
                 onClick={() => setIsEditModalOpen(false)}
-                className="text-[#6B7280] hover:text-[#0A192F] text-lg font-bold"
+                className="text-[#6B7280] hover:text-[#0A192F] p-1 transition-colors"
+                aria-label="Close"
               >
-                âœ•
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
               </button>
             </div>
 
@@ -1023,7 +1031,7 @@ export function SuperAdminPage() {
                   >
                     {Object.values(SAAS_PLANS).map((p) => (
                       <option key={p.id} value={p.id}>
-                        {p.name} - â‚¹{p.price.toLocaleString('en-IN')}
+                        {p.name} - ₹{p.price.toLocaleString('en-IN')}
                       </option>
                     ))}
                   </select>
@@ -1031,7 +1039,7 @@ export function SuperAdminPage() {
 
                 <div>
                   <label className="block font-semibold mb-1 text-[#111827]">
-                    Agreed Fee (â‚¹)
+                    Agreed Fee (₹)
                   </label>
                   <Input
                     type="number"
@@ -1132,7 +1140,7 @@ export function SuperAdminPage() {
           <div className="bg-[#FBFBF9] border border-[#E5E7EB] w-full max-w-md p-6 space-y-4">
             <div className="border-b border-[#E5E7EB] pb-2">
               <span className="text-[10px] font-mono uppercase font-bold text-emerald-700 tracking-wider">
-                âœ“ Onboarding Successful
+                ✓ Onboarding Successful
               </span>
               <h3 className="text-base font-bold text-[#0A192F] mt-1">
                 Client Credentials Provisioned
@@ -1188,7 +1196,7 @@ export function SuperAdminPage() {
           <div className="bg-[#FBFBF9] border border-[#E5E7EB] w-full max-w-md p-6 space-y-4">
             <div className="border-b border-[#E5E7EB] pb-2">
               <span className="text-[10px] font-mono uppercase font-bold text-amber-700 tracking-wider">
-                âœ“ Temporary Password Generated
+                ✓ Temporary Password Generated
               </span>
               <h3 className="text-base font-bold text-[#0A192F] mt-1">
                 Password Reset Complete
@@ -1238,9 +1246,12 @@ export function SuperAdminPage() {
               <button
                 type="button"
                 onClick={() => setTenantToDelete(null)}
-                className="text-[#6B7280] hover:text-[#0A192F] text-lg font-bold"
+                className="text-[#6B7280] hover:text-[#0A192F] p-1 transition-colors"
+                aria-label="Close"
               >
-                âœ•
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
               </button>
             </div>
 
@@ -1315,15 +1326,18 @@ export function SuperAdminPage() {
                   Manage Role Permissions: {permissionsTenant.name}
                 </h3>
                 <p className="text-xs text-[#6B7280]">
-                  Configure exact permissions per role using interactive ticks (âœ“ Allowed) and crosses (âœ• Blocked). Unchecked features are completely hidden from the client staff.
+                  Configure exact permissions per role using interactive ticks (✓ Allowed) and crosses (✕ Blocked). Unchecked features are completely hidden from the client staff.
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setIsPermissionsModalOpen(false)}
-                className="text-[#6B7280] hover:text-[#0A192F] text-xl font-bold p-1"
+                className="text-[#6B7280] hover:text-[#0A192F] p-1 transition-colors"
+                aria-label="Close"
               >
-                âœ•
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
               </button>
             </div>
 
@@ -1388,7 +1402,7 @@ export function SuperAdminPage() {
                               className="cursor-pointer hover:underline text-emerald-300 font-bold"
                               title="Grant all permissions to this role"
                             >
-                              all âœ“
+                              all ✓
                             </span>
                             <span>/</span>
                             <span
@@ -1396,7 +1410,7 @@ export function SuperAdminPage() {
                               className="cursor-pointer hover:underline text-red-300 font-bold"
                               title="Revoke all permissions from this role"
                             >
-                              none âœ•
+                              none ✕
                             </span>
                           </div>
                         </div>
@@ -1462,12 +1476,12 @@ export function SuperAdminPage() {
                               >
                                 {isAllowed ? (
                                   <>
-                                    <span className="text-emerald-700 font-extrabold text-sm">âœ“</span>
+                                    <span className="text-emerald-700 font-extrabold text-sm">✓</span>
                                     <span className="text-[10px] uppercase font-bold tracking-wider">Allowed</span>
                                   </>
                                 ) : (
                                   <>
-                                    <span className="text-[#B91C1C] font-extrabold text-sm">âœ•</span>
+                                    <span className="text-[#B91C1C] font-extrabold text-sm">✕</span>
                                     <span className="text-[10px] uppercase font-bold tracking-wider">Blocked</span>
                                   </>
                                 )}
@@ -1485,7 +1499,7 @@ export function SuperAdminPage() {
             {/* Modal Footer */}
             <div className="p-3.5 px-5 bg-[#FBFBF9] border-t border-[#E5E7EB] shrink-0 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
               <span className="text-[11px] text-[#6B7280]">
-                Click any cell button to flip between Allowed (âœ“) and Blocked (âœ•). Changes take effect instantly for all staff under this client.
+                Click any cell button to flip between Allowed (✓) and Blocked (✕). Changes take effect instantly for all staff under this client.
               </span>
 
               <div className="flex items-center space-x-3">

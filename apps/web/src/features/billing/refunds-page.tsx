@@ -204,7 +204,7 @@ export function RefundsPage() {
                   <th className="py-3 px-4">Member</th>
                   <th className="py-3 px-4">Original Payment</th>
                   <th className="py-3 px-4">Reason</th>
-                  <th className="py-3 px-4 text-right">Amount (â‚¹)</th>
+                  <th className="py-3 px-4 text-right">Amount (₹)</th>
                   <th className="py-3 px-4">Status</th>
                   <th className="py-3 px-4">Approved By</th>
                   <th className="py-3 px-4 text-right">Actions</th>
@@ -345,7 +345,7 @@ export function RefundsPage() {
 
               <div>
                 <label className="block text-xs font-semibold text-[#0A192F] uppercase tracking-wider mb-1">
-                  Refund Amount (â‚¹) *
+                  Refund Amount (₹) *
                 </label>
                 <Input
                   type="number"
@@ -402,7 +402,7 @@ export function RefundsPage() {
             <div className="border-b border-[#E5E7EB] pb-3">
               <h3 className="text-base font-bold text-[#0A192F]">Record Refund Payout</h3>
               <p className="text-xs text-[#6B7280] mt-0.5">
-                Refund {selectedRefund.refundNumber} â€¢ {formatPaiseToInr(selectedRefund.amountInPaise)}
+                Refund {selectedRefund.refundNumber} • {formatPaiseToInr(selectedRefund.amountInPaise)}
               </p>
             </div>
 

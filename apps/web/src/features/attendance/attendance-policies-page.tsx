@@ -102,7 +102,7 @@ export function AttendancePoliciesPage() {
             className="text-xs border-[#E5E7EB] rounded-none hover:bg-[#F5F5F0]"
             onClick={() => navigate('/attendance')}
           >
-            â† Back to Telemetry
+            ← Back to Telemetry
           </Button>
         </div>
       </div>
@@ -156,10 +156,10 @@ export function AttendancePoliciesPage() {
           {restrictOnOutstandingDues && (
             <div className="bg-white border border-[#E5E7EB] p-4 space-y-2">
               <label className="block text-[11px] font-bold uppercase text-[#0A192F]">
-                Maximum Permissible Dues Threshold (INR â‚¹)
+                Maximum Permissible Dues Threshold (INR ₹)
               </label>
               <div className="flex items-center gap-2">
-                <span className="text-sm font-bold text-[#6B7280]">â‚¹</span>
+                <span className="text-sm font-bold text-[#6B7280]">₹</span>
                 <Input
                   type="number"
                   min={0}

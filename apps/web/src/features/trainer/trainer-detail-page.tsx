@@ -118,7 +118,7 @@ export function TrainerDetailPage() {
   };
 
   const formatCurrency = (paise?: number) => {
-    if (paise === undefined || paise === null) return 'â‚¹0';
+    if (paise === undefined || paise === null) return '₹0';
     return (paise / 100).toLocaleString('en-IN', {
       style: 'currency',
       currency: 'INR',
@@ -160,7 +160,7 @@ export function TrainerDetailPage() {
           className="text-xs border-[#E5E7EB] rounded-none hover:bg-[#F5F5F0]"
           onClick={() => navigate('/trainers')}
         >
-          â† Back to Trainers
+          ← Back to Trainers
         </Button>
       </div>
     );
@@ -191,7 +191,7 @@ export function TrainerDetailPage() {
             className="text-xs border-[#E5E7EB] rounded-none hover:bg-[#F5F5F0] py-1 px-3"
             onClick={() => navigate('/trainers')}
           >
-            â† Back to Roster
+            ← Back to Roster
           </Button>
           <Button
             variant="outline"
@@ -519,7 +519,7 @@ export function TrainerDetailPage() {
                         rel="noreferrer"
                         className="text-[11px] text-[#0A192F] hover:underline font-bold"
                       >
-                        View File â†—
+                        View File ↗
                       </a>
                     </div>
                   ))}
@@ -596,7 +596,7 @@ export function TrainerDetailPage() {
             className="text-xs border-[#E5E7EB] rounded-none hover:bg-[#F5F5F0] py-1 px-3"
             onClick={() => navigate('/trainers/schedule')}
           >
-            Open Full Calendar â†’
+            Open Full Calendar →
           </Button>
         </div>
 
@@ -634,7 +634,7 @@ export function TrainerDetailPage() {
                       </span>
                     </td>
                     <td className="py-2.5 px-3 text-[#6B7280] italic">
-                      {s.notes || 'â€”'}
+                      {s.notes || '-'}
                     </td>
                   </tr>
                 ))}
@@ -655,10 +655,13 @@ export function TrainerDetailPage() {
                 </h2>
                 <button
                   type="button"
-                  className="text-[#6B7280] hover:text-[#0A192F] text-sm font-mono"
+                  className="text-[#6B7280] hover:text-[#0A192F] p-1 transition-colors"
+                  aria-label="Close"
                   onClick={() => setIsAssignModalOpen(false)}
                 >
-                  âœ•
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
                 </button>
               </div>
 
@@ -701,7 +704,7 @@ export function TrainerDetailPage() {
                     <option value="">Choose training package...</option>
                     {packages.map((p) => (
                       <option key={p.id} value={p.id}>
-                        {p.name} ({p.sessionCount} Sessions - â‚¹{(p.priceInPaise / 100).toLocaleString('en-IN')})
+                        {p.name} ({p.sessionCount} Sessions - ₹{(p.priceInPaise / 100).toLocaleString('en-IN')})
                       </option>
                     ))}
                   </select>

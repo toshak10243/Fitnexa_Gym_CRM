@@ -183,7 +183,7 @@ export function ProductCreatePage() {
             className="text-xs border-[#E5E7EB] rounded-none hover:bg-[#F5F5F0]"
             onClick={() => navigate('/inventory/products')}
           >
-            â† Back to Products
+            ← Back to Products
           </Button>
         </div>
       </div>
@@ -321,10 +321,10 @@ export function ProductCreatePage() {
           {/* Cost Price */}
           <div>
             <label className="block text-[11px] font-bold uppercase text-[#0A192F] mb-1">
-              Purchase Price (INR â‚¹) *
+              Purchase Price (INR ₹) *
             </label>
             <div className="flex items-center gap-2">
-              <span className="font-bold text-[#6B7280]">â‚¹</span>
+              <span className="font-bold text-[#6B7280]">₹</span>
               <Input
                 required
                 type="number"
@@ -341,10 +341,10 @@ export function ProductCreatePage() {
           {/* Selling Price */}
           <div>
             <label className="block text-[11px] font-bold uppercase text-[#0A192F] mb-1">
-              Selling Price / MRP (INR â‚¹) *
+              Selling Price / MRP (INR ₹) *
             </label>
             <div className="flex items-center gap-2">
-              <span className="font-bold text-[#6B7280]">â‚¹</span>
+              <span className="font-bold text-[#6B7280]">₹</span>
               <Input
                 required
                 type="number"

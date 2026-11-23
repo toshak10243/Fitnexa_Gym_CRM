@@ -214,7 +214,7 @@ export function CheckInPage() {
             className="text-xs border-[#E5E7EB] rounded-none hover:bg-[#F5F5F0]"
             onClick={() => navigate('/attendance')}
           >
-            â† Back to Telemetry
+            ← Back to Telemetry
           </Button>
           <Button
             variant="outline"
@@ -282,7 +282,7 @@ export function CheckInPage() {
                       </div>
                     </div>
                   </div>
-                  <span className="text-xs font-semibold text-[#0A192F]">Select â†’</span>
+                  <span className="text-xs font-semibold text-[#0A192F]">Select →</span>
                 </div>
               );
             })}
@@ -367,7 +367,7 @@ export function CheckInPage() {
                 className="w-full text-xs border-[#E5E7EB] rounded-none hover:bg-[#F5F5F0]"
                 onClick={() => navigate(`/members/${selectedMember.id}`)}
               >
-                View Full Member 360 Profile â†’
+                View Full Member 360 Profile →
               </Button>
             </div>
           </div>

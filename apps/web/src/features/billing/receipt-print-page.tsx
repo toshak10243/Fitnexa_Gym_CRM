@@ -77,7 +77,7 @@ export function ReceiptPrintPage() {
             onClick={() => navigate(-1)}
             className="rounded-none border-[#E5E7EB] text-xs"
           >
-            â† Back
+            ← Back
           </Button>
           <span className="text-xs font-semibold text-[#0A192F]">Print Format:</span>
           <div className="inline-flex border border-[#E5E7EB]">
@@ -323,7 +323,7 @@ export function ReceiptPrintPage() {
           <div className="mt-8 pt-6 border-t border-[#E5E7EB] flex justify-between items-end text-xs text-[#6B7280] print-avoid-break">
             <div>
               <p className="font-mono text-[10px] text-[#374151] font-semibold">
-                Electronic System Generated Payment Receipt â€¢ Trifit ERP
+                Electronic System Generated Payment Receipt • Trifit ERP
               </p>
               <p className="text-[10px] text-[#6B7280]">Official record under Section 31(3)(e) of the CGST Act.</p>
             </div>

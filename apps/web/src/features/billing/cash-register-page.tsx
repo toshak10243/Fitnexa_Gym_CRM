@@ -307,7 +307,7 @@ export function CashRegisterPage() {
 
               <div>
                 <label className="block text-xs font-semibold text-[#0A192F] uppercase tracking-wider mb-1">
-                  Opening Float (â‚¹) *
+                  Opening Float (₹) *
                 </label>
                 <Input
                   type="number"
@@ -385,7 +385,7 @@ export function CashRegisterPage() {
 
               <div>
                 <label className="block text-xs font-semibold text-[#0A192F] uppercase tracking-wider mb-1">
-                  Actual Physical Cash Count (â‚¹) *
+                  Actual Physical Cash Count (₹) *
                 </label>
                 <Input
                   type="number"

@@ -104,7 +104,7 @@ export function InventoryDashboardPage() {
             className="bg-[#0A192F] text-[#FBFBF9] hover:bg-[#162E52] text-xs rounded-none px-4"
             onClick={() => navigate('/pos')}
           >
-            Launch POS Counter â†’
+            Launch POS Counter →
           </Button>
         </div>
       </div>
@@ -206,10 +206,10 @@ export function InventoryDashboardPage() {
         <div className="bg-[#FFF7ED] border border-orange-200 p-5"><div className="text-[10px] uppercase tracking-wider text-orange-700">Top product units</div><div className="mt-2 text-2xl font-bold text-orange-800">{Number(topProducts[0]?.units ?? 0)}</div><p className="text-[11px] text-orange-700 mt-2 truncate">{topProducts[0]?.name || 'No sales yet'}</p></div>
         <div className="bg-[#FEF2F2] border border-red-200 p-5"><div className="text-[10px] uppercase tracking-wider text-red-700">Products at risk</div><div className="mt-2 text-2xl font-bold text-red-800">{stockRisk.length}</div><p className="text-[11px] text-red-700 mt-2">Near reorder threshold</p></div>
       </div>
-      <div className="bg-[#FBFBF9] border border-[#E5E7EB] p-5"><h2 className="text-xs font-bold uppercase tracking-wider text-[#0A192F] mb-3">Monthly retail sales</h2><div className="h-56"><ResponsiveContainer width="100%" height="100%"><BarChart data={Object.entries(monthlySales).map(([month, value]) => ({ month, revenue: Math.round(Number(value) / 100) }))}><CartesianGrid stroke="#E5E7EB" vertical={false}/><XAxis dataKey="month" fontSize={10}/><YAxis fontSize={10}/><Tooltip formatter={(value) => `â‚¹${Number(value).toLocaleString('en-IN')}`}/><Bar dataKey="revenue" fill="#0A192F" name="Revenue"/></BarChart></ResponsiveContainer></div></div>
+      <div className="bg-[#FBFBF9] border border-[#E5E7EB] p-5"><h2 className="text-xs font-bold uppercase tracking-wider text-[#0A192F] mb-3">Monthly retail sales</h2><div className="h-56"><ResponsiveContainer width="100%" height="100%"><BarChart data={Object.entries(monthlySales).map(([month, value]) => ({ month, revenue: Math.round(Number(value) / 100) }))}><CartesianGrid stroke="#E5E7EB" vertical={false}/><XAxis dataKey="month" fontSize={10}/><YAxis fontSize={10}/><Tooltip formatter={(value) => `₹${Number(value).toLocaleString('en-IN')}`}/><Bar dataKey="revenue" fill="#0A192F" name="Revenue"/></BarChart></ResponsiveContainer></div></div>
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
         <div className="bg-[#FBFBF9] border border-[#E5E7EB] p-5"><h2 className="text-xs font-bold uppercase tracking-wider text-[#0A192F] mb-3">Top products sold</h2><div className="h-56"><ResponsiveContainer width="100%" height="100%"><BarChart data={topProducts} layout="vertical"><CartesianGrid stroke="#E5E7EB" horizontal={false}/><XAxis type="number" fontSize={10}/><YAxis type="category" dataKey="name" width={150} fontSize={9}/><Tooltip/><Bar dataKey="units" fill="#047857" name="Units"/></BarChart></ResponsiveContainer></div></div>
-        <div className="bg-[#FBFBF9] border border-[#E5E7EB] p-5"><h2 className="text-xs font-bold uppercase tracking-wider text-[#0A192F] mb-3">Sales by category</h2><div className="h-56"><ResponsiveContainer width="100%" height="100%"><PieChart><Pie data={categorySales} dataKey="value" nameKey="name" outerRadius={75} label>{categorySales.map((entry, index) => <Cell key={entry.name} fill={['#0A192F', '#047857', '#B91C1C', '#D97706'][index % 4]}/>)}</Pie><Tooltip formatter={(value) => `â‚¹${Number(value).toLocaleString('en-IN')}`}/><Legend/></PieChart></ResponsiveContainer></div></div>
+        <div className="bg-[#FBFBF9] border border-[#E5E7EB] p-5"><h2 className="text-xs font-bold uppercase tracking-wider text-[#0A192F] mb-3">Sales by category</h2><div className="h-56"><ResponsiveContainer width="100%" height="100%"><PieChart><Pie data={categorySales} dataKey="value" nameKey="name" outerRadius={75} label>{categorySales.map((entry, index) => <Cell key={entry.name} fill={['#0A192F', '#047857', '#B91C1C', '#D97706'][index % 4]}/>)}</Pie><Tooltip formatter={(value) => `₹${Number(value).toLocaleString('en-IN')}`}/><Legend/></PieChart></ResponsiveContainer></div></div>
       </div>
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
         <div className="bg-[#FBFBF9] border border-[#E5E7EB] p-5"><h2 className="text-xs font-bold uppercase tracking-wider text-[#0A192F] mb-3">Highest value customers</h2><div className="space-y-2">{topCustomers.length ? topCustomers.map((customer) => <div key={customer.name} className="flex justify-between border-b border-[#E5E7EB] pb-2 text-xs"><span className="font-bold">{customer.name}</span><span className="font-mono text-emerald-700">{formatPaiseToInr(customer.value * 100)}</span></div>) : <p className="text-xs text-[#6B7280]">No customer sales recorded yet.</p>}</div></div>
@@ -224,7 +224,7 @@ export function InventoryDashboardPage() {
           onClick={() => navigate('/inventory/products/new')}
         >
           <span>+ Add New Product</span>
-          <span>â†’</span>
+          <span>→</span>
         </Button>
         <Button
           variant="outline"
@@ -232,7 +232,7 @@ export function InventoryDashboardPage() {
           onClick={() => navigate('/inventory/purchases')}
         >
           <span>Purchase Orders (PO)</span>
-          <span>â†’</span>
+          <span>→</span>
         </Button>
         <Button
           variant="outline"
@@ -240,7 +240,7 @@ export function InventoryDashboardPage() {
           onClick={() => navigate('/inventory/transfers')}
         >
           <span>Stock Transfers</span>
-          <span>â†’</span>
+          <span>→</span>
         </Button>
         <Button
           variant="outline"
@@ -248,7 +248,7 @@ export function InventoryDashboardPage() {
           onClick={() => navigate('/inventory/movements')}
         >
           <span>Audit Movements Ledger</span>
-          <span>â†’</span>
+          <span>→</span>
         </Button>
       </div>
 
@@ -271,7 +271,7 @@ export function InventoryDashboardPage() {
               className="p-0 h-auto text-xs text-[#0A192F] hover:underline hover:bg-transparent"
               onClick={() => navigate('/inventory/products?isLowStock=true')}
             >
-              View All â†’
+              View All →
             </Button>
           </div>
 
@@ -319,7 +319,7 @@ export function InventoryDashboardPage() {
               className="p-0 h-auto text-xs text-[#0A192F] hover:underline hover:bg-transparent"
               onClick={() => navigate('/inventory/movements')}
             >
-              View All â†’
+              View All →
             </Button>
           </div>
 

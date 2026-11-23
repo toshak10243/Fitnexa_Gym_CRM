@@ -127,7 +127,7 @@ export function PosSaleDetailPage() {
           className="text-xs border-[#E5E7EB] rounded-none"
           onClick={() => navigate('/pos/sales')}
         >
-          â† Back to Sales
+          ← Back to Sales
         </Button>
       </div>
     );
@@ -177,7 +177,7 @@ export function PosSaleDetailPage() {
             className="text-xs border-[#E5E7EB] rounded-none hover:bg-[#F5F5F0]"
             onClick={() => navigate('/pos/sales')}
           >
-            â† Sales History
+            ← Sales History
           </Button>
           {!isRefunded && (
             <Button
@@ -320,10 +320,13 @@ export function PosSaleDetailPage() {
               </h2>
               <button
                 type="button"
-                className="text-[#6B7280] hover:text-[#0A192F] text-sm font-mono"
+                className="text-[#6B7280] hover:text-[#0A192F] p-1 transition-colors"
+                aria-label="Close"
                 onClick={() => setIsReturnModalOpen(false)}
               >
-                âœ•
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
               </button>
             </div>
 

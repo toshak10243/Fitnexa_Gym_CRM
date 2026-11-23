@@ -154,7 +154,7 @@ export function AttendanceDashboardPage() {
               className="p-0 h-auto text-xs font-semibold text-[#1D4ED8] hover:underline hover:bg-transparent"
               onClick={() => navigate('/attendance/active')}
             >
-              View Active Roster â†’
+              View Active Roster →
             </Button>
           </div>
         </div>
@@ -224,7 +224,7 @@ export function AttendanceDashboardPage() {
               onClick={() => navigate('/devices')}
             >
               <span>Biometric Terminals</span>
-              <span>â†’</span>
+              <span>→</span>
             </Button>
             <Button
               variant="outline"
@@ -232,7 +232,7 @@ export function AttendanceDashboardPage() {
               onClick={() => navigate('/attendance/policies')}
             >
               <span>Access Rules & Dues Policy</span>
-              <span>â†’</span>
+              <span>→</span>
             </Button>
           </div>
         </div>
@@ -364,7 +364,7 @@ export function AttendanceDashboardPage() {
             className="text-xs border-[#E5E7EB] rounded-none hover:bg-white h-7"
             onClick={() => navigate('/attendance/history')}
           >
-            Full Ledger â†’
+            Full Ledger →
           </Button>
         </div>
 

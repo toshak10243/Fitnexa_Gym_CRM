@@ -47,7 +47,7 @@ export function StockMovementsPage() {
             className="text-xs border-[#E5E7EB] rounded-none hover:bg-[#F5F5F0]"
             onClick={() => navigate('/inventory')}
           >
-            â† Inventory Overview
+            ← Inventory Overview
           </Button>
           <Button
             variant="outline"

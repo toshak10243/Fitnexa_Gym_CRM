@@ -357,7 +357,7 @@ export function InvoicesPage() {
 
             <form onSubmit={handleCollectSubmit} className="space-y-4 text-xs">
               <div>
-                <label className="block font-semibold mb-1">Collection Amount in â‚¹ *</label>
+                <label className="block font-semibold mb-1">Collection Amount in ₹ *</label>
                 <Input
                   type="number"
                   step="0.01"

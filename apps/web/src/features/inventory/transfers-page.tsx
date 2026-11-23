@@ -120,7 +120,7 @@ export function TransfersPage() {
             className="text-xs border-[#E5E7EB] rounded-none hover:bg-[#F5F5F0]"
             onClick={() => navigate('/inventory')}
           >
-            â† Inventory
+            ← Inventory
           </Button>
           <Button
             variant="outline"
@@ -238,9 +238,12 @@ export function TransfersPage() {
                   <button
                     type="button"
                     onClick={() => handleRemoveItemRow(idx)}
-                    className="text-[#B91C1C] hover:text-red-700 font-mono text-sm px-2"
+                    className="text-[#B91C1C] hover:text-red-700 p-1"
+                    title="Remove item"
                   >
-                    âœ•
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
                   </button>
                 )}
               </div>

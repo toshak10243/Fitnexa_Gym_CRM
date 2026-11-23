@@ -97,7 +97,7 @@ export function DeviceDetailPage() {
             className="text-xs border-[#E5E7EB] rounded-none hover:bg-[#F5F5F0]"
             onClick={() => navigate('/devices')}
           >
-            â† Back to Directory
+            ← Back to Directory
           </Button>
           <Button
             variant="outline"

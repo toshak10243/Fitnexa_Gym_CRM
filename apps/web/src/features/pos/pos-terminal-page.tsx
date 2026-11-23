@@ -358,8 +358,8 @@ export function PosTerminalPage() {
               <select value={stockFilter} onChange={(e) => setStockFilter(e.target.value)} className="text-[11px] h-8 border border-[#E5E7EB] bg-[#FBFBF9] px-2 rounded-none"><option value="ALL">All stock</option><option value="IN_STOCK">In stock</option><option value="OUT_OF_STOCK">Out of stock</option></select>
               <select value={gstFilter} onChange={(e) => setGstFilter(e.target.value)} className="text-[11px] h-8 border border-[#E5E7EB] bg-[#FBFBF9] px-2 rounded-none"><option value="ALL">All GST slabs</option><option value="0">0% GST</option><option value="5">5% GST</option><option value="12">12% GST</option><option value="18">18% GST</option><option value="28">28% GST</option></select>
               <select value={sortProducts} onChange={(e) => setSortProducts(e.target.value)} className="text-[11px] h-8 border border-[#E5E7EB] bg-[#FBFBF9] px-2 rounded-none"><option value="name">Name A-Z</option><option value="price_low">Price low-high</option><option value="price_high">Price high-low</option><option value="stock_low">Lowest stock first</option></select>
-              <Input type="number" min="0" value={priceMin} onChange={(e) => setPriceMin(e.target.value)} placeholder="Min price â‚¹" className="text-[11px] h-8 rounded-none border-[#E5E7EB] bg-[#FBFBF9]" />
-              <Input type="number" min="0" value={priceMax} onChange={(e) => setPriceMax(e.target.value)} placeholder="Max price â‚¹" className="text-[11px] h-8 rounded-none border-[#E5E7EB] bg-[#FBFBF9]" />
+              <Input type="number" min="0" value={priceMin} onChange={(e) => setPriceMin(e.target.value)} placeholder="Min price ₹" className="text-[11px] h-8 rounded-none border-[#E5E7EB] bg-[#FBFBF9]" />
+              <Input type="number" min="0" value={priceMax} onChange={(e) => setPriceMax(e.target.value)} placeholder="Max price ₹" className="text-[11px] h-8 rounded-none border-[#E5E7EB] bg-[#FBFBF9]" />
               <label className="col-span-2 flex items-center gap-2 text-[11px] text-[#6B7280]"><input type="checkbox" checked={showImagesOnly} onChange={(e) => setShowImagesOnly(e.target.checked)} /> Only products with image</label>
             </div>
           </div>}
@@ -621,7 +621,7 @@ export function PosTerminalPage() {
           {paymentMethod === PaymentMethodType.CASH && (
             <div className="space-y-1">
               <div className="flex items-center justify-between text-[11px]">
-                <span className="font-bold text-[#0A192F]">Cash Tendered (â‚¹):</span>
+                <span className="font-bold text-[#0A192F]">Cash Tendered (₹):</span>
                 {changeDuePaise > 0 && (
                   <span className="font-mono font-bold text-emerald-700">
                     Change: {formatPaiseToInr(changeDuePaise)}

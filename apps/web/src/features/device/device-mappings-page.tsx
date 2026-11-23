@@ -131,7 +131,7 @@ export function DeviceMappingsPage() {
             className="text-xs border-[#E5E7EB] rounded-none hover:bg-[#F5F5F0]"
             onClick={() => navigate(`/devices/${id}`)}
           >
-            â† Back to Device Details
+            ← Back to Device Details
           </Button>
         </div>
       </div>
@@ -235,7 +235,7 @@ export function DeviceMappingsPage() {
                           window.scrollTo({ top: 0, behavior: 'smooth' });
                         }}
                       >
-                        Use Slot #{evt.deviceUserId} â†‘
+                        Use Slot #{evt.deviceUserId} ↑
                       </Button>
                     </td>
                   </tr>

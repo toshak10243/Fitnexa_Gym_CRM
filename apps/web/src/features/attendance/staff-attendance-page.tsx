@@ -108,7 +108,7 @@ export function StaffAttendancePage() {
             className="text-xs border-[#E5E7EB] rounded-none hover:bg-[#F5F5F0]"
             onClick={() => navigate('/attendance')}
           >
-            â† Back to Telemetry
+            ← Back to Telemetry
           </Button>
         </div>
       </div>
@@ -239,7 +239,7 @@ export function StaffAttendancePage() {
                             {durationText}
                           </span>
                         </td>
-                        <td className="py-3 px-4 text-[#6B7280]">{s.notes || 'â€”'}</td>
+                        <td className="py-3 px-4 text-[#6B7280]">{s.notes || '-'}</td>
                       </tr>
                     );
                   })

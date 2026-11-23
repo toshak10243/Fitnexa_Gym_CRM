@@ -79,7 +79,7 @@ export function PurchasesPage() {
     if (!branchId) { setPoError('No branch/location is configured for inventory.'); return; }
     const validItems = poItems.filter((item) => item.productId && item.quantity > 0 && item.unitCostPaise > 0);
     if (validItems.length === 0) {
-      setPoError('Please add a product, quantity, and purchase cost greater than â‚¹0');
+      setPoError('Please add a product, quantity, and purchase cost greater than ₹0');
       return;
     }
 
@@ -286,10 +286,13 @@ export function PurchasesPage() {
               </h2>
               <button
                 type="button"
-                className="text-[#6B7280] hover:text-[#0A192F] text-sm font-mono"
+                className="text-[#6B7280] hover:text-[#0A192F] p-1 transition-colors"
+                aria-label="Close"
                 onClick={() => setIsPoModalOpen(false)}
               >
-                âœ•
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
               </button>
             </div>
 
@@ -386,7 +389,7 @@ export function PurchasesPage() {
                           updated[idx].unitCostPaise = Math.round(parseFloat(e.target.value || '0') * 100);
                           setPoItems(updated);
                         }}
-                        placeholder="Cost (â‚¹)"
+                        placeholder="Cost (₹)"
                         className="w-24 text-xs border-[#E5E7EB] bg-[#FBFBF9] h-8 rounded-none font-mono"
                       />
 
@@ -394,9 +397,12 @@ export function PurchasesPage() {
                         <button
                           type="button"
                           onClick={() => handleRemoveItemRow(idx)}
-                          className="text-[#B91C1C] hover:text-red-700 font-mono text-sm px-1"
+                          className="text-[#B91C1C] hover:text-red-700 p-1"
+                          title="Remove item"
                         >
-                          âœ•
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
                         </button>
                       )}
                     </div>
@@ -442,10 +448,13 @@ export function PurchasesPage() {
               </div>
               <button
                 type="button"
-                className="text-[#6B7280] hover:text-[#0A192F] text-sm font-mono"
+                className="text-[#6B7280] hover:text-[#0A192F] p-1 transition-colors"
+                aria-label="Close"
                 onClick={() => setReceiveTargetPo(null)}
               >
-                âœ•
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
               </button>
             </div>
 

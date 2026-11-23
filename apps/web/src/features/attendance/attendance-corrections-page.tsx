@@ -152,7 +152,7 @@ export function AttendanceCorrectionsPage() {
             className="text-xs border-[#E5E7EB] rounded-none hover:bg-[#F5F5F0]"
             onClick={() => navigate('/attendance')}
           >
-            â† Back to Telemetry
+            ← Back to Telemetry
           </Button>
           <Button
             className="bg-[#0A192F] text-[#FBFBF9] hover:bg-[#162E52] text-xs rounded-none"
@@ -291,9 +291,12 @@ export function AttendanceCorrectionsPage() {
               <button
                 type="button"
                 onClick={() => setShowCreateModal(false)}
-                className="text-[#6B7280] hover:text-[#0A192F] text-lg font-bold"
+                className="text-[#6B7280] hover:text-[#0A192F] p-1 transition-colors"
+                aria-label="Close"
               >
-                âœ•
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
               </button>
             </div>
 
@@ -396,9 +399,12 @@ export function AttendanceCorrectionsPage() {
               <button
                 type="button"
                 onClick={() => setSelectedCorrection(null)}
-                className="text-[#6B7280] hover:text-[#0A192F] text-lg font-bold"
+                className="text-[#6B7280] hover:text-[#0A192F] p-1 transition-colors"
+                aria-label="Close"
               >
-                âœ•
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
               </button>
             </div>
 

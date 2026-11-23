@@ -164,7 +164,7 @@ export function ReportsPage() {
             className="text-xs border-[#E5E7EB] rounded-none hover:bg-[#F5F5F0]"
             onClick={() => navigate('/')}
           >
-            â† Executive Dashboard
+            ← Executive Dashboard
           </Button>
           <Button
             disabled={isExporting}

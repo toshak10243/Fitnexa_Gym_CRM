@@ -154,7 +154,7 @@ export function ProductDetailPage() {
             className="text-xs border-[#E5E7EB] rounded-none hover:bg-[#F5F5F0]"
             onClick={() => navigate('/inventory/products')}
           >
-            â† Back to Catalog
+            ← Back to Catalog
           </Button>
           <Button
             className="bg-[#0A192F] text-[#FBFBF9] hover:bg-[#162E52] text-xs rounded-none px-4"
@@ -173,7 +173,7 @@ export function ProductDetailPage() {
           <div><span className="text-[10px] uppercase tracking-wider text-[#6B7280]">Retail product</span><h2 className="mt-1 text-2xl font-bold text-[#0A192F]">{product.name}</h2><p className="mt-1 text-sm text-[#6B7280]">{product.description || 'Gym retail inventory product'}</p></div>
           <div><span className="block text-[10px] uppercase text-[#6B7280]">Selling price</span><span className="text-3xl font-bold text-[#0A192F]">{formatPaiseToInr(product.sellingPriceInPaise)}</span></div>
           <div className="grid grid-cols-2 gap-3 border-y border-[#E5E7EB] py-4 text-xs"><div><span className="text-[#6B7280]">Category</span><div className="font-semibold text-[#0A192F]">{product.category?.name || 'Uncategorised'}</div></div><div><span className="text-[#6B7280]">Unit</span><div className="font-semibold text-[#0A192F]">{product.unit}</div></div><div><span className="text-[#6B7280]">SKU</span><div className="font-mono font-semibold text-[#0A192F]">{product.sku}</div></div><div><span className="text-[#6B7280]">Barcode</span><div className="font-mono font-semibold text-[#0A192F]">{product.barcode || 'Not set'}</div></div><div><span className="text-[#6B7280]">GST / HSN</span><div className="font-semibold text-[#0A192F]">{product.taxRatePercentage}% / {product.hsnCode || 'N/A'}</div></div><div><span className="text-[#6B7280]">Reorder level</span><div className="font-semibold text-[#0A192F]">{product.reorderThreshold} {product.unit}</div></div></div>
-          <div className="mt-5 border border-[#E5E7EB] p-4 flex items-center gap-5"><div className="border border-[#E5E7EB] bg-white p-2 shrink-0">{qrDataUrl && <img src={qrDataUrl} alt="Public product QR code" className="h-36 w-36" />}</div><div><div className="text-xs font-bold uppercase text-[#0A192F]">Public product QR</div><p className="text-xs text-[#6B7280] mt-1">Scan to open this productâ€™s public detail page.</p><Button type="button" onClick={downloadQr} className="mt-3 rounded-none text-xs">Download QR</Button></div></div>
+          <div className="mt-5 border border-[#E5E7EB] p-4 flex items-center gap-5"><div className="border border-[#E5E7EB] bg-white p-2 shrink-0">{qrDataUrl && <img src={qrDataUrl} alt="Public product QR code" className="h-36 w-36" />}</div><div><div className="text-xs font-bold uppercase text-[#0A192F]">Public product QR</div><p className="text-xs text-[#6B7280] mt-1">Scan to open this product's public detail page.</p><Button type="button" onClick={downloadQr} className="mt-3 rounded-none text-xs">Download QR</Button></div></div>
           <div className={`border px-3 py-2 text-xs font-bold ${isLow ? 'border-red-200 bg-red-50 text-red-700' : 'border-emerald-200 bg-emerald-50 text-emerald-700'}`}>{isLow ? 'LOW STOCK - REORDER REQUIRED' : 'IN STOCK - AVAILABLE FOR SALE'}</div>
         </div>
       </section>
@@ -241,7 +241,7 @@ export function ProductDetailPage() {
             className="p-0 h-auto text-xs text-[#0A192F] hover:underline hover:bg-transparent"
             onClick={() => navigate(`/inventory/movements?productId=${product.id}`)}
           >
-            View All Ledger â†’
+            View All Ledger →
           </Button>
         </div>
 
@@ -282,9 +282,9 @@ export function ProductDetailPage() {
                         </span>
                       </td>
                       <td className="py-3 px-4 font-mono text-[#6B7280] text-[11px]">
-                        {m.referenceType || 'â€”'}
+                        {m.referenceType || '-'}
                       </td>
-                      <td className="py-3 px-4 text-[#6B7280]">{m.notes || 'â€”'}</td>
+                      <td className="py-3 px-4 text-[#6B7280]">{m.notes || '-'}</td>
                     </tr>
                   );
                 })
