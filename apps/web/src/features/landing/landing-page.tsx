@@ -139,44 +139,44 @@ export function LandingPage() {
       />
 
       {/* Hero Section */}
-      <section className="relative overflow-hidden pt-12 pb-20 lg:pt-16 lg:pb-28 border-b border-[#E5E7EB]">
+      <section className="relative overflow-hidden pt-10 pb-16 lg:pt-14 lg:pb-24 border-b border-[#E5E7EB]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
             {/* Left Content (7 Cols) */}
-            <div className="lg:col-span-7 space-y-6">
-              <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#FFFFFF] border border-[#CBD5E1] text-[11px] font-bold uppercase tracking-wider text-[#0A192F]">
+            <div className="lg:col-span-7 space-y-5">
+              <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#FFFFFF] border border-[#CBD5E1] text-[10px] font-bold uppercase tracking-widest text-[#0A192F]">
                 <span className="w-2 h-2 bg-[#B91C1C]" />
-                The Complete Operating System For Indian Gyms & Fitness Chains
+                India&apos;s #1 Gym Management ERP &amp; Biometric Operating System
               </div>
 
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-[#0A192F] leading-[1.12]">
-                Run Your Gym with Iron-Clad Biometric Control & Automated Billing.
+              <h1 className="text-3xl sm:text-5xl lg:text-[52px] font-extrabold tracking-tight text-[#0A192F] leading-[1.12]">
+                Stop Unpaid Entries. Automate WhatsApp Billing. Scale Your Gym.
               </h1>
 
-              <p className="text-base sm:text-lg text-[#4B5563] max-w-2xl leading-relaxed">
-                Stop unpaid walk-ins, eliminate fee leakage with automated turnstile gate locks, deliver instant WhatsApp GST receipts, and manage trainers and stock across all branches in one unified cloud ERP.
+              <p className="text-sm sm:text-base text-[#4B5563] max-w-2xl leading-relaxed">
+                The all-in-one cloud operating system for Indian fitness centers and commercial gym franchises. Automated biometric turnstile locks stop fee leakage, GST tax invoices dispatch via WhatsApp, and trainer commissions calculate on autopilot.
               </p>
 
               {/* Action Buttons */}
-              <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
+              <div className="pt-1 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                 <button
                   type="button"
                   onClick={() => setTrialModalOpen(true)}
-                  className="px-8 py-4 text-xs font-bold uppercase tracking-wider text-[#FBFBF9] bg-[#B91C1C] hover:bg-[#991B1B] border border-[#991B1B] transition-colors focus-visible:outline-2 focus-visible:outline-[#B91C1C]"
+                  className="px-7 py-3.5 text-xs font-bold uppercase tracking-wider text-[#FBFBF9] bg-[#B91C1C] hover:bg-[#991B1B] border border-[#991B1B] transition-colors focus-visible:outline-2 focus-visible:outline-[#B91C1C]"
                 >
                   Claim 7-Day Free Trial
                 </button>
                 <button
                   type="button"
                   onClick={() => setSubdomainModalOpen(true)}
-                  className="px-7 py-4 text-xs font-bold uppercase tracking-wider text-[#0A192F] bg-[#FFFFFF] hover:bg-[#F5F5F0] border border-[#CBD5E1] transition-colors focus-visible:outline-2 focus-visible:outline-[#0A192F]"
+                  className="px-6 py-3.5 text-xs font-bold uppercase tracking-wider text-[#0A192F] bg-[#FFFFFF] hover:bg-[#F5F5F0] border border-[#CBD5E1] transition-colors focus-visible:outline-2 focus-visible:outline-[#0A192F]"
                 >
                   Client Subdomain Login
                 </button>
               </div>
 
               {/* Guarantee Points */}
-              <div className="pt-4 grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs font-medium text-[#4B5563]">
+              <div className="pt-3 grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs font-medium text-[#4B5563]">
                 <div className="flex items-center gap-2">
                   <span className="w-1.5 h-1.5 bg-[#16A34A]" />
                   <span>No credit card required</span>
@@ -194,9 +194,7 @@ export function LandingPage() {
 
             {/* Right Interactive 3D Canvas (5 Cols) */}
             <div className="lg:col-span-5 relative">
-              <div className="bg-[#FFFFFF] border border-[#E5E7EB] p-2 sm:p-4">
-                <Hero3dCanvas />
-              </div>
+              <Hero3dCanvas />
             </div>
           </div>
         </div>
