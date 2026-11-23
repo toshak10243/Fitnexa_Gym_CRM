@@ -74,8 +74,8 @@ export function SubdomainModal({ isOpen, onClose, onClaimSubdomain }: SubdomainM
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-[#0A192F]/80 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="relative w-full max-w-md bg-[#FBFBF9] border border-[#CBD5E1] p-6 sm:p-8 text-[#111827] shadow-none">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-[#0A192F]/85 backdrop-blur-sm flex justify-center items-center p-3 sm:p-5 min-h-screen">
+      <div className="relative w-full max-w-md max-h-[92vh] overflow-y-auto bg-[#FBFBF9] border border-[#CBD5E1] p-5 sm:p-6 text-[#111827] shadow-none my-auto">
         {/* Close Button */}
         <button
           type="button"

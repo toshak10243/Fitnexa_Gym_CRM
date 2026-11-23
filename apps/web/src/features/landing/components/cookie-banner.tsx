@@ -75,3 +75,4 @@ export function CookieBanner({ onOpenCookies, onOpenPrivacy }: CookieBannerProps
     </div>
   );
 }
+
