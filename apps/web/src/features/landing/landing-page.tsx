@@ -7,11 +7,14 @@ import { PricingSection } from './components/pricing-section';
 import { LandingFooter } from './components/landing-footer';
 import { TrialModal } from './components/trial-modal';
 import { SubdomainModal } from './components/subdomain-modal';
+import { CookieBanner } from './components/cookie-banner';
+import { LegalModal } from './components/legal-modals';
 
 export function LandingPage() {
   const [trialModalOpen, setTrialModalOpen] = useState(false);
   const [subdomainModalOpen, setSubdomainModalOpen] = useState(false);
   const [claimedSlug, setClaimedSlug] = useState<string>('');
+  const [legalModalType, setLegalModalType] = useState<'terms' | 'privacy' | 'cookies' | null>(null);
 
   useEffect(() => {
     document.title = 'Trifit | India\'s #1 Gym Management ERP, Biometric CRM & Billing Software';
@@ -344,6 +347,13 @@ export function LandingPage() {
       <LandingFooter
         onOpenTrial={() => setTrialModalOpen(true)}
         onOpenSubdomain={() => setSubdomainModalOpen(true)}
+        onOpenLegal={(type) => setLegalModalType(type)}
+      />
+
+      {/* Cookie Banner */}
+      <CookieBanner
+        onOpenCookies={() => setLegalModalType('cookies')}
+        onOpenPrivacy={() => setLegalModalType('privacy')}
       />
 
       {/* Modals */}
@@ -363,6 +373,10 @@ export function LandingPage() {
           setClaimedSlug(slugToClaim);
           setTrialModalOpen(true);
         }}
+      />
+      <LegalModal
+        type={legalModalType}
+        onClose={() => setLegalModalType(null)}
       />
     </div>
   );

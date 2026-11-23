@@ -3,9 +3,10 @@ import fitnexaLogo from '../../../assets/logo.png';
 interface LandingFooterProps {
   onOpenTrial: () => void;
   onOpenSubdomain: () => void;
+  onOpenLegal?: (type: 'terms' | 'privacy' | 'cookies') => void;
 }
 
-export function LandingFooter({ onOpenTrial, onOpenSubdomain }: LandingFooterProps) {
+export function LandingFooter({ onOpenTrial, onOpenSubdomain, onOpenLegal }: LandingFooterProps) {
   return (
     <footer className="bg-[#0A192F] border-t border-[#1E3A5F] text-[#CBD5E1] pt-16 pb-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -45,7 +46,7 @@ export function LandingFooter({ onOpenTrial, onOpenSubdomain }: LandingFooterPro
             </ul>
           </div>
 
-          {/* Column 2: Quick Portals */}
+          {/* Column 2: Portals & Links */}
           <div>
             <h4 className="text-xs font-bold uppercase tracking-widest text-[#FBFBF9] mb-4">Portals & Links</h4>
             <ul className="space-y-2.5 text-xs">
@@ -88,16 +89,42 @@ export function LandingFooter({ onOpenTrial, onOpenSubdomain }: LandingFooterPro
           </div>
         </div>
 
-        {/* Bottom Bar */}
+        {/* Bottom Bar with Privacy & Legal Links */}
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#94A3B8]">
           <p>&copy; {new Date().getFullYear()} Trifit Technologies. All rights reserved. Indian Gym Management CRM & ERP.</p>
-          <div className="flex items-center gap-6">
-            <span>Server: Malaysia KVM (189.31.38.113)</span>
-            <span>Zero-Trust Architecture</span>
+          <div className="flex items-center gap-4 text-[11px]">
+            {onOpenLegal && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => onOpenLegal('terms')}
+                  className="hover:text-white transition-colors underline"
+                >
+                  Terms of Service
+                </button>
+                <span>&bull;</span>
+                <button
+                  type="button"
+                  onClick={() => onOpenLegal('privacy')}
+                  className="hover:text-white transition-colors underline"
+                >
+                  Privacy Policy
+                </button>
+                <span>&bull;</span>
+                <button
+                  type="button"
+                  onClick={() => onOpenLegal('cookies')}
+                  className="hover:text-white transition-colors underline"
+                >
+                  Cookie Policy
+                </button>
+                <span>&bull;</span>
+              </>
+            )}
+            <span>DPDP Act 2023 Compliant</span>
           </div>
         </div>
       </div>
     </footer>
   );
 }
-
