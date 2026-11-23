@@ -319,3 +319,4 @@ export function Hero3dCanvas() {
     </div>
   );
 }
+

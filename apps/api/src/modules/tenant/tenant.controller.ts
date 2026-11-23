@@ -30,6 +30,7 @@ import { Roles } from '../../common/decorators/roles.decorator';
 import { UserRole } from '@fitnexa/shared';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
+import { Public } from '../../common/decorators/public.decorator';
 
 @ApiTags('Gym Tenant & Branches')
 @ApiBearerAuth('JWT-auth')
@@ -37,6 +38,14 @@ import { RolesGuard } from '../../common/guards/roles.guard';
 @Controller('tenant')
 export class TenantController {
   constructor(private readonly tenantService: TenantService) {}
+
+  @Public()
+  @Get('lookup/:slug')
+  @ApiOperation({ summary: 'Publicly check if a tenant subdomain slug exists' })
+  @ApiResponse({ status: 200, description: 'Tenant lookup status.' })
+  async lookupBySlug(@Param('slug') slug: string) {
+    return this.tenantService.lookupBySlug(slug);
+  }
 
   private extractClientMetadata(req: Request) {
     const ipAddress =

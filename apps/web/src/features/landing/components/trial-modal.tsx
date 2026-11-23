@@ -1,22 +1,30 @@
-import { useState, useId } from 'react';
+import { useState, useEffect, useId } from 'react';
 import axios from 'axios';
 
 interface TrialModalProps {
   isOpen: boolean;
   onClose: () => void;
+  defaultSlug?: string;
 }
 
-export function TrialModal({ isOpen, onClose }: TrialModalProps) {
+export function TrialModal({ isOpen, onClose, defaultSlug }: TrialModalProps) {
   const [gymName, setGymName] = useState('');
   const [ownerName, setOwnerName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [city, setCity] = useState('');
-  const [desiredSlug, setDesiredSlug] = useState('');
+  const [desiredSlug, setDesiredSlug] = useState(defaultSlug || '');
   const [memberRange, setMemberRange] = useState('200-500');
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  // Sync defaultSlug if it changes when opened
+  useEffect(() => {
+    if (defaultSlug) {
+      setDesiredSlug(defaultSlug);
+    }
+  }, [defaultSlug]);
 
   const gymNameId = useId();
   const ownerNameId = useId();
@@ -278,3 +286,4 @@ export function TrialModal({ isOpen, onClose }: TrialModalProps) {
     </div>
   );
 }
+

@@ -100,3 +100,4 @@ export function LandingFooter({ onOpenTrial, onOpenSubdomain }: LandingFooterPro
     </footer>
   );
 }
+

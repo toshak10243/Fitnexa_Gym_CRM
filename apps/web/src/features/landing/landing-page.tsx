@@ -11,6 +11,7 @@ import { SubdomainModal } from './components/subdomain-modal';
 export function LandingPage() {
   const [trialModalOpen, setTrialModalOpen] = useState(false);
   const [subdomainModalOpen, setSubdomainModalOpen] = useState(false);
+  const [claimedSlug, setClaimedSlug] = useState<string>('');
 
   useEffect(() => {
     document.title = 'Trifit | India\'s #1 Gym Management ERP, Biometric CRM & Billing Software';
@@ -348,12 +349,22 @@ export function LandingPage() {
       {/* Modals */}
       <TrialModal
         isOpen={trialModalOpen}
-        onClose={() => setTrialModalOpen(false)}
+        defaultSlug={claimedSlug}
+        onClose={() => {
+          setTrialModalOpen(false);
+          setClaimedSlug('');
+        }}
       />
       <SubdomainModal
         isOpen={subdomainModalOpen}
         onClose={() => setSubdomainModalOpen(false)}
+        onClaimSubdomain={(slugToClaim) => {
+          setSubdomainModalOpen(false);
+          setClaimedSlug(slugToClaim);
+          setTrialModalOpen(true);
+        }}
       />
     </div>
   );
 }
+

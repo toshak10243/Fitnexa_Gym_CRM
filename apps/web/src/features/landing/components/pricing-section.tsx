@@ -232,3 +232,4 @@ export function PricingSection({ onOpenTrial }: PricingSectionProps) {
     </section>
   );
 }
+

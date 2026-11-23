@@ -16,6 +16,31 @@ export class TenantService {
     private readonly auditLogService: AuditLogService,
   ) {}
 
+  async lookupBySlug(slug: string): Promise<{ exists: boolean; slug: string; name?: string }> {
+    const cleanSlug = (slug || '').toLowerCase().trim().replace(/[^a-z0-9-]/g, '');
+    if (!cleanSlug) {
+      return { exists: false, slug: '' };
+    }
+    const tenant = await this.prisma.tenant.findUnique({
+      where: { slug: cleanSlug },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+      },
+    });
+
+    if (!tenant) {
+      return { exists: false, slug: cleanSlug };
+    }
+
+    return {
+      exists: true,
+      slug: tenant.slug,
+      name: tenant.name,
+    };
+  }
+
   async getProfile(tenantId: string): Promise<TenantDetailResponse> {
     const tenant = await this.prisma.tenant.findUnique({
       where: { id: tenantId },

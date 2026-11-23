@@ -133,3 +133,4 @@ export function LandingNavbar({ onOpenTrial, onOpenSubdomain }: LandingNavbarPro
     </header>
   );
 }
+

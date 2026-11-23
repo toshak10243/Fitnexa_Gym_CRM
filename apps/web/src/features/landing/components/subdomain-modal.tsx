@@ -1,29 +1,76 @@
-import { useState, useId } from 'react';
+import { useState, useEffect, useId } from 'react';
+import axios from 'axios';
 
 interface SubdomainModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onClaimSubdomain: (slug: string) => void;
 }
 
-export function SubdomainModal({ isOpen, onClose }: SubdomainModalProps) {
+export function SubdomainModal({ isOpen, onClose, onClaimSubdomain }: SubdomainModalProps) {
   const [slug, setSlug] = useState('');
+  const [status, setStatus] = useState<'idle' | 'checking' | 'found' | 'not_found'>('idle');
+  const [tenantName, setTenantName] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const slugInputId = useId();
 
-  if (!isOpen) return null;
+  useEffect(() => {
+    if (!isOpen) {
+      setSlug('');
+      setStatus('idle');
+      setTenantName(null);
+      setError(null);
+      return;
+    }
+  }, [isOpen]);
 
-  const handleNavigate = (e: React.FormEvent) => {
-    e.preventDefault();
+  // Debounced auto-check
+  useEffect(() => {
     const clean = slug.trim().toLowerCase().replace(/[^a-z0-9-]/g, '');
     if (!clean) {
+      setStatus('idle');
+      setTenantName(null);
+      return;
+    }
+
+    setStatus('checking');
+    const timer = setTimeout(async () => {
+      try {
+        const res = await axios.get(`/api/v1/tenant/lookup/${clean}`);
+        if (res.data?.exists) {
+          setStatus('found');
+          setTenantName(res.data.name || clean);
+        } else {
+          setStatus('not_found');
+          setTenantName(null);
+        }
+      } catch {
+        // Fallback if network or endpoint fails
+        setStatus('not_found');
+      }
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }, [slug]);
+
+  if (!isOpen) return null;
+
+  const cleanSlug = slug.trim().toLowerCase().replace(/[^a-z0-9-]/g, '');
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!cleanSlug) {
       setError('Please enter your gym subdomain slug (e.g. tristara).');
       return;
     }
 
-    // Redirect to subdomain login
-    const targetUrl = `https://${clean}.trifit.space/login`;
-    window.location.href = targetUrl;
+    if (status === 'found') {
+      // Direct redirect to subdomain login
+      window.location.href = `https://${cleanSlug}.trifit.space/login`;
+    } else if (status === 'not_found') {
+      onClaimSubdomain(cleanSlug);
+    }
   };
 
   return (
@@ -56,11 +103,17 @@ export function SubdomainModal({ isOpen, onClose }: SubdomainModalProps) {
           </div>
         )}
 
-        <form onSubmit={handleNavigate} className="mt-5 space-y-4">
+        <form onSubmit={handleSubmit} className="mt-5 space-y-4">
           <div>
-            <label htmlFor={slugInputId} className="block text-[11px] font-bold uppercase tracking-wider text-[#0A192F] mb-1">
-              Your Gym Subdomain / Identifier
-            </label>
+            <div className="flex justify-between items-center mb-1">
+              <label htmlFor={slugInputId} className="block text-[11px] font-bold uppercase tracking-wider text-[#0A192F]">
+                Your Gym Subdomain / Identifier
+              </label>
+              {status === 'checking' && (
+                <span className="text-[10px] font-mono text-[#6B7280] animate-pulse">Checking status...</span>
+              )}
+            </div>
+
             <div className="flex items-center">
               <input
                 id={slugInputId}
@@ -82,14 +135,77 @@ export function SubdomainModal({ isOpen, onClose }: SubdomainModalProps) {
             <p className="text-[10px] text-[#6B7280] mt-1">Example: For Tristara Gym, enter &quot;tristara&quot;.</p>
           </div>
 
-          <div className="pt-2">
-            <button
-              type="submit"
-              className="w-full py-3 text-xs font-bold uppercase tracking-wider text-[#FBFBF9] bg-[#0A192F] hover:bg-[#1E3A5F] border border-[#0A192F] transition-colors"
-            >
-              Continue to Gym Login
-            </button>
-          </div>
+          {/* Case 1: Subdomain FOUND */}
+          {status === 'found' && (
+            <div className="p-3 bg-[#F0FDF4] border border-[#86EFAC] text-xs">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 bg-[#16A34A]" />
+                <span className="font-bold text-[#166534] uppercase tracking-wider text-[11px]">Portal Verified</span>
+              </div>
+              <p className="mt-1 text-[#15803D]">
+                Active portal detected for <strong>{tenantName}</strong> ({cleanSlug}.trifit.space).
+              </p>
+              <div className="mt-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    window.location.href = `https://${cleanSlug}.trifit.space/login`;
+                  }}
+                  className="w-full py-2.5 text-xs font-bold uppercase tracking-wider text-white bg-[#15803D] hover:bg-[#166534] transition-colors"
+                >
+                  Continue to {tenantName} Login &rarr;
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Case 2: Subdomain NOT FOUND -> Beautiful High-Converting Claim Box */}
+          {status === 'not_found' && cleanSlug.length > 0 && (
+            <div className="p-4 bg-[#FFFFFF] border-2 border-[#0A192F] text-xs space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 bg-[#B91C1C] text-white">
+                  Not Registered
+                </span>
+                <span className="text-[10px] font-mono text-[#16A34A] font-semibold">Subdomain Available</span>
+              </div>
+
+              <div>
+                <h4 className="font-bold text-sm text-[#0A192F]">
+                  &quot;{cleanSlug}.trifit.space&quot; was not found.
+                </h4>
+                <p className="mt-1 text-xs text-[#4B5563] leading-relaxed">
+                  No active gym portal is registered under this identifier yet. Good news: this custom subdomain is available for your gym!
+                </p>
+              </div>
+
+              <div className="pt-1">
+                <button
+                  type="button"
+                  onClick={() => onClaimSubdomain(cleanSlug)}
+                  className="w-full py-3 text-xs font-bold uppercase tracking-wider text-[#FBFBF9] bg-[#B91C1C] hover:bg-[#991B1B] border border-[#991B1B] transition-colors flex items-center justify-center gap-2"
+                >
+                  <span>Claim &quot;{cleanSlug}.trifit.space&quot; Free in 1-Click</span>
+                  <span className="font-mono text-sm">&rarr;</span>
+                </button>
+                <p className="text-[10px] text-center text-[#6B7280] mt-1.5 font-medium">
+                  Includes 7-day free enterprise sandbox &bull; Zero credit card
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Default Button if idle or checking */}
+          {(status === 'idle' || status === 'checking') && (
+            <div className="pt-2">
+              <button
+                type="submit"
+                disabled={!cleanSlug || status === 'checking'}
+                className="w-full py-3 text-xs font-bold uppercase tracking-wider text-[#FBFBF9] bg-[#0A192F] hover:bg-[#1E3A5F] border border-[#0A192F] transition-colors disabled:opacity-50"
+              >
+                {status === 'checking' ? 'Verifying Subdomain...' : 'Verify & Continue to Gym Login'}
+              </button>
+            </div>
+          )}
         </form>
 
         <div className="mt-6 pt-4 border-t border-[#E5E7EB]">
