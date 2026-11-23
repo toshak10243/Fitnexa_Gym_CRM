@@ -123,7 +123,7 @@ export function TrialModal({ isOpen, onClose, defaultSlug }: TrialModalProps) {
 
               <div className="mt-6 space-y-2.5">
                 <a
-                  href={`https://wa.me/918619544828?text=${encodeURIComponent(
+                  href={`https://wa.me/917567091267?text=${encodeURIComponent(
                     `Hello Trifit Team, I just requested a 7-day free trial for ${gymName} (${desiredSlug}.trifit.space). Please activate our sandbox.`
                   )}`}
                   target="_blank"

@@ -330,7 +330,7 @@ export function LandingPage() {
               Claim 7-Day Free Trial
             </button>
             <a
-              href="https://wa.me/918619544828"
+              href="https://wa.me/917567091267"
               target="_blank"
               rel="noreferrer"
               className="w-full sm:w-auto px-7 py-4 text-xs font-bold uppercase tracking-wider text-[#0A192F] bg-[#FFFFFF] hover:bg-[#F5F5F0] border border-[#CBD5E1] transition-colors"

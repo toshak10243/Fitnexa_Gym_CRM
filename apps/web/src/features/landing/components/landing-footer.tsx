@@ -72,12 +72,12 @@ export function LandingFooter({ onOpenTrial, onOpenSubdomain, onOpenLegal }: Lan
             <h4 className="text-xs font-bold uppercase tracking-widest text-[#FBFBF9] mb-4">Direct Support</h4>
             <div className="space-y-3 text-xs">
               <p className="text-[#94A3B8]">Technical & Onboarding Hotline:</p>
-              <p className="font-mono text-sm font-bold text-[#FBFBF9]">+91 86195 44828</p>
+              <p className="font-mono text-sm font-bold text-[#FBFBF9]">+91 75670 91267</p>
               <p className="text-[#94A3B8]">Enterprise Inquiries:</p>
-              <p className="font-mono text-[#CBD5E1]">support@trifit.space</p>
+              <p className="font-mono text-[#CBD5E1]">tristaraitsolutions@gmail.com</p>
               <div className="pt-2">
                 <a
-                  href="https://wa.me/918619544828"
+                  href="https://wa.me/917567091267"
                   target="_blank"
                   rel="noreferrer"
                   className="inline-block px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-[#0A192F] bg-[#22C55E] hover:bg-[#16A34A]"
