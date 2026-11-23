@@ -77,12 +77,21 @@ export class SupplierService {
     dto: CreatePurchaseOrderDto,
   ) {
     const poNumber = `PO-${Date.now().toString().slice(-6)}`;
+    const [branch, supplier] = await Promise.all([
+      this.prisma.branch.findFirst({ where: { id: dto.branchId, tenantId } }),
+      this.prisma.supplier.findFirst({ where: { id: dto.supplierId, tenantId, isActive: true } }),
+    ]);
+    if (!branch || !supplier) throw new NotFoundException('Branch or supplier not found.');
     const productIds = dto.items.map((item) => item.productId);
+    if (productIds.length === 0 || new Set(productIds).size !== productIds.length) {
+      throw new BadRequestException('Include each purchase product once.');
+    }
     const products = await this.prisma.product.findMany({
       where: { tenantId, id: { in: productIds } },
       select: { id: true, costPriceInPaise: true, sellingPriceInPaise: true },
     });
     const productById = new Map(products.map((product) => [product.id, product]));
+    if (products.length !== productIds.length) throw new NotFoundException('Purchase product not found.');
     const normalizedItems = dto.items.map((item) => {
       const product = productById.get(item.productId);
       const unitCostInPaise = item.unitCostInPaise > 0
@@ -139,6 +148,21 @@ export class SupplierService {
     });
     if (!po) throw new NotFoundException('Purchase order not found');
 
+    if (dto.branchId !== po.branchId) throw new BadRequestException('Receive goods at the purchase order branch.');
+    if (po.status !== PurchaseOrderStatus.ORDERED && po.status !== PurchaseOrderStatus.PARTIALLY_RECEIVED) {
+      throw new BadRequestException('This purchase order is not open for receiving.');
+    }
+    const receivedIds = dto.receivedItems.map((item) => item.poItemId);
+    if (!receivedIds.length || new Set(receivedIds).size !== receivedIds.length) {
+      throw new BadRequestException('Include each received item once.');
+    }
+    for (const received of dto.receivedItems) {
+      const item = po.items.find((candidate) => candidate.id === received.poItemId);
+      if (!item || received.quantityReceived > item.quantityOrdered - item.quantityReceived) {
+        throw new BadRequestException('Received quantity exceeds the outstanding purchase quantity.');
+      }
+    }
+
     const defaultLoc = await this.stockService.getOrCreateDefaultLocation(tenantId, dto.branchId);
     const receiptNumber = `GRN-${Date.now().toString().slice(-6)}`;
 
@@ -159,14 +183,14 @@ export class SupplierService {
       // 2. Process each received item
       for (const rec of dto.receivedItems) {
         const poItem = po.items.find((i) => i.id === rec.poItemId);
-        if (!poItem) continue;
+        if (!poItem) throw new BadRequestException('Purchase item not found.');
 
         // Update PO item received quantity
-        const updatedQty = poItem.quantityReceived + rec.quantityReceived;
-        await tx.purchaseOrderItem.update({
-          where: { id: poItem.id },
-          data: { quantityReceived: updatedQty },
+        const updated = await tx.purchaseOrderItem.updateMany({
+          where: { id: poItem.id, quantityReceived: { lte: poItem.quantityOrdered - rec.quantityReceived } },
+          data: { quantityReceived: { increment: rec.quantityReceived } },
         });
+        if (updated.count !== 1) throw new BadRequestException('Purchase quantity was already received. Refresh and retry.');
 
         // Add to inventory stock via immutable movement
         await tx.stockMovement.create({

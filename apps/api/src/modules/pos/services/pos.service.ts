@@ -51,6 +51,19 @@ export class PosService {
       throw new BadRequestException('Checkout cart cannot be empty.');
     }
 
+    const productIds = dto.items.map((item) => item.productId);
+    if (new Set(productIds).size !== productIds.length) {
+      throw new BadRequestException('Each product must appear only once in the cart.');
+    }
+    const [branch, member, productCount] = await Promise.all([
+      this.prisma.branch.findFirst({ where: { id: dto.branchId, tenantId } }),
+      dto.memberId ? this.prisma.member.findFirst({ where: { id: dto.memberId, tenantId } }) : Promise.resolve(null),
+      this.prisma.product.count({ where: { id: { in: productIds }, tenantId, isActive: true } }),
+    ]);
+    if (!branch) throw new NotFoundException('Branch not found.');
+    if (dto.memberId && !member) throw new NotFoundException('Member not found.');
+    if (productCount !== productIds.length) throw new NotFoundException('Cart contains an unavailable product.');
+
     const defaultLoc = await this.stockService.getOrCreateDefaultLocation(
       tenantId,
       dto.branchId,
@@ -385,12 +398,21 @@ export class PosService {
     });
     if (!invoice) throw new NotFoundException('Invoice not found');
 
+    if (!invoice.invoiceNumber.startsWith('INV-POS')) throw new BadRequestException('Only POS invoices can be returned here.');
+    const returnIds = dto.items.map((item) => item.invoiceLineItemId);
+    if (!returnIds.length || new Set(returnIds).size !== returnIds.length) {
+      throw new BadRequestException('Include each returned line once.');
+    }
+
     const defaultLoc = await this.stockService.getOrCreateDefaultLocation(
       tenantId,
       invoice.branchId,
     );
 
     return this.prisma.$transaction(async (tx) => {
+      // Serialize returns for this invoice so two requests cannot refund the
+      // same remaining quantity concurrently.
+      await tx.$queryRaw`SELECT id FROM invoices WHERE id = ${invoice.id} FOR UPDATE`;
       let totalRefundInPaise = 0;
 
       for (const retItem of dto.items) {
@@ -398,7 +420,12 @@ export class PosService {
         if (!line) {
           throw new NotFoundException(`Invoice line item ${retItem.invoiceLineItemId} not found`);
         }
-        if (retItem.quantity > line.quantity) {
+        const previousReturns = line.referenceId ? await tx.stockMovement.aggregate({
+          where: { tenantId, productId: line.referenceId, referenceType: 'POS_RETURN', referenceId: invoice.id },
+          _sum: { quantityDelta: true },
+        }) : null;
+        const returnedQuantity = previousReturns?._sum.quantityDelta || 0;
+        if (retItem.quantity > line.quantity - returnedQuantity) {
           throw new BadRequestException('Return quantity cannot exceed purchased quantity.');
         }
 

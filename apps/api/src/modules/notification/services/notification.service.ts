@@ -4,6 +4,7 @@ import {
 } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
+import { randomUUID } from 'crypto';
 import { PrismaService } from '../../../database/prisma.service';
 import { QUEUE_NAMES } from '../../../jobs/bullmq.module';
 import {
@@ -29,7 +30,7 @@ export class NotificationService {
     const recipientId = dto.recipientId || 'TENANT_BROADCAST';
     const idempotencyKey =
       dto.idempotencyKey ||
-      `${tenantId}:${recipientId}:${dto.type}:${new Date().toISOString().slice(0, 10)}`;
+      randomUUID();
 
     // 1. Check if identical notification was already queued/sent today
     const existing = await this.prisma.notification.findFirst({
@@ -69,7 +70,7 @@ export class NotificationService {
           message: notification.message,
         },
         {
-          jobId: `notif:${notification.id}`,
+          jobId: `notif-${notification.id}`,
           attempts: 3,
           backoff: { type: 'exponential', delay: 1000 },
         },
@@ -79,8 +80,8 @@ export class NotificationService {
       await this.prisma.notification.update({
         where: { id: notification.id },
         data: {
-          status: NotificationStatus.SENT,
-          sentAt: new Date(),
+          status: notification.channel === 'IN_APP' ? NotificationStatus.SENT : NotificationStatus.FAILED,
+          sentAt: notification.channel === 'IN_APP' ? new Date() : null,
         },
       });
     }
