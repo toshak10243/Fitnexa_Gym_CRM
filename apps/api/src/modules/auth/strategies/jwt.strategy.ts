@@ -37,6 +37,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         status: true,
         tenantId: true,
         branchId: true,
+        mustChangePassword: true,
       },
     });
 
@@ -50,6 +51,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       role: user.role,
       tenantId: user.tenantId,
       branchId: user.branchId,
+      mustChangePassword: user.mustChangePassword,
     };
   }
 }

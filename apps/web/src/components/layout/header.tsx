@@ -92,12 +92,12 @@ export function Header(_props: HeaderProps) {
         {/* User Account / Role & Sign Out */}
         {user ? (
           <div className="flex items-center space-x-3">
-            <div className="text-right">
+            <Link to="/profile" title="My Profile & Change Password" className="text-right focus-visible:outline-2">
               <div className="text-xs font-bold text-[#0A192F]">{user.fullName}</div>
               <div className="text-[10px] uppercase font-mono font-bold text-[#B91C1C]">
                 {user.role.replace('_', ' ')}
               </div>
-            </div>
+            </Link>
             {user.role === 'GYM_OWNER' && (
               <Link
                 to="/settings"

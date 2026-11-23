@@ -1,5 +1,6 @@
 ﻿import React from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
+import { Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { MustChangePasswordModal } from '../auth/must-change-password-modal';
 import { useAuth } from '../../context/auth-context';
 import { UserRole } from '@fitnexa/shared';
 import { Skeleton } from '../ui/skeleton';
@@ -10,7 +11,8 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
-  const { user, isAuthenticated, isLoading } = useAuth();
+  const { user, isAuthenticated, isLoading, clearMustChangePassword } = useAuth();
+  const navigate = useNavigate();
   const location = useLocation();
 
   if (isLoading) {
@@ -27,6 +29,13 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
 
   if (!isAuthenticated || !user) {
     return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  if (user.mustChangePassword) {
+    return <MustChangePasswordModal isOpen onPasswordChanged={() => {
+      clearMustChangePassword();
+      navigate(user.role === UserRole.SUPER_ADMIN ? '/super-admin' : '/dashboard', { replace: true });
+    }} />;
   }
 
   if (allowedRoles && !allowedRoles.includes(user.role as UserRole)) {

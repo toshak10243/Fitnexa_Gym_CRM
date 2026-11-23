@@ -116,6 +116,7 @@ export class StaffService {
         branchId: dto.branchId || null,
         email: dto.email.toLowerCase(),
         passwordHash,
+        mustChangePassword: true,
         fullName: dto.fullName,
         phone: dto.phone,
         role: dto.role,

@@ -3,8 +3,8 @@ import { Sidebar } from './sidebar';
 import { SuperAdminSidebar } from '../../features/super-admin/components/super-admin-sidebar';
 import { Header } from './header';
 import { useAuth } from '../../context/auth-context';
-import { MustChangePasswordModal } from '../auth/must-change-password-modal';
 import { UserRole } from '@fitnexa/shared';
+import { Link, useLocation } from 'react-router-dom';
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -12,7 +12,8 @@ interface AppShellProps {
 }
 
 export function AppShell({ children, status }: AppShellProps) {
-  const { user, isImpersonating, tenant, stopImpersonating, clearMustChangePassword } = useAuth();
+  const location = useLocation();
+  const { user, isImpersonating, tenant, stopImpersonating } = useAuth();
   const isSuperAdminPlatform = user?.role === UserRole.SUPER_ADMIN && !isImpersonating;
 
   return (
@@ -36,14 +37,6 @@ export function AppShell({ children, status }: AppShellProps) {
         </div>
       )}
 
-      {/* Force Password Change for Onboarded Admins */}
-      {user?.mustChangePassword && (
-        <MustChangePasswordModal
-          isOpen={true}
-          onPasswordChanged={clearMustChangePassword}
-        />
-      )}
-
       {/* Dedicated Super Admin Sidebar vs Gym CRM Sidebar (hidden in print) */}
       <div className="print:hidden">
         {isSuperAdminPlatform ? <SuperAdminSidebar /> : <Sidebar />}
@@ -54,7 +47,10 @@ export function AppShell({ children, status }: AppShellProps) {
           <Header status={status} />
         </div>
         <main className="flex-1 overflow-y-auto p-8 bg-[#FBFBF9] print:p-0 print:m-0 print:overflow-visible print:bg-white print:w-full">
-          <div className="max-w-7xl mx-auto space-y-6 print:max-w-none print:w-full print:m-0 print:p-0">{children}</div>
+          <div className="max-w-7xl mx-auto space-y-6 print:max-w-none print:w-full print:m-0 print:p-0">
+            {location.pathname === '/settings' && <div className="border border-[#E5E7EB] p-4 flex flex-wrap items-center justify-between gap-3"><span className="font-semibold">My Profile & Account Security</span><Link to="/profile" className="border border-[#E5E7EB] px-4 py-2 text-sm focus-visible:outline-2">Change Password</Link></div>}
+            {children}
+          </div>
         </main>
       </div>
     </div>

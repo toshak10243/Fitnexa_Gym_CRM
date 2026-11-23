@@ -227,7 +227,7 @@ export class SuperAdminService {
           phone: dto.ownerPhone.trim(),
           role: UserRole.GYM_OWNER,
           status: 'ACTIVE',
-          mustChangePassword: false,
+          mustChangePassword: true,
         },
       });
 

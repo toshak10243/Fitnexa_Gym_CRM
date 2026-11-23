@@ -36,7 +36,7 @@ export class DashboardService {
     const range = { gte: start, lte: end };
     const [members, payments, expenses, leads, visits, sessions, products, purchases, devices, staff, invoices] = await Promise.all([
       this.prisma.member.count({ where: { ...scope, NOT: { memberCode: 'MEM-WALKIN-RETAIL' } } }),
-      this.prisma.payment.findMany({ where: { ...scope, paymentDate: range, status: 'VERIFIED' }, select: { paymentDate: true, amountInPaise: true, method: true } }),
+      this.prisma.payment.findMany({ where: { ...scope, paymentDate: range, status: { in: ['RECORDED', 'VERIFIED'] } }, select: { paymentDate: true, amountInPaise: true, method: true } }),
       this.prisma.expense.findMany({ where: { ...scope, expenseDate: range }, select: { expenseDate: true, amountInPaise: true, status: true, category: { select: { name: true } } } }),
       this.prisma.lead.groupBy({ by: ['stage'], where: { ...scope, createdAt: range }, _count: true }),
       this.prisma.memberAttendance.findMany({ where: { ...scope, timestamp: range, direction: 'CHECK_IN' }, select: { timestamp: true } }),
@@ -161,7 +161,7 @@ export class DashboardService {
       expiredMemberships,
     ] = await Promise.all([
       this.prisma.member.count({
-        where: { tenantId, status: 'ACTIVE', ...branchFilter },
+        where: { tenantId, status: 'ACTIVE', NOT: { memberCode: 'MEM-WALKIN-RETAIL' }, ...branchFilter },
       }),
       this.prisma.member.count({
         where: {
@@ -211,17 +211,18 @@ export class DashboardService {
 
     // 2. Attendance & Live Occupancy KPIs
     const [
-      todayCheckIns,
+      todayCheckInEvents,
       currentOccupancy,
       staffOnDuty,
     ] = await Promise.all([
-      this.prisma.memberAttendance.count({
+      this.prisma.memberAttendance.findMany({
         where: {
           tenantId,
           ...branchFilter,
           direction: 'CHECK_IN',
           timestamp: { gte: startOfDay, lte: endOfDay },
         },
+        select: { timestamp: true },
       }),
       this.prisma.attendanceSession.count({
         where: {
@@ -241,6 +242,15 @@ export class DashboardService {
       }),
     ]);
 
+    const todayCheckIns = todayCheckInEvents.length;
+    const hourlyCheckIns = new Map<number, number>();
+    for (const event of todayCheckInEvents) {
+      const hour = new Date(event.timestamp.getTime() + 19800000).getUTCHours();
+      hourlyCheckIns.set(hour, (hourlyCheckIns.get(hour) || 0) + 1);
+    }
+    const busiestHour = [...hourlyCheckIns.entries()].sort((a, b) => b[1] - a[1] || a[0] - b[0])[0]?.[0];
+    const peakHour = busiestHour === undefined ? 'None' : `${String(busiestHour).padStart(2, '0')}:00 - ${String((busiestHour + 1) % 24).padStart(2, '0')}:00`;
+
     // 3. Financials KPIs
     const [
       invoicesThisMonth,
@@ -257,7 +267,7 @@ export class DashboardService {
           tenantId,
           ...branchFilter,
           status: { in: ['PAID', 'PARTIALLY_PAID', 'ISSUED'] },
-          createdAt: { gte: startOfMonth, lte: endOfDay },
+          invoiceDate: { gte: startOfMonth, lte: endOfDay },
         },
         _sum: { grandTotalInPaise: true },
       }),
@@ -267,7 +277,7 @@ export class DashboardService {
           tenantId,
           ...branchFilter,
           status: { in: ['RECORDED', 'VERIFIED'] },
-          createdAt: { gte: startOfMonth, lte: endOfDay },
+          paymentDate: { gte: startOfMonth, lte: endOfDay },
         },
         _sum: { amountInPaise: true },
       }),
@@ -277,7 +287,7 @@ export class DashboardService {
           tenantId,
           ...branchFilter,
           status: { in: ['RECORDED', 'VERIFIED'] },
-          createdAt: { gte: startOfDay, lte: endOfDay },
+          paymentDate: { gte: startOfDay, lte: endOfDay },
         },
         _sum: { amountInPaise: true },
       }),
@@ -309,7 +319,7 @@ export class DashboardService {
           tenantId,
           ...branchFilter,
           status: 'APPROVED',
-          createdAt: { gte: startOfMonth, lte: endOfDay },
+          expenseDate: { gte: startOfMonth, lte: endOfDay },
         },
         _sum: { amountInPaise: true },
       }),
@@ -319,8 +329,8 @@ export class DashboardService {
           tenantId,
           ...branchFilter,
           status: { in: ['PAID', 'PARTIALLY_PAID'] },
-          notes: { contains: 'POS' },
-          createdAt: { gte: startOfMonth, lte: endOfDay },
+          invoiceNumber: { startsWith: 'INV-POS' },
+          invoiceDate: { gte: startOfMonth, lte: endOfDay },
         },
         _sum: { grandTotalInPaise: true },
       }),
@@ -375,6 +385,7 @@ export class DashboardService {
         where: {
           tenantId,
           status: 'SCHEDULED',
+          ...branchFilter,
           scheduledAt: { gte: startOfDay, lte: endOfDay },
         },
       }),
@@ -383,6 +394,7 @@ export class DashboardService {
         where: {
           tenantId,
           status: 'COMPLETED',
+          ...branchFilter,
           scheduledAt: { gte: startOfDay, lte: endOfDay },
         },
       }),
@@ -392,7 +404,7 @@ export class DashboardService {
     let lowStockCount = 0;
     for (const prod of activeProducts) {
       const stockAgg = await this.prisma.stockMovement.aggregate({
-        where: { tenantId, productId: prod.id },
+        where: { tenantId, ...branchFilter, productId: prod.id },
         _sum: { quantityDelta: true },
       });
       const balance = stockAgg._sum.quantityDelta || 0;
@@ -419,7 +431,7 @@ export class DashboardService {
       attendance: {
         todayCheckIns,
         currentOccupancy,
-        peakHour: todayCheckIns > 0 ? '06:00 - 09:00' : 'None',
+        peakHour,
         staffOnDuty,
       },
       financials: {

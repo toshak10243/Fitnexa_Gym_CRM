@@ -1,6 +1,7 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { AppShell } from '../components/layout/app-shell';
 import { ProtectedRoute } from '../components/layout/protected-route';
+import { ProfilePage } from '../features/auth/profile-page';
 import { LoginPage } from '../features/auth/login-page';
 import { RegisterPage } from '../features/auth/register-page';
 import { SettingsPage } from '../features/tenant/settings-page';
@@ -121,6 +122,7 @@ function RootRoute() {
 }
 
 export const router = createBrowserRouter([
+  { path: '/profile', element: <ProtectedRoute><AppShell><ProfilePage /></AppShell></ProtectedRoute> },
   { path: '/public/products/:id', element: <PublicProductPage /> },
   {
     path: '/landing',

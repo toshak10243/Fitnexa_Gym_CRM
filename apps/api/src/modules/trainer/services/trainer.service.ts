@@ -44,6 +44,7 @@ export class TrainerService {
           phone: dto.phone.trim(),
           fullName: dto.fullName.trim(),
           passwordHash,
+          mustChangePassword: true,
           role: 'TRAINER',
           status: 'ACTIVE',
         },

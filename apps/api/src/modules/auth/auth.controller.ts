@@ -106,6 +106,8 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('JWT-auth')
   @Post('change-password')
+  @UseGuards(RateLimitGuard)
+  @RateLimit({ limit: 5, ttlSeconds: 60 })
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Change current user password' })
   @ApiResponse({ status: 200, description: 'Password successfully updated.' })

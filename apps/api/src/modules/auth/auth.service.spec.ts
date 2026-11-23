@@ -35,6 +35,24 @@ describe('AuthService', () => {
     record: jest.fn().mockResolvedValue(undefined),
   };
 
+  describe('Password changes', () => {
+    it('hashes the new password, clears the first-login requirement and audits it', async () => {
+      const hash = await bcrypt.hash('TempPass@123', 10);
+      mockPrisma.user.findUnique.mockResolvedValueOnce({ id: 'u-1', tenantId: 't-1', passwordHash: hash });
+      await service.changePassword('u-1', 't-1', {currentPassword:'TempPass@123',newPassword:'PrivatePass@456'}, '127.0.0.1', 'test');
+      const update = mockPrisma.user.update.mock.calls[0][0];
+      expect(update.data.mustChangePassword).toBe(false);
+      expect(update.data.refreshTokenHash).toBeNull();
+      expect(await bcrypt.compare('PrivatePass@456', update.data.passwordHash)).toBe(true);
+      expect(mockAudit.record).toHaveBeenCalledWith(expect.objectContaining({action:'PASSWORD_CHANGED',userId:'u-1'}));
+    });
+    it('rejects an incorrect current password without updating the account', async () => {
+      mockPrisma.user.findUnique.mockResolvedValueOnce({ id:'u-1', passwordHash:await bcrypt.hash('TempPass@123',10) });
+      await expect(service.changePassword('u-1','t-1',{currentPassword:'wrong',newPassword:'PrivatePass@456'},'127.0.0.1','test')).rejects.toThrow('Current password is incorrect');
+      expect(mockPrisma.user.update).not.toHaveBeenCalled();
+    });
+  });
+
   beforeEach(async () => {
     jest.clearAllMocks();
     const module: TestingModule = await Test.createTestingModule({
