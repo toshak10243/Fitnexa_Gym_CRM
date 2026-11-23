@@ -18,6 +18,7 @@ export function MemberRegistrationPage() {
   const [isDirty, setIsDirty] = useState<boolean>(false);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState<boolean>(false);
   const [photoUploadError, setPhotoUploadError] = useState<string | null>(null);
+  const [localPhotoPreview, setLocalPhotoPreview] = useState<string | null>(null);
   const fileInputRef = React.useRef<HTMLInputElement | null>(null);
 
   // Form State
@@ -165,6 +166,10 @@ export function MemberRegistrationPage() {
       return;
     }
 
+    // Immediate local preview so image appears with zero delay
+    const previewUrl = URL.createObjectURL(file);
+    setLocalPhotoPreview(previewUrl);
+
     setPhotoUploadError(null);
     setIsUploadingPhoto(true);
 
@@ -187,6 +192,7 @@ export function MemberRegistrationPage() {
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Photo upload failed';
       setPhotoUploadError(msg);
+      setLocalPhotoPreview(formData.photoUrl || null);
     } finally {
       setIsUploadingPhoto(false);
       if (fileInputRef.current) {
@@ -196,6 +202,7 @@ export function MemberRegistrationPage() {
   };
 
   const handleRemovePhoto = () => {
+    setLocalPhotoPreview(null);
     setFormData((prev) => {
       const updated = { ...prev, photoUrl: '' };
       localStorage.setItem(DRAFT_KEY, JSON.stringify(updated));
@@ -390,11 +397,12 @@ export function MemberRegistrationPage() {
             {/* Profile Picture Upload Card */}
             <div className="p-4 border border-[#E5E7EB] bg-[#F5F5F0] flex flex-col sm:flex-row items-start sm:items-center gap-5">
               <div className="relative h-24 w-24 flex-shrink-0 border border-[#E5E7EB] bg-[#FBFBF9] flex items-center justify-center overflow-hidden">
-                {formData.photoUrl ? (
+                {localPhotoPreview || formData.photoUrl ? (
                   <img
-                    src={formData.photoUrl}
+                    src={localPhotoPreview || formData.photoUrl}
                     alt="Member Preview"
                     className="h-full w-full object-cover"
+                    onError={() => setLocalPhotoPreview(null)}
                   />
                 ) : (
                   <div className="flex flex-col items-center justify-center text-[#9CA3AF] p-2 text-center">
@@ -460,10 +468,10 @@ export function MemberRegistrationPage() {
                         d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"
                       />
                     </svg>
-                    {formData.photoUrl ? 'Replace Photo' : 'Upload Photo'}
+                    {(localPhotoPreview || formData.photoUrl) ? 'Replace Photo' : 'Upload Photo'}
                   </Button>
 
-                  {formData.photoUrl && (
+                  {(localPhotoPreview || formData.photoUrl) && (
                     <Button
                       type="button"
                       variant="outline"

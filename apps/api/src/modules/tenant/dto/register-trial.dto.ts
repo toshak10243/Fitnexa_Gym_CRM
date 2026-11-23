@@ -44,3 +44,4 @@ export class PublicRegisterTrialDto {
   @IsString()
   initialPassword?: string;
 }
+

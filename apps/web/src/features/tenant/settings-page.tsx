@@ -45,6 +45,7 @@ export function SettingsPage() {
   const [isBranchModalOpen, setIsBranchModalOpen] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [logoUploading, setLogoUploading] = useState(false);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const logoInputRef = useRef<HTMLInputElement | null>(null);
 
   const { data: tenant, isLoading, error } = useQuery({
@@ -84,10 +85,14 @@ export function SettingsPage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 3 * 1024 * 1024) {
-      alert('Logo size exceeds 3MB limit.');
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Logo size exceeds 5MB limit.');
       return;
     }
+
+    // Show immediate preview
+    const previewUrl = URL.createObjectURL(file);
+    setLogoPreview(previewUrl);
 
     setLogoUploading(true);
     try {
@@ -100,6 +105,7 @@ export function SettingsPage() {
 
       const newLogoUrl = res.data?.data?.logoUrl;
       if (newLogoUrl) {
+        setLogoPreview(newLogoUrl);
         setValue('logoUrl', newLogoUrl);
         await apiClient.patch('/tenant/profile', { logoUrl: newLogoUrl });
         await queryClient.invalidateQueries({ queryKey: ['tenant-profile'] });
@@ -109,6 +115,7 @@ export function SettingsPage() {
       }
     } catch (err: any) {
       alert(err?.response?.data?.message || 'Failed to upload logo.');
+      setLogoPreview(tenant?.logoUrl || null);
     } finally {
       setLogoUploading(false);
       if (logoInputRef.current) logoInputRef.current.value = '';
@@ -247,8 +254,13 @@ export function SettingsPage() {
 
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5 p-4 bg-[#FBFBF9] border border-[#E5E7EB]">
           <div className="h-20 w-20 flex-shrink-0 border border-[#E5E7EB] bg-white flex items-center justify-center p-1 overflow-hidden">
-            {tenant.logoUrl ? (
-              <img src={tenant.logoUrl} alt="Gym Logo" className="h-full w-full object-contain" />
+            {logoPreview || tenant?.logoUrl ? (
+              <img
+                src={(logoPreview || tenant?.logoUrl) as string}
+                alt="Gym Logo"
+                className="h-full w-full object-contain"
+                onError={() => setLogoPreview(null)}
+              />
             ) : (
               <div className="text-center p-2 text-[#9CA3AF]">
                 <span className="text-[10px] font-bold uppercase">No Logo</span>
