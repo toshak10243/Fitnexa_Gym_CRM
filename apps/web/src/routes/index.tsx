@@ -1,4 +1,4 @@
-﻿import { createBrowserRouter, Navigate } from 'react-router-dom';
+import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { AppShell } from '../components/layout/app-shell';
 import { ProtectedRoute } from '../components/layout/protected-route';
 import { LoginPage } from '../features/auth/login-page';

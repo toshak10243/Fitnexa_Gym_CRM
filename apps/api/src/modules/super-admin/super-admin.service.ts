@@ -2,6 +2,7 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -23,6 +24,8 @@ import {
 
 @Injectable()
 export class SuperAdminService {
+  private readonly logger = new Logger(SuperAdminService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
@@ -168,7 +171,7 @@ export class SuperAdminService {
       ? null
       : new Date(Date.now() + planConfig.durationDays * 24 * 60 * 60 * 1000);
 
-    const tempPassword = `Fitnexa@${Math.floor(1000 + Math.random() * 9000)}`;
+    const tempPassword = dto.initialPassword?.trim() || `Fitnexa@${Math.floor(1000 + Math.random() * 9000)}`;
     const passwordHash = await bcrypt.hash(tempPassword, 12);
 
     const defaultModules = Object.values(SaaSModule);
@@ -224,7 +227,7 @@ export class SuperAdminService {
           phone: dto.ownerPhone.trim(),
           role: UserRole.GYM_OWNER,
           status: 'ACTIVE',
-          mustChangePassword: true,
+          mustChangePassword: false,
         },
       });
 
@@ -268,6 +271,11 @@ export class SuperAdminService {
     } catch (err: any) {
       // Don't fail client creation if mail fails
     }
+
+    // Auto-provision SSL certificate for new client subdomain asynchronously
+    this.provisionSubdomainSsl(cleanSlug).catch((err) => {
+      this.logger.warn(`Subdomain SSL provisioning warning: ${err.message}`);
+    });
 
     return {
       success: true,
@@ -663,5 +671,39 @@ export class SuperAdminService {
       success: true,
       rolePermissions: updated.rolePermissions,
     };
+  }
+
+  private async provisionSubdomainSsl(newSlug: string): Promise<void> {
+    const platformDomain = process.env.PLATFORM_DOMAIN || 'trifit.space';
+    if (process.env.NODE_ENV !== 'production' || platformDomain === 'localhost') {
+      return;
+    }
+    try {
+      const { exec } = await import('child_process');
+      const util = await import('util');
+      const execAsync = util.promisify(exec);
+
+      const tenants = await this.prisma.tenant.findMany({
+        where: { status: 'ACTIVE' },
+        select: { slug: true },
+      });
+      const allDomains = Array.from(
+        new Set([
+          platformDomain,
+          `www.${platformDomain}`,
+          ...tenants.map((t) => `${t.slug}.${platformDomain}`),
+          `${newSlug}.${platformDomain}`,
+        ]),
+      );
+      const domainFlags = allDomains.map((d) => `-d ${d}`).join(' ');
+
+      this.logger.log(`Expanding SSL certificate for domains: ${domainFlags}`);
+      await execAsync(
+        `certbot --nginx --expand --cert-name ${platformDomain} ${domainFlags} --non-interactive --agree-tos -m toshak10243@gmail.com`,
+      );
+      this.logger.log(`✓ SSL certificate successfully deployed for ${newSlug}.${platformDomain}`);
+    } catch (err: any) {
+      this.logger.warn(`Background SSL provisioning warning: ${err.message}`);
+    }
   }
 }

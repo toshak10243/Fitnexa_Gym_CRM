@@ -47,6 +47,11 @@ export class CreateTenantClientDto {
   @IsEnum(SaaSSubscriptionPlan)
   plan: SaaSSubscriptionPlan;
 
+  @ApiPropertyOptional({ example: 'Tristara@123' })
+  @IsOptional()
+  @IsString()
+  initialPassword?: string;
+
   @ApiPropertyOptional({ example: 'PAID' })
   @IsOptional()
   @IsString()
@@ -106,6 +111,11 @@ export class UpdateTenantSubscriptionDto {
   @IsOptional()
   @IsString()
   status?: string;
+
+  @ApiPropertyOptional({ example: 'Tristara@123' })
+  @IsOptional()
+  @IsString()
+  initialPassword?: string;
 
   @ApiPropertyOptional({ example: 'PAID' })
   @IsOptional()

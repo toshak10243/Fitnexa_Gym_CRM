@@ -107,6 +107,7 @@ export function SuperAdminPage() {
     ownerName: '',
     ownerEmail: '',
     ownerPhone: '',
+    initialPassword: '',
     plan: SaaSSubscriptionPlan.MONTH_1,
     paymentStatus: 'PAID',
     paymentMode: 'UPI',
@@ -198,6 +199,7 @@ export function SuperAdminPage() {
         ownerName: '',
         ownerEmail: '',
         ownerPhone: '',
+        initialPassword: '',
         plan: SaaSSubscriptionPlan.MONTH_1,
         paymentStatus: 'PAID',
         paymentMode: 'UPI',
@@ -834,6 +836,22 @@ export function SuperAdminPage() {
                     onChange={(e) => setFormData({ ...formData, ownerPhone: e.target.value })}
                     className="rounded-none text-xs h-9 border-[#E5E7EB]"
                   />
+                </div>
+
+                <div className="sm:col-span-3">
+                  <label className="block font-semibold mb-1 text-[#111827]">
+                    Admin Login Password (Optional)
+                  </label>
+                  <Input
+                    type="text"
+                    placeholder="e.g. Tristara@123 (Leave blank to auto-generate a secure password)"
+                    value={formData.initialPassword || ''}
+                    onChange={(e) => setFormData({ ...formData, initialPassword: e.target.value })}
+                    className="rounded-none text-xs h-9 border-[#E5E7EB]"
+                  />
+                  <span className="text-[10px] text-[#6B7280]">
+                    If left blank, a secure password is generated automatically and shown on screen + emailed to client.
+                  </span>
                 </div>
               </div>
 
