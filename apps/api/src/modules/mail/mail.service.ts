@@ -294,13 +294,19 @@ export class MailService {
         this.logger.log(`SMTP Email sent successfully to ${options.to}. MessageId: ${info.messageId}`);
         return { success: true, mode: 'smtp' };
       } catch (err: any) {
-        this.logger.error(`Failed to send email via SMTP to ${options.to}: ${err.message}. Falling back to dev log.`);
+        this.logger.error('SMTP email delivery failed.');
+        return { success: false, mode: 'smtp' };
       }
     }
 
-    // Dev fallback: Clean structured log
+    if (this.configService.get<string>('NODE_ENV') === 'production') {
+      this.logger.error('Email delivery unavailable: SMTP is not configured.');
+      return { success: false, mode: 'smtp' };
+    }
+
+    // Development logging must not expose temporary credentials.
     this.logger.log(
-      `[DEV MAIL LOG] To: ${options.to} | Subject: "${options.subject}" | Payload: ${JSON.stringify(options.logPayload || {})}`,
+      `[DEV MAIL LOG] Subject: "${options.subject}"`,
     );
     return { success: true, mode: 'dev_log' };
   }

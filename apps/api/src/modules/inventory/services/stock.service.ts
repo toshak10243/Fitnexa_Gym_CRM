@@ -8,6 +8,7 @@ import { StockMovementType, InventoryTransferStatus } from '@fitnexa/shared';
 import {
   CreateStockAdjustmentDto,
   CreateStockLocationDto,
+  CreateStockMovementDto,
 } from '../dto/stock-adjustment.dto';
 import { CreateInventoryTransferDto } from '../dto/inventory-transfer.dto';
 
@@ -259,7 +260,9 @@ export class StockService {
     });
   }
 
-  async recordManualStockMovement(tenantId: string, userId: string, dto: any) {
+  async recordManualStockMovement(tenantId: string, userId: string, dto: CreateStockMovementDto) {
+    const location = await this.prisma.stockLocation.findFirst({ where: { id: dto.locationId, tenantId, branchId: dto.branchId, isActive: true } });
+    if (!location) throw new NotFoundException('Stock location not found for this branch');
     const product = await this.prisma.product.findFirst({ where: { id: dto.productId, tenantId } });
     if (!product) throw new NotFoundException('Product not found');
     return this.recordMovement({ tenantId, branchId: dto.branchId, productId: dto.productId, locationId: dto.locationId, movementType: dto.direction === 'IN' ? StockMovementType.ADJUSTMENT_FOUND : StockMovementType.ADJUSTMENT_WRITE_OFF, quantityDelta: dto.direction === 'IN' ? dto.quantity : -dto.quantity, unitCostInPaise: product.costPriceInPaise, referenceType: 'MANUAL_STOCK_MOVEMENT', notes: dto.reason.trim(), recordedByUserId: userId });

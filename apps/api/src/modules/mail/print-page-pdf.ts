@@ -1,6 +1,6 @@
 import { spawn } from 'child_process';
 import { existsSync } from 'fs';
-import { mkdtemp, rm } from 'fs/promises';
+import { chown, mkdtemp, rm } from 'fs/promises';
 import { tmpdir } from 'os';
 import * as path from 'path';
 import { Readable, Writable } from 'stream';
@@ -10,11 +10,15 @@ import { uploadImage } from './member-admission-document';
  * is supplied inside this browser only; no bearer token or public admission URL is created. */
 export async function renderAdmissionPage(input: { appUrl: string; executable?: string; memberId: string; tenant: object; user: object; member: object; invoiceId?: string; invoice?: object }): Promise<Buffer> {
   const selector = input.invoiceId ? 'printable-invoice-document' : 'printable-admission-form';
-  const executable = [input.executable, 'C:/Program Files/Google/Chrome/Application/chrome.exe', 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe', '/usr/bin/chromium', '/usr/bin/chromium-browser', '/usr/bin/google-chrome'].find(file => file && existsSync(file));
+  const executable = [input.executable, 'C:/Program Files/Google/Chrome/Application/chrome.exe', 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe', '/usr/bin/chromium', '/usr/bin/chromium-browser', '/snap/bin/chromium', '/usr/bin/google-chrome'].find(file => file && existsSync(file));
   if (!executable) throw new Error('Chromium is required for admission PDF rendering. Set PDF_BROWSER_PATH.');
   const origin = new URL(input.appUrl).origin;
   const profile = await mkdtemp(path.join(tmpdir(), 'trifit-admission-'));
-  const child = spawn(executable, ['--headless=new', '--disable-gpu', '--no-first-run', '--no-default-browser-check', '--remote-debugging-pipe', `--user-data-dir=${profile}`], { stdio: ['ignore', 'ignore', 'ignore', 'pipe', 'pipe'], windowsHide: true });
+  const browserUid = Number(process.env.PDF_BROWSER_UID);
+  const browserGid = Number(process.env.PDF_BROWSER_GID);
+  const isolatedUser = process.platform === 'linux' && process.getuid?.() === 0 && Number.isInteger(browserUid) && browserUid > 0 && Number.isInteger(browserGid) && browserGid > 0;
+  if (isolatedUser) await chown(profile, browserUid, browserGid);
+  const child = spawn(executable, ['--headless=new', '--disable-gpu', '--no-first-run', '--no-default-browser-check', '--remote-debugging-pipe', `--user-data-dir=${profile}`], { stdio: ['ignore', 'ignore', 'ignore', 'pipe', 'pipe'], windowsHide: true, ...(isolatedUser ? { uid: browserUid, gid: browserGid, env: { ...process.env, HOME: process.env.PDF_BROWSER_HOME || '/home/fitnexa-pdf' } } : {}) });
   const pending = new Map<number, { resolve: (value: any) => void; reject: (error: Error) => void }>();
   let sequence = 0;
   let session: string | undefined;

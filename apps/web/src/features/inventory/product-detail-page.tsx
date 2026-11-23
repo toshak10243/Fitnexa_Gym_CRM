@@ -88,11 +88,14 @@ export function ProductDetailPage() {
 
     setIsSubmittingAdj(true);
     try {
-      await apiClient.post('/inventory/adjustments', {
-        branchId: locations[0]?.branchId || '',
+      const selectedLocation = locations.find((location) => location.id === adjLocationId);
+      if (!selectedLocation) throw new Error('Select a valid stock location.');
+      await apiClient.post('/inventory/stock-movements/manual', {
+        branchId: selectedLocation.branchId,
         productId: id,
         locationId: adjLocationId,
-        physicalQuantity: Math.max(0, product.currentStock + (movementDirection === 'IN' ? parseInt(physicalCount, 10) : -parseInt(physicalCount, 10))),
+        quantity: parseInt(physicalCount, 10),
+        direction: movementDirection,
         reason: adjReason.trim(),
       });
       setShowAdjModal(false);

@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsInt, Min } from 'class-validator';
+import { IsString, IsNotEmpty, IsInt, Min, IsIn } from 'class-validator';
 
 export class CreateStockAdjustmentDto {
   @IsString()
@@ -28,7 +28,7 @@ export class CreateStockMovementDto {
   @IsString() @IsNotEmpty() locationId: string;
   @IsInt() @Min(1) quantity: number;
   @IsString() @IsNotEmpty() reason: string;
-  @IsString() @IsNotEmpty() direction: 'IN' | 'OUT';
+  @IsIn(['IN', 'OUT']) direction: 'IN' | 'OUT';
 }
 
 export class CreateStockLocationDto {
