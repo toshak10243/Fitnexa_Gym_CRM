@@ -61,20 +61,71 @@ import { DashboardPage } from '../features/analytics/dashboard-page';
 import { MasterDashboardPage } from '../features/analytics/master-dashboard-page';
 import { ReportsPage } from '../features/analytics/reports-page';
 import { SuperAdminPage } from '../features/super-admin/super-admin-page';
+import { LandingPage } from '../features/landing/landing-page';
 import { UserRole } from '@fitnexa/shared';
 import { RouteErrorBoundary } from '../components/ui/route-error-boundary';
 import { useAuth } from '../context/auth-context';
 
-function RootRedirect() {
-  const { user, isImpersonating } = useAuth();
-  if (user?.role === UserRole.SUPER_ADMIN && !isImpersonating) {
-    return <Navigate to="/super-admin" replace />;
+function RootRoute() {
+  const { user, isImpersonating, isLoading } = useAuth();
+
+  // Subdomain detection:
+  // e.g. tristara.trifit.space vs trifit.space / localhost
+  const hostname = window.location.hostname;
+  const isTenantSubdomain =
+    hostname.includes('.') &&
+    !hostname.startsWith('www.') &&
+    hostname !== 'trifit.space' &&
+    hostname !== 'localhost' &&
+    !hostname.startsWith('127.0.0.1') &&
+    !hostname.startsWith('189.31.38.113');
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#FBFBF9]">
+        <div className="w-8 h-8 border-2 border-[#0A192F] border-t-transparent animate-spin" />
+      </div>
+    );
   }
-  return <DashboardPage />;
+
+  // If on a tenant subdomain (e.g. tristara.trifit.space):
+  if (isTenantSubdomain) {
+    if (!user) {
+      return <Navigate to="/login" replace />;
+    }
+    return (
+      <ProtectedRoute>
+        <AppShell>
+          <DashboardPage />
+        </AppShell>
+      </ProtectedRoute>
+    );
+  }
+
+  // If on root domain (trifit.space, localhost):
+  if (user) {
+    if (user.role === UserRole.SUPER_ADMIN && !isImpersonating) {
+      return <Navigate to="/super-admin" replace />;
+    }
+    return (
+      <ProtectedRoute>
+        <AppShell>
+          <DashboardPage />
+        </AppShell>
+      </ProtectedRoute>
+    );
+  }
+
+  // When not logged in on root domain -> Show the World-Class Landing Page!
+  return <LandingPage />;
 }
 
 export const router = createBrowserRouter([
   { path: '/public/products/:id', element: <PublicProductPage /> },
+  {
+    path: '/landing',
+    element: <LandingPage />,
+  },
   {
     path: '/login',
     element: <LoginPage />,
@@ -86,13 +137,7 @@ export const router = createBrowserRouter([
   {
     path: '/',
     errorElement: <RouteErrorBoundary />,
-    element: (
-      <ProtectedRoute>
-        <AppShell>
-          <RootRedirect />
-        </AppShell>
-      </ProtectedRoute>
-    ),
+    element: <RootRoute />,
   },
   {
     path: '/super-admin',
@@ -108,7 +153,7 @@ export const router = createBrowserRouter([
   {
     path: '/dashboard',
     errorElement: <RouteErrorBoundary />,
-    element: (<ProtectedRoute><AppShell><RootRedirect /></AppShell></ProtectedRoute>),
+    element: (<ProtectedRoute><AppShell><DashboardPage /></AppShell></ProtectedRoute>),
   },
   {
     path: '/master-dashboard',
