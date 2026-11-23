@@ -74,6 +74,10 @@ export class MailService {
     }
   }
 
+  async sendPasswordResetOtp(to: string, otp: string) {
+    return this.sendMail({ to, subject: 'Trifit password reset verification code', html: `<div style="font-family:Arial,sans-serif;background:#FBFBF9;color:#111827;border:1px solid #E5E7EB;max-width:560px;margin:auto"><div style="padding:24px;background:#0A192F;color:#FBFBF9"><h1>TRIFIT</h1></div><div style="padding:24px"><h2>Reset your password</h2><p>Use this verification code to continue:</p><p style="font-size:30px;font-weight:bold;letter-spacing:6px">${otp}</p><p>This code expires in 10 minutes. Never share it with anyone.</p><p>If you did not request a password reset, you can ignore this email.</p></div></div>` });
+  }
+
   async sendWelcomeClientEmail(dto: SendWelcomeEmailDto): Promise<{ success: boolean; mode: 'smtp' | 'dev_log' }> {
     const subject = `Welcome to Trifit - Credentials for ${dto.clientName}`;
     const validityText = dto.isLifetime

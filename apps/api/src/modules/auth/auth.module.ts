@@ -7,6 +7,8 @@ import { AuthService } from './auth.service';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { RateLimitGuard } from '../../common/guards/rate-limit.guard';
+import { PasswordResetController } from './password-reset.controller';
+import { PasswordResetService } from './password-reset.service';
 
 @Module({
   imports: [
@@ -24,8 +26,8 @@ import { RateLimitGuard } from '../../common/guards/rate-limit.guard';
       }),
     }),
   ],
-  controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, JwtAuthGuard, RateLimitGuard],
+  controllers: [AuthController, PasswordResetController],
+  providers: [AuthService, JwtStrategy, JwtAuthGuard, RateLimitGuard, PasswordResetService],
   exports: [AuthService, JwtAuthGuard, PassportModule, JwtModule],
 })
 export class AuthModule {}

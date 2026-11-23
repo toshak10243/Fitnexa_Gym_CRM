@@ -1,7 +1,7 @@
 ﻿import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { LoginInput, LoginSchema } from '@fitnexa/shared';
 import { useAuth } from '../../context/auth-context';
 import { Button } from '../../components/ui/button';
@@ -106,6 +106,7 @@ export function LoginPage() {
             </button>
           </div>
 
+          <div className="text-right"><Link to="/forgot-password" className="text-xs font-semibold text-[#B91C1C] underline focus-visible:outline-2">Forgot password?</Link></div>
           <div className="pt-2">
             <Button
               type="submit"

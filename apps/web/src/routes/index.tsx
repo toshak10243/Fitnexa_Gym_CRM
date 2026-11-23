@@ -3,6 +3,7 @@ import { AppShell } from '../components/layout/app-shell';
 import { ProtectedRoute } from '../components/layout/protected-route';
 import { ProfilePage } from '../features/auth/profile-page';
 import { LoginPage } from '../features/auth/login-page';
+import { ForgotPasswordPage } from '../features/auth/forgot-password-page';
 import { RegisterPage } from '../features/auth/register-page';
 import { SettingsPage } from '../features/tenant/settings-page';
 import { StaffPage } from '../features/staff/staff-page';
@@ -127,6 +128,9 @@ export const router = createBrowserRouter([
   {
     path: '/landing',
     element: <LandingPage />,
+  },
+  {
+    path: '/forgot-password', element: <ForgotPasswordPage />,
   },
   {
     path: '/login',
