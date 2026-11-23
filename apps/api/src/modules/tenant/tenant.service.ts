@@ -5,16 +5,42 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 import { AuditLogService } from '../audit-log/audit-log.service';
+import { SuperAdminService } from '../super-admin/super-admin.service';
 import { UpdateTenantDto } from './dto/update-tenant.dto';
 import { CreateBranchDto } from './dto/create-branch.dto';
-import { BranchResponse, BranchStatus, TenantDetailResponse } from '@fitnexa/shared';
+import { BranchResponse, BranchStatus, TenantDetailResponse, SaaSSubscriptionPlan } from '@fitnexa/shared';
 
 @Injectable()
 export class TenantService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly auditLogService: AuditLogService,
+    private readonly superAdminService: SuperAdminService,
   ) {}
+
+  async registerPublicTrial(dto: {
+    name: string;
+    slug: string;
+    ownerName: string;
+    ownerEmail: string;
+    ownerPhone: string;
+    initialPassword?: string;
+  }) {
+    return this.superAdminService.createTenantClient(
+      {
+        name: dto.name,
+        slug: dto.slug,
+        ownerName: dto.ownerName,
+        ownerEmail: dto.ownerEmail,
+        ownerPhone: dto.ownerPhone,
+        initialPassword: dto.initialPassword,
+        plan: SaaSSubscriptionPlan.TRIAL_7_DAYS,
+        paymentStatus: 'TRIAL',
+        paymentMode: 'FREE_TRIAL',
+      },
+      'public-trial-registration',
+    );
+  }
 
   async lookupBySlug(slug: string): Promise<{ exists: boolean; slug: string; name?: string }> {
     const cleanSlug = (slug || '').toLowerCase().trim().replace(/[^a-z0-9-]/g, '');

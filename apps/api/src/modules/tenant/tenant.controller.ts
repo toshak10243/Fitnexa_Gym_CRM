@@ -22,6 +22,7 @@ import * as fs from 'fs';
 import { TenantService } from './tenant.service';
 import { UpdateTenantDto } from './dto/update-tenant.dto';
 import { CreateBranchDto } from './dto/create-branch.dto';
+import { PublicRegisterTrialDto } from './dto/register-trial.dto';
 import {
   CurrentTenant,
   CurrentUser,
@@ -45,6 +46,15 @@ export class TenantController {
   @ApiResponse({ status: 200, description: 'Tenant lookup status.' })
   async lookupBySlug(@Param('slug') slug: string) {
     return this.tenantService.lookupBySlug(slug);
+  }
+
+  @Public()
+  @Post('register-trial')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: 'Publicly register a new gym 7-day free trial and activate subdomain immediately' })
+  @ApiResponse({ status: 201, description: 'Gym trial registered, subdomain activated, and welcome email dispatched.' })
+  async registerPublicTrial(@Body() dto: PublicRegisterTrialDto) {
+    return this.tenantService.registerPublicTrial(dto);
   }
 
   private extractClientMetadata(req: Request) {

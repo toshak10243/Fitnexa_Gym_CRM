@@ -727,8 +727,8 @@ export function SuperAdminPage() {
 
       {/* MODAL: ONBOARD NEW CLIENT */}
       {isCreateModalOpen && createPortal(
-        <div className="fixed inset-0 z-[9999] bg-black/60 flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-[#FBFBF9] border border-[#E5E7EB] w-full max-w-2xl p-6 space-y-4 my-8">
+        <div className="fixed inset-0 z-[9999] bg-black/60 flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
+          <div className="bg-[#FBFBF9] border border-[#E5E7EB] w-full max-w-2xl max-h-[92vh] overflow-y-auto p-6 space-y-4 my-auto">
             <div className="border-b border-[#E5E7EB] pb-3 flex items-center justify-between">
               <div>
                 <h3 className="text-sm font-bold uppercase tracking-wider text-[#0A192F]">
@@ -1000,8 +1000,8 @@ export function SuperAdminPage() {
 
       {/* MODAL: EDIT SUBSCRIPTION & MODULES */}
       {isEditModalOpen && selectedTenant && createPortal(
-        <div className="fixed inset-0 z-[9999] bg-black/60 flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-[#FBFBF9] border border-[#E5E7EB] w-full max-w-xl p-6 space-y-4">
+        <div className="fixed inset-0 z-[9999] bg-black/60 flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
+          <div className="bg-[#FBFBF9] border border-[#E5E7EB] w-full max-w-xl max-h-[92vh] overflow-y-auto p-6 space-y-4 my-auto">
             <div className="border-b border-[#E5E7EB] pb-3 flex items-center justify-between">
               <div>
                 <h3 className="text-sm font-bold uppercase tracking-wider text-[#0A192F]">
