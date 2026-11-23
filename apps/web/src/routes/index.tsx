@@ -63,6 +63,15 @@ import { ReportsPage } from '../features/analytics/reports-page';
 import { SuperAdminPage } from '../features/super-admin/super-admin-page';
 import { UserRole } from '@fitnexa/shared';
 import { RouteErrorBoundary } from '../components/ui/route-error-boundary';
+import { useAuth } from '../context/auth-context';
+
+function RootRedirect() {
+  const { user, isImpersonating } = useAuth();
+  if (user?.role === UserRole.SUPER_ADMIN && !isImpersonating) {
+    return <Navigate to="/super-admin" replace />;
+  }
+  return <DashboardPage />;
+}
 
 export const router = createBrowserRouter([
   { path: '/public/products/:id', element: <PublicProductPage /> },
@@ -80,7 +89,7 @@ export const router = createBrowserRouter([
     element: (
       <ProtectedRoute>
         <AppShell>
-          <DashboardPage />
+          <RootRedirect />
         </AppShell>
       </ProtectedRoute>
     ),
@@ -99,7 +108,7 @@ export const router = createBrowserRouter([
   {
     path: '/dashboard',
     errorElement: <RouteErrorBoundary />,
-    element: (<ProtectedRoute><AppShell><DashboardPage /></AppShell></ProtectedRoute>),
+    element: (<ProtectedRoute><AppShell><RootRedirect /></AppShell></ProtectedRoute>),
   },
   {
     path: '/master-dashboard',

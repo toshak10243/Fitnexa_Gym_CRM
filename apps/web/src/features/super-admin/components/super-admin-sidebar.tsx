@@ -87,7 +87,11 @@ export function SuperAdminSidebar() {
   return (
     <aside className="w-64 bg-[#0A192F] text-[#FBFBF9] flex flex-col h-full border-r border-[#162E52] select-none shrink-0">
       {/* SaaS Platform Brand Header */}
-      <div className="h-16 flex items-center px-4 border-b border-[#162E52] space-x-3 bg-[#071324]">
+      <Link
+        to="/super-admin"
+        className="h-16 flex items-center px-4 border-b border-[#162E52] space-x-3 bg-[#071324] hover:bg-[#0c1e38] transition-colors cursor-pointer"
+        title="Trifit Platform Master Console"
+      >
         <div className="h-9 w-9 rounded-none bg-[#0A192F] border border-[#162E52] p-1 flex items-center justify-center shrink-0">
           <img src={fitnexaLogo} alt="Trifit Logo" className="h-full w-full object-contain" />
         </div>
@@ -99,7 +103,7 @@ export function SuperAdminSidebar() {
             Platform Master Console
           </span>
         </div>
-      </div>
+      </Link>
 
       {/* Navigation (Only Essential SaaS Platform Controls) */}
       <div className="flex-1 py-4 px-3 overflow-y-auto sidebar-scroll">

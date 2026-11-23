@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -25,9 +25,17 @@ import { DashboardMetricsDto, UserRole } from '@fitnexa/shared';
 
 export function DashboardPage() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, isImpersonating } = useAuth();
   const [selectedBranchId, setSelectedBranchId] = useState<string>('');
   const [branches, setBranches] = useState<any[]>([]);
+
+  const isSuperAdmin = user?.role === UserRole.SUPER_ADMIN && !isImpersonating;
+
+  useEffect(() => {
+    if (isSuperAdmin) {
+      navigate('/super-admin', { replace: true });
+    }
+  }, [isSuperAdmin, navigate]);
 
   const isTrainer = user?.role === UserRole.TRAINER;
   const canBilling = user?.role === UserRole.GYM_OWNER || user?.role === UserRole.BRANCH_MANAGER;
@@ -39,6 +47,7 @@ export function DashboardPage() {
     refetch: fetchDashboardData,
   } = useQuery<DashboardMetricsDto>({
     queryKey: ['executive-dashboard', selectedBranchId],
+    enabled: !isSuperAdmin,
     queryFn: async () => {
       let url = '/analytics/dashboard';
       if (selectedBranchId) {

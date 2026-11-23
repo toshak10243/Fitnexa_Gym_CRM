@@ -6,6 +6,26 @@ import { DashboardMetricsDto } from '@fitnexa/shared';
 @Injectable()
 export class DashboardService {
   async getMasterDashboard(tenantId: string, branchId: string | undefined, from: string, to: string) {
+    if (!tenantId || tenantId === 'system-platform') {
+      return {
+        updatedAt: new Date().toISOString(),
+        members: 0,
+        products: 0,
+        purchases: 0,
+        devices: 0,
+        staff: 0,
+        collections: 0,
+        approvedExpenses: 0,
+        pendingExpenses: 0,
+        posSales: 0,
+        dues: 0,
+        daily: [],
+        categories: [],
+        methods: [],
+        leads: [],
+        sessions: [],
+      };
+    }
     const start = new Date(`${from}T00:00:00+05:30`);
     const end = new Date(`${to}T23:59:59.999+05:30`);
     if (!Number.isFinite(start.getTime()) || !Number.isFinite(end.getTime()) || end < start || end.getTime() - start.getTime() > 93 * 86400000) {
@@ -68,10 +88,52 @@ export class DashboardService {
     return { now, startOfDay, endOfDay, startOfMonth, in7Days, in30Days };
   }
 
+  private getEmptyDashboard(): DashboardMetricsDto {
+    return {
+      generatedAt: new Date().toISOString(),
+      timezone: 'Asia/Kolkata',
+      memberships: {
+        totalActiveMembers: 0,
+        newRegistrationsToday: 0,
+        newRegistrationsThisMonth: 0,
+        activeMemberships: 0,
+        expiringIn7Days: 0,
+        expiringIn30Days: 0,
+        expiredMemberships: 0,
+      },
+      attendance: {
+        todayCheckIns: 0,
+        currentOccupancy: 0,
+        peakHour: 'None',
+        staffOnDuty: 0,
+      },
+      financials: {
+        grossInvoicedRevenuePaise: 0,
+        grossCollectionsPaise: 0,
+        todayCollectionsPaise: 0,
+        outstandingDuesPaise: 0,
+        refundsPaidPaise: 0,
+        operatingExpensesPaise: 0,
+        netOperationalCashPaise: 0,
+        posRetailSalesPaise: 0,
+      },
+      operations: {
+        lowStockItemsCount: 0,
+        newLeadsThisMonth: 0,
+        leadConversionRatePercent: 0,
+        scheduledPtSessionsToday: 0,
+        completedPtSessionsToday: 0,
+      },
+    };
+  }
+
   async getExecutiveDashboard(
     tenantId: string,
     branchId?: string,
   ): Promise<DashboardMetricsDto> {
+    if (!tenantId || tenantId === 'system-platform') {
+      return this.getEmptyDashboard();
+    }
     const cacheKey = `cache:tenant:${tenantId}:dash:${branchId || 'all'}`;
 
     try {

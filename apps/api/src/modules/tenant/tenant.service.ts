@@ -131,6 +131,9 @@ export class TenantService {
   }
 
   async getBranches(tenantId: string): Promise<BranchResponse[]> {
+    if (!tenantId || tenantId === 'system-platform') {
+      return [];
+    }
     const branches = await this.prisma.branch.findMany({
       where: { tenantId },
       orderBy: { createdAt: 'asc' },
