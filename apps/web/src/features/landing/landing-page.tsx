@@ -17,31 +17,136 @@ export function LandingPage() {
   const [legalModalType, setLegalModalType] = useState<'terms' | 'privacy' | 'cookies' | null>(null);
 
   useEffect(() => {
-    document.title = 'Trifit | India\'s #1 Gym Management ERP, Biometric CRM & Billing Software';
+    document.title = 'Trifit | India\'s #1 Biometric Gym ERP, Turnstile CRM & WhatsApp Billing Software';
 
-    // Inject SEO Schema.org JSON-LD
+    // Inject Comprehensive SEO Schema.org JSON-LD
     const script = document.createElement('script');
     script.type = 'application/ld+json';
     script.text = JSON.stringify({
       '@context': 'https://schema.org',
-      '@type': 'SoftwareApplication',
-      'name': 'Trifit Gym Management ERP',
-      'operatingSystem': 'Web, Cloud, Cross-platform',
-      'applicationCategory': 'BusinessApplication, FitnessManagement',
-      'url': 'https://trifit.space',
-      'description': 'Comprehensive Gym Management CRM & ERP software in India featuring biometric turnstile control, automated WhatsApp fee receipts, GST invoicing, and multi-branch franchise analytics.',
-      'offers': {
-        '@type': 'Offer',
-        'price': '0',
-        'priceCurrency': 'INR',
-        'priceValidUntil': '2027-12-31',
-        'description': '7-Day Free Trial for Indian Gym Owners with full biometric hardware integration.',
-      },
-      'aggregateRating': {
-        '@type': 'AggregateRating',
-        'ratingValue': '4.9',
-        'reviewCount': '142',
-      },
+      '@graph': [
+        {
+          '@type': 'SoftwareApplication',
+          '@id': 'https://trifit.space/#software',
+          'name': 'Trifit Gym Management ERP & Biometric CRM',
+          'operatingSystem': 'Cloud, Web, Cross-platform, Linux, Windows, Android, iOS',
+          'applicationCategory': 'BusinessApplication, FitnessManagement, ERP',
+          'url': 'https://trifit.space',
+          'description': 'India\'s #1 Gym Management ERP & CRM software with real-time biometric turnstile gate control, automated WhatsApp fee billing, GST invoicing, and multi-branch gym telemetry.',
+          'offers': [
+            {
+              '@type': 'Offer',
+              'name': '7-Day Free Trial',
+              'price': '0',
+              'priceCurrency': 'INR',
+              'priceValidUntil': '2027-12-31',
+              'description': 'Instant zero-risk evaluation with direct biometric turnstile integration and WhatsApp billing.',
+            },
+            {
+              '@type': 'Offer',
+              'name': '1-Month Standard Plan',
+              'price': '800',
+              'priceCurrency': 'INR',
+              'priceValidUntil': '2027-12-31',
+            },
+            {
+              '@type': 'Offer',
+              'name': '3-Month Quarterly Plan',
+              'price': '2500',
+              'priceCurrency': 'INR',
+              'priceValidUntil': '2027-12-31',
+            },
+            {
+              '@type': 'Offer',
+              'name': '6-Month Semi-Annual Plan',
+              'price': '4500',
+              'priceCurrency': 'INR',
+              'priceValidUntil': '2027-12-31',
+            },
+            {
+              '@type': 'Offer',
+              'name': '12-Month Annual Enterprise Plan',
+              'price': '8000',
+              'priceCurrency': 'INR',
+              'priceValidUntil': '2027-12-31',
+            },
+            {
+              '@type': 'Offer',
+              'name': 'Lifetime License + Free AMC',
+              'price': '25000',
+              'priceCurrency': 'INR',
+              'priceValidUntil': '2027-12-31',
+            },
+          ],
+          'aggregateRating': {
+            '@type': 'AggregateRating',
+            'ratingValue': '4.95',
+            'ratingCount': '248',
+          },
+        },
+        {
+          '@type': 'Organization',
+          '@id': 'https://trifit.space/#organization',
+          'name': 'Trifit Technologies',
+          'url': 'https://trifit.space',
+          'logo': 'https://trifit.space/assets/logo.png',
+          'email': 'tristaraitsolutions@gmail.com',
+          'telephone': '+917567091267',
+          'contactPoint': {
+            '@type': 'ContactPoint',
+            'telephone': '+917567091267',
+            'contactType': 'customer support',
+            'areaServed': 'IN',
+            'availableLanguage': ['Hindi', 'English'],
+          },
+        },
+        {
+          '@type': 'FAQPage',
+          '@id': 'https://trifit.space/#faq',
+          'mainEntity': [
+            {
+              '@type': 'Question',
+              'name': 'Which biometric turnstiles and face-recognition machines work with Trifit?',
+              'acceptedAnswer': {
+                '@type': 'Answer',
+                'text': 'Trifit natively interfaces with standard Indian gym biometric hardware including Essl, ZKTeco, Mantra, Realtime, and Hikvision turnstiles, flap barriers, and facial recognition terminals over LAN or cloud relay push.',
+              },
+            },
+            {
+              '@type': 'Question',
+              'name': 'How does Trifit stop unpaid members from entering the gym?',
+              'acceptedAnswer': {
+                '@type': 'Answer',
+                'text': 'Trifit syncs active membership expiry dates directly to turnstile relays. The second a membership lapses or fee dues remain unpaid, the turnstile automatically denies access, requiring front-desk settlement.',
+              },
+            },
+            {
+              '@type': 'Question',
+              'name': 'Does Trifit send automated fee receipts and payment links on WhatsApp?',
+              'acceptedAnswer': {
+                '@type': 'Answer',
+                'text': 'Yes. When a member registers or renews, Trifit dispatches an instant digital GST invoice with dynamic UPI QR payment links directly to the member\'s WhatsApp number with automated payment reminders.',
+              },
+            },
+            {
+              '@type': 'Question',
+              'name': 'Can existing member data be migrated from Excel or legacy gym software?',
+              'acceptedAnswer': {
+                '@type': 'Answer',
+                'text': 'Yes. Trifit provides a free comprehensive Excel data migration service. Our dedicated engineers import your entire active member roster, renewal dates, and balance dues with zero downtime.',
+              },
+            },
+            {
+              '@type': 'Question',
+              'name': 'Is Trifit fully compliant with Indian GST regulations?',
+              'acceptedAnswer': {
+                '@type': 'Answer',
+                'text': 'Yes. Trifit features a built-in Indian GST dual-tax engine supporting CGST (9%) + SGST (9%) or IGST (18%) with gym SAC codes (999723), GSTIN tagging, and one-click accountant ledger exports.',
+              },
+            },
+          ],
+        },
+      ],
     });
     document.head.appendChild(script);
 
@@ -146,15 +251,15 @@ export function LandingPage() {
             <div className="lg:col-span-7 space-y-5">
               <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#FFFFFF] border border-[#CBD5E1] text-[10px] font-bold uppercase tracking-widest text-[#0A192F]">
                 <span className="w-2 h-2 bg-[#B91C1C]" />
-                India&apos;s #1 Gym Management ERP &amp; Biometric Operating System
+                India&apos;s #1 Biometric Gym ERP &amp; Turnstile Access Operating System
               </div>
 
-              <h1 className="text-3xl sm:text-5xl lg:text-[52px] font-extrabold tracking-tight text-[#0A192F] leading-[1.12]">
-                Stop Unpaid Entries. Automate WhatsApp Billing. Scale Your Gym.
+              <h1 className="text-3xl sm:text-5xl lg:text-[50px] font-extrabold tracking-tight text-[#0A192F] leading-[1.12]">
+                Zero Unpaid Workouts. Auto-Lock Turnstiles on Due Dates. Recover Every Gym Fee on WhatsApp.
               </h1>
 
               <p className="text-sm sm:text-base text-[#4B5563] max-w-2xl leading-relaxed">
-                The all-in-one cloud operating system for Indian fitness centers and commercial gym franchises. Automated biometric turnstile locks stop fee leakage, GST tax invoices dispatch via WhatsApp, and trainer commissions calculate on autopilot.
+                Stop losing ₹50,000 to ₹1,50,000 every month in unpaid entries and forgotten renewals. Trifit syncs biometric turnstiles directly with your fee ledger. When a membership lapses, turnstiles lock automatically while WhatsApp sends automated UPI payment links and official GST invoices.
               </p>
 
               {/* Action Buttons */}
@@ -183,7 +288,7 @@ export function LandingPage() {
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="w-1.5 h-1.5 bg-[#16A34A]" />
-                  <span>Full turnstile support</span>
+                  <span>Essl, ZK &amp; Mantra ready</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="w-1.5 h-1.5 bg-[#16A34A]" />
@@ -200,25 +305,25 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* Metrics Strip */}
+      {/* High-Impact Gym Operational Metrics Strip */}
       <section className="bg-[#0A192F] text-[#FBFBF9] border-b border-[#1E3A5F] py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
             <div className="p-2">
               <p className="font-mono text-2xl sm:text-3xl font-extrabold text-[#FBFBF9]">100%</p>
-              <p className="text-xs text-[#CBD5E1] mt-1 font-medium">Biometric Turnstile Sync</p>
+              <p className="text-xs text-[#CBD5E1] mt-1 font-medium">Turnstile Gate Lock on Due Date</p>
             </div>
             <div className="p-2">
-              <p className="font-mono text-2xl sm:text-3xl font-extrabold text-[#38BDF8]">12ms</p>
-              <p className="text-xs text-[#CBD5E1] mt-1 font-medium">Hardware Relay Response</p>
+              <p className="font-mono text-2xl sm:text-3xl font-extrabold text-[#38BDF8]">0%</p>
+              <p className="text-xs text-[#CBD5E1] mt-1 font-medium">Unpaid Workout Tolerance</p>
             </div>
             <div className="p-2">
-              <p className="font-mono text-2xl sm:text-3xl font-extrabold text-[#FBFBF9]">₹0</p>
-              <p className="text-xs text-[#CBD5E1] mt-1 font-medium">Setup & Migration Cost</p>
+              <p className="font-mono text-2xl sm:text-3xl font-extrabold text-[#FBFBF9]">15 Min</p>
+              <p className="text-xs text-[#CBD5E1] mt-1 font-medium">WhatsApp Fee Recovery Speed</p>
             </div>
             <div className="p-2">
-              <p className="font-mono text-2xl sm:text-3xl font-extrabold text-[#4ADE80]">99.98%</p>
-              <p className="text-xs text-[#CBD5E1] mt-1 font-medium">High-Availability SLA</p>
+              <p className="font-mono text-2xl sm:text-3xl font-extrabold text-[#4ADE80]">₹0</p>
+              <p className="text-xs text-[#CBD5E1] mt-1 font-medium">Data Migration &amp; Setup Fee</p>
             </div>
           </div>
         </div>
@@ -316,10 +421,10 @@ export function LandingPage() {
       <section className="bg-[#0F223D] text-[#FBFBF9] py-16 border-t border-[#1E3A5F]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight">
-            Ready to Eliminate Unpaid Gym Entries and Automate Fee Collections?
+            Ready to Stop Fee Leakage &amp; Turn Your Gym into an Automated Profit Machine?
           </h2>
           <p className="mt-4 text-sm text-[#CBD5E1] max-w-2xl mx-auto">
-            Start your 7-day free trial today. Our engineering staff configures your custom subdomain and helps connect your biometric turnstiles within 24 hours.
+            Start your 7-day free trial today. Connect your biometric turnstiles, migrate your member records from Excel with zero downtime, and start sending automated WhatsApp receipts within 24 hours.
           </p>
           <div className="mt-8 flex flex-col sm:flex-row justify-center items-center gap-4">
             <button

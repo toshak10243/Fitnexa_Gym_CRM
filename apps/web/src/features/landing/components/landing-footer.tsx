@@ -23,14 +23,6 @@ export function LandingFooter({ onOpenTrial, onOpenSubdomain, onOpenLegal }: Lan
               The high-performance operating system and CRM engineered for Indian fitness centers,
               commercial health clubs, CrossFit boxes, and multi-location gym chains.
             </p>
-            <div className="flex items-center gap-4 text-xs font-mono text-[#FBFBF9] pt-2">
-              <span className="flex items-center gap-1.5">
-                <span className="w-2 h-2 bg-[#16A34A]" /> 99.98% System Uptime
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="w-2 h-2 bg-[#38BDF8]" /> 256-Bit SSL Encrypted
-              </span>
-            </div>
           </div>
 
           {/* Column 1: Software Modules */}
